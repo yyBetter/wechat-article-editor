@@ -1,0 +1,549 @@
+/* 主应用样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 顶部导航栏 */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+  background: white;
+  border-bottom: 1px solid #e1e4e8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  font-size: 18px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.sidebar-toggle:hover {
+  background: #f5f5f5;
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e6fff;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.template-info {
+  font-size: 14px;
+  color: #666;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.header-btn {
+  padding: 8px 16px;
+  background: #1e6fff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.header-btn:hover {
+  background: #0052d9;
+}
+
+/* 主要内容区域 */
+.app-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 左侧边栏 */
+.app-sidebar {
+  width: 300px;
+  background: white;
+  border-right: 1px solid #e1e4e8;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-nav {
+  display: flex;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.nav-tab {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-tab:hover {
+  background: #f5f5f5;
+}
+
+.nav-tab.active {
+  background: #e3f2fd;
+  border-bottom-color: #1e6fff;
+  color: #1e6fff;
+  font-weight: 500;
+}
+
+.sidebar-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* 编辑器区域 */
+.editor-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-right: 1px solid #e1e4e8;
+}
+
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #fafbfc;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 4px;
+}
+
+.toolbar-btn {
+  padding: 6px 10px;
+  background: none;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+  background: #f5f5f5;
+  border-color: #c1c9d0;
+}
+
+.editor-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-textarea {
+  flex: 1;
+  padding: 20px;
+  border: none;
+  outline: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+  background: #fdfdfd;
+}
+
+.editor-status {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #f5f5f5;
+  border-top: 1px solid #e1e4e8;
+  font-size: 12px;
+  color: #666;
+}
+
+.status-item {
+  margin-right: 16px;
+}
+
+/* 预览区域 */
+.preview-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.device-switcher {
+  display: flex;
+  gap: 4px;
+}
+
+.device-btn {
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.device-btn:hover {
+  background: #f5f5f5;
+}
+
+.device-btn.active {
+  background: #1e6fff;
+  color: white;
+  border-color: #1e6fff;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: white;
+}
+
+.action-btn.primary {
+  background: #1e6fff;
+  color: white;
+  border-color: #1e6fff;
+}
+
+.action-btn:hover {
+  opacity: 0.8;
+}
+
+.preview-frame {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+}
+
+.preview-frame.mobile .preview-content {
+  max-width: 375px;
+  margin: 0 auto;
+}
+
+.preview-frame.desktop .preview-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.preview-info {
+  display: flex;
+  gap: 20px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e1e4e8;
+  font-size: 12px;
+  color: #666;
+}
+
+.info-item {
+  display: flex;
+  gap: 4px;
+}
+
+.info-label {
+  font-weight: 500;
+}
+
+/* 模板选择器 */
+.template-selector {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.template-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.template-card {
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.template-card:hover {
+  border-color: #1e6fff;
+  box-shadow: 0 2px 8px rgba(30, 111, 255, 0.1);
+}
+
+.template-card.active {
+  border-color: #1e6fff;
+  background: #f8fbff;
+}
+
+.template-preview {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.template-icon {
+  font-size: 24px;
+}
+
+.template-info {
+  flex: 1;
+}
+
+.template-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.template-desc {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.template-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.template-tag {
+  padding: 2px 6px;
+  background: #f0f0f0;
+  border-radius: 12px;
+  font-size: 10px;
+  color: #666;
+}
+
+.template-active-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #1e6fff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.template-variables {
+  margin-top: 24px;
+}
+
+.variables-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.variable-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.variable-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+}
+
+.variable-input {
+  padding: 8px 12px;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.variable-input:focus {
+  outline: none;
+  border-color: #1e6fff;
+}
+
+.fixed-assets {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e1e4e8;
+}
+
+.assets-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.assets-desc {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.template-description {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e1e4e8;
+}
+
+.template-description h4 {
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.template-description p {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.template-features h5 {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.template-features ul {
+  font-size: 11px;
+  color: #666;
+  margin-left: 16px;
+}
+
+.template-features li {
+  margin-bottom: 2px;
+}
+
+/* 底部状态栏 */
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  background: #f5f5f5;
+  border-top: 1px solid #e1e4e8;
+  font-size: 12px;
+  color: #666;
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.version-info {
+  opacity: 0.7;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-main {
+    flex-direction: column;
+  }
+  
+  .app-sidebar {
+    width: 100%;
+    height: 300px;
+  }
+  
+  .editor-section, .preview-section {
+    flex: none;
+    height: 400px;
+  }
+  
+  .header-right .template-info {
+    display: none;
+  }
+}
