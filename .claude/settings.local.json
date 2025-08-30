@@ -14,7 +14,10 @@
       "Bash(curl:*)",
       "Bash(git init:*)",
       "WebFetch(domain:mp.knb.im)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run lint)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

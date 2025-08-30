@@ -139,41 +139,11 @@ export const imageTextTemplate: Template = {
   
   // 固定元素配置
   fixedElements: {
-    // 文章尾部
+    // 文章尾部 - 暂时禁用，等待后续配置
     footer: {
-      template: `
-        {{#if divider}}
-        <div class="article-footer" style="margin-top: 60px; text-align: center;">
-          <div class="divider" style="margin: 40px 0;">
-            <img src="{{divider}}" alt="分割线" style="width: 240px; height: auto; opacity: 0.5;" />
-          </div>
-        </div>
-        {{/if}}
-        
-        {{#if qrcode}}
-        <div class="article-footer" style="margin-top: 60px; text-align: center;">
-          <div class="qr-section" style="margin: 32px 0; background: #f9f9f9; padding: 24px; border-radius: 12px;">
-            <img src="{{qrcode}}" alt="关注二维码" style="width: 140px; height: 140px;" />
-            <p style="margin: 12px 0 0 0; color: #333; font-size: 15px; font-weight: 500;">长按识别二维码关注</p>
-            <p style="margin: 4px 0 0 0; color: #999; font-size: 13px;">获取更多精彩内容</p>
-          </div>
-        </div>
-        {{/if}}
-        
-        {{#if logo}}
-        <div class="article-footer" style="margin-top: 60px; text-align: center;">
-          <div class="brand-logo" style="margin: 32px 0; padding: 24px; background: #f9f9f9; border-radius: 12px;">
-            <img src="{{logo}}" alt="Logo" style="height: 40px; width: auto;" />
-          </div>
-        </div>
-        {{/if}}
-      `,
-      position: 'after', 
-      variables: {
-        qrcode: '{{qrcode}}',
-        divider: '{{divider}}',
-        logo: '{{logo}}'
-      }
+      template: ``,
+      position: 'after',
+      variables: {}
     }
   }
 }

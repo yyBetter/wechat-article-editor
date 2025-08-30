@@ -171,40 +171,11 @@ export const simpleDocTemplate: Template = {
   
   // 固定元素配置
   fixedElements: {
-    // 文章尾部
+    // 文章尾部 - 暂时禁用，等待后续配置
     footer: {
-      template: `
-        {{#if divider}}
-        <div class="article-footer" style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e1e4e8; text-align: center;">
-          <div class="divider" style="margin: 24px 0;">
-            <img src="{{divider}}" alt="分割线" style="width: 200px; height: auto; opacity: 0.6;" />
-          </div>
-        </div>
-        {{/if}}
-        
-        {{#if qrcode}}
-        <div class="article-footer" style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e1e4e8; text-align: center;">
-          <div class="qr-section" style="margin: 24px 0;">
-            <img src="{{qrcode}}" alt="关注二维码" style="width: 120px; height: 120px;" />
-            <p style="margin: 8px 0 0 0; color: #666; font-size: 13px;">扫码关注获取更多精彩内容</p>
-          </div>
-        </div>
-        {{/if}}
-        
-        {{#if logo}}
-        <div class="article-footer" style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e1e4e8; text-align: center;">
-          <div class="brand-logo" style="margin: 24px 0;">
-            <img src="{{logo}}" alt="Logo" style="height: 32px; width: auto;" />
-          </div>
-        </div>
-        {{/if}}
-      `,
+      template: ``,
       position: 'after',
-      variables: {
-        qrcode: '{{qrcode}}',
-        divider: '{{divider}}',
-        logo: '{{logo}}'
-      }
+      variables: {}
     }
   }
 }

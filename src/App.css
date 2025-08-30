@@ -184,6 +184,76 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.editor-wrapper.dragging {
+  background: #f0f8ff;
+  border: 2px dashed #1e6fff;
+  border-radius: 8px;
+}
+
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 111, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.drag-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #1e6fff;
+  font-weight: 500;
+}
+
+.drag-icon {
+  font-size: 48px;
+}
+
+.upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  border-radius: 8px;
+}
+
+.upload-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #1e6fff;
+  font-weight: 500;
+}
+
+.upload-icon {
+  font-size: 32px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .editor-textarea {

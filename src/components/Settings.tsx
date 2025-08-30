@@ -66,50 +66,6 @@ export function Settings() {
         </div>
       </div>
       
-      {/* 品牌固定资源 */}
-      <div className="settings-section">
-        <h4 className="settings-subtitle">🖼️ 品牌资源</h4>
-        <div className="settings-desc">配置一次，在所有文章中自动使用</div>
-        
-        <div className="variable-group">
-          <label className="variable-label">
-            品牌 LOGO
-            <input
-              type="url"
-              value={state.assets.fixedAssets.logo || ''}
-              onChange={(e) => updateFixedAsset('logo', e.target.value)}
-              placeholder="https://example.com/logo.png"
-              className="variable-input"
-            />
-            <div className="input-help">显示在文章头部，建议尺寸：200×60px</div>
-          </label>
-          
-          <label className="variable-label">
-            关注二维码
-            <input
-              type="url"
-              value={state.assets.fixedAssets.qrcode || ''}
-              onChange={(e) => updateFixedAsset('qrcode', e.target.value)}
-              placeholder="https://example.com/qrcode.png"
-              className="variable-input"
-            />
-            <div className="input-help">显示在文章底部，建议尺寸：150×150px</div>
-          </label>
-          
-          <label className="variable-label">
-            装饰分割线
-            <input
-              type="url"
-              value={state.assets.fixedAssets.watermark || ''}
-              onChange={(e) => updateFixedAsset('watermark', e.target.value)}
-              placeholder="https://example.com/divider.png"
-              className="variable-input"
-            />
-            <div className="input-help">用于分割内容，建议宽度：300-400px</div>
-          </label>
-        </div>
-      </div>
-      
       {/* 主题配色 */}
       <div className="settings-section">
         <h4 className="settings-subtitle">🎨 主题配色</h4>

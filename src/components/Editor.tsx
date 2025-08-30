@@ -1,20 +1,79 @@
 // Markdown编辑器组件
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { useApp } from '../utils/app-context'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
+
+// 防抖Hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 
 const templateEngine = new TemplateEngine(templates)
 
 export function Editor() {
   const { state, dispatch } = useApp()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [displayContent, setDisplayContent] = useState('')
   
-  // 处理内容变化
+  // 缓存base64图片映射，避免重复处理
+  const base64Cache = useRef<Map<string, string>>(new Map())
+  
+  // 防抖处理显示内容更新，减少频繁的状态更新
+  const debouncedDisplayContent = useDebounce(displayContent, 150)
+  
+  // 转换显示内容，将长的base64图片替换为简化占位符
+  const convertDisplayContent = useCallback((content: string) => {
+    let counter = 0
+    return content.replace(
+      /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[A-Za-z0-9+/=]+\)/g,
+      (match, alt) => {
+        // 缓存完整的base64图片数据
+        const key = `img_${counter++}`
+        base64Cache.current.set(key, match)
+        return `![${alt}](🖼️ ${key})`
+      }
+    )
+  }, [])
+
+  // 转换编辑内容，将简化占位符还原为实际内容
+  const convertEditContent = useCallback((displayContent: string) => {
+    // 使用缓存的数据快速还原
+    return displayContent.replace(
+      /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
+      (match, alt, key) => {
+        const cachedImage = base64Cache.current.get(key)
+        return cachedImage || match
+      }
+    )
+  }, [])
+  
+  // 处理内容变化 - 立即更新显示，延迟更新实际内容
   const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const content = e.target.value
-    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: content })
-  }, [dispatch])
+    const newDisplayContent = e.target.value
+    setDisplayContent(newDisplayContent)
+  }, [])
+  
+  // 防抖更新实际内容，避免频繁处理
+  useEffect(() => {
+    const actualContent = convertEditContent(debouncedDisplayContent)
+    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: actualContent })
+  }, [debouncedDisplayContent, convertEditContent, dispatch])
   
   // 自动更新预览
   useEffect(() => {
@@ -61,7 +120,7 @@ export function Editor() {
     
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = state.editor.content.substring(start, end)
+    const selectedText = displayContent.substring(start, end)
     
     let newText = ''
     switch (syntax) {
@@ -93,19 +152,151 @@ export function Editor() {
         newText = selectedText
     }
     
-    const newContent = 
-      state.editor.content.substring(0, start) +
+    const newDisplayContent = 
+      displayContent.substring(0, start) +
       newText +
-      state.editor.content.substring(end)
+      displayContent.substring(end)
     
-    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: newContent })
+    setDisplayContent(newDisplayContent)
+    
+    // 转换为实际内容并更新
+    const actualContent = convertEditContent(newDisplayContent)
+    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: actualContent })
     
     // 重新聚焦并设置光标位置
     setTimeout(() => {
       textarea.focus()
       textarea.setSelectionRange(start + newText.length, start + newText.length)
     }, 10)
-  }, [state.editor.content, dispatch])
+  }, [displayContent, convertEditContent, dispatch])
+
+  // 同步显示内容
+  useEffect(() => {
+    setDisplayContent(convertDisplayContent(state.editor.content))
+  }, [state.editor.content, convertDisplayContent])
+
+  // 将文件转换为Base64
+  const fileToBase64 = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }, [])
+
+  // 处理图片文件上传
+  const handleImageUpload = useCallback(async (file: File) => {
+    try {
+      // 验证文件大小 (限制5MB)
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      if (file.size > maxSize) {
+        alert('图片文件过大，请选择小于5MB的图片')
+        return
+      }
+
+      setIsUploading(true)
+
+      // 转换为Base64格式
+      const base64Url = await fileToBase64(file)
+      
+      // 插入图片Markdown语法
+      const textarea = textareaRef.current
+      if (textarea) {
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const fileName = file.name.replace(/\.[^/.]+$/, "") // 去掉扩展名作为alt文本
+        
+        // 创建实际的base64图片markdown
+        const actualImageMarkdown = `![${fileName}](${base64Url})`
+        
+        // 生成唯一的缓存key
+        const cacheKey = `img_${Date.now()}`
+        base64Cache.current.set(cacheKey, actualImageMarkdown)
+        
+        // 创建显示用的简化版本
+        const displayImageMarkdown = `![${fileName}](🖼️ ${cacheKey})`
+        
+        // 只更新显示内容，实际内容通过防抖机制自动更新
+        const newDisplayContent = 
+          displayContent.substring(0, start) +
+          displayImageMarkdown +
+          displayContent.substring(end)
+        setDisplayContent(newDisplayContent)
+        
+        // 重新聚焦
+        setTimeout(() => {
+          textarea.focus()
+          textarea.setSelectionRange(start + displayImageMarkdown.length, start + displayImageMarkdown.length)
+        }, 10)
+      }
+    } catch (error) {
+      console.error('图片上传失败:', error)
+      alert('图片上传失败，请重试')
+    } finally {
+      setIsUploading(false)
+    }
+  }, [displayContent, fileToBase64])
+
+  // 处理文件选择
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      handleImageUpload(file)
+    }
+    // 清空input以便重复选择同一文件
+    e.target.value = ''
+  }, [handleImageUpload])
+
+  // 处理剪贴板粘贴
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = Array.from(e.clipboardData.items)
+    const imageItem = items.find(item => item.type.startsWith('image/'))
+    
+    if (imageItem) {
+      e.preventDefault()
+      const file = imageItem.getAsFile()
+      if (file) {
+        handleImageUpload(file)
+      }
+    }
+  }, [handleImageUpload])
+
+  // 处理拖拽
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }, [])
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    // 只有当离开整个编辑器区域时才设置为false
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false)
+    }
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    const imageFile = files.find(file => file.type.startsWith('image/'))
+    
+    if (imageFile) {
+      handleImageUpload(imageFile)
+    }
+  }, [handleImageUpload])
+
+  // 优化图片按钮点击
+  const handleImageButtonClick = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
   
   return (
     <div className="editor-container">
@@ -150,8 +341,8 @@ export function Editor() {
           
           <button 
             type="button"
-            onClick={() => insertMarkdown('image')}
-            title="图片"
+            onClick={handleImageButtonClick}
+            title="插入图片 (支持截图粘贴)"
             className="toolbar-btn"
           >
             🖼️
@@ -189,14 +380,50 @@ export function Editor() {
       </div>
       
       {/* 编辑器 */}
-      <div className="editor-wrapper">
+      <div 
+        className={`editor-wrapper ${isDragging ? 'dragging' : ''}`}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <textarea
           ref={textareaRef}
-          value={state.editor.content}
+          value={displayContent}
           onChange={handleContentChange}
-          placeholder="在此输入你的文章内容..."
+          onPaste={handlePaste}
+          placeholder="在此输入你的文章内容... 📝 支持 Ctrl+V 粘贴截图、拖拽图片文件"
           className="editor-textarea"
           spellCheck={false}
+        />
+        
+        {/* 拖拽提示层 */}
+        {isDragging && (
+          <div className="drag-overlay">
+            <div className="drag-message">
+              <span className="drag-icon">📸</span>
+              <span>拖放图片到这里</span>
+            </div>
+          </div>
+        )}
+        
+        {/* 上传状态提示 */}
+        {isUploading && (
+          <div className="upload-overlay">
+            <div className="upload-message">
+              <span className="upload-icon">⏳</span>
+              <span>正在处理图片...</span>
+            </div>
+          </div>
+        )}
+        
+        {/* 隐藏的文件输入 */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
         />
         
         {/* 状态栏 */}
