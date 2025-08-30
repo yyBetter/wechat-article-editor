@@ -12,7 +12,9 @@
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)",
       "Bash(curl:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "WebFetch(domain:mp.knb.im)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

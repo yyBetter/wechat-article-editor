@@ -230,9 +230,16 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 16px;
   background: white;
   border-bottom: 1px solid #e1e4e8;
+  font-size: 12px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .device-switcher {
@@ -262,7 +269,41 @@ body {
 
 .preview-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+}
+
+.copy-tip-inline {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.copy-tip-inline kbd {
+  background: #e9ecef;
+  color: #495057;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-family: monospace;
+  border: 1px solid #ced4da;
+}
+
+.preview-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+}
+
+.stat-item {
+  font-size: 12px;
+}
+
+.stat-divider {
+  color: #ccc;
 }
 
 .action-btn {
@@ -301,24 +342,43 @@ body {
   margin: 0 auto;
 }
 
-.preview-info {
-  display: flex;
-  gap: 20px;
-  padding: 12px 16px;
+.preview-content.selectable {
   background: white;
-  border-top: 1px solid #e1e4e8;
+  border: 2px dashed transparent;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+
+.preview-content.selectable:hover {
+  border-color: #1e6fff;
+  box-shadow: 0 4px 12px rgba(30, 111, 255, 0.1);
+}
+
+.preview-content.selectable:focus {
+  border-color: #1e6fff;
+  box-shadow: 0 4px 12px rgba(30, 111, 255, 0.15);
+}
+
+.preview-content.selectable:focus::after {
+  content: "✓ 已选中预览区域，现在可以按 Ctrl+A 全选内容";
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e6fff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 12px;
-  color: #666;
+  white-space: nowrap;
+  z-index: 1000;
 }
 
-.info-item {
-  display: flex;
-  gap: 4px;
+.preview-frame {
+  position: relative;
 }
 
-.info-label {
-  font-weight: 500;
-}
 
 /* 模板选择器 */
 .template-selector {

@@ -1,5 +1,5 @@
 // 预览组件  
-import React, { useMemo, useRef } from 'react'
+import React, { useMemo, useRef, useEffect } from 'react'
 import { useApp } from '../utils/app-context'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
@@ -11,9 +11,9 @@ export function Preview() {
   const previewRef = useRef<HTMLDivElement>(null)
   
   // 生成预览HTML
-  const previewHTML = useMemo(() => {
+  const previewData = useMemo(() => {
     if (!state.templates.current || !state.editor.content) {
-      return ''
+      return { previewHTML: '', copyHTML: '' }
     }
     
     try {
@@ -38,10 +38,41 @@ export function Preview() {
       const secondaryColor = brandColors[1]
       const accentColor = brandColors[2]
 
-      // 生成微信公众号标准样式的HTML
-      return `
+      // 将CSS样式转换为内联样式，确保复制时保持格式
+      const inlineStyledHTML = `
+        <div style="
+          max-width: 677px;
+          margin: 0 auto;
+          padding: 20px 16px;
+          background: #ffffff;
+          font-family: -apple-system-font, 'Helvetica Neue', sans-serif;
+          font-size: 17px;
+          line-height: 1.6;
+          color: #333333;
+          word-wrap: break-word;
+        ">
+          ${html.replace(/<h1[^>]*>/g, `<h1 style="font-size: 24px; font-weight: bold; color: ${secondaryColor || '#000000'}; line-height: 1.3; margin: 20px 0; text-align: center;">`)
+               .replace(/<h2[^>]*>/g, `<h2 style="font-size: 20px; font-weight: bold; color: ${primaryColor || '#1e6fff'}; line-height: 1.4; margin: 25px 0 15px 0; border-left: 4px solid ${primaryColor || '#1e6fff'}; padding-left: 12px;">`)
+               .replace(/<h3[^>]*>/g, `<h3 style="font-size: 18px; font-weight: bold; color: ${secondaryColor || '#333333'}; line-height: 1.4; margin: 20px 0 10px 0;">`)
+               .replace(/<p[^>]*>/g, '<p style="font-size: 17px; line-height: 1.75; color: #333333; margin: 15px 0; text-align: justify; word-wrap: break-word;">')
+               .replace(/<strong[^>]*>/g, `<strong style="font-weight: bold; color: ${primaryColor || '#333333'};">`)
+               .replace(/<a([^>]*)>/g, `<a$1 style="color: ${primaryColor || '#576b95'}; text-decoration: underline;">`)
+               .replace(/<em[^>]*>/g, '<em style="font-style: italic; color: #333333;">')
+               .replace(/<ul[^>]*>/g, '<ul style="margin: 15px 0; padding-left: 20px;">')
+               .replace(/<ol[^>]*>/g, '<ol style="margin: 15px 0; padding-left: 20px;">')
+               .replace(/<li[^>]*>/g, '<li style="margin: 8px 0; font-size: 17px; line-height: 1.75; color: #333333;">')
+               .replace(/<blockquote[^>]*>/g, '<blockquote style="margin: 15px 0; padding: 15px; background-color: #f7f7f7; border-left: 4px solid #d0d0d0; font-style: italic; color: #666666;">')
+               .replace(/<img([^>]*)>/g, '<img$1 style="max-width: 100%; height: auto; display: block; margin: 15px auto;">')
+               .replace(/<code[^>]*>/g, '<code style="background-color: #f0f0f0; padding: 2px 4px; border-radius: 3px; font-family: Monaco, Menlo, monospace; font-size: 14px; color: #d73a49;">')
+               .replace(/<pre[^>]*>/g, '<pre style="background-color: #f8f8f8; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 15px 0;">')
+               .replace(/<hr[^>]*>/g, '<hr style="border: none; height: 1px; background-color: #e0e0e0; margin: 30px 0;">')
+          }
+        </div>
+      `
+
+      // 同时生成带外部样式的版本用于预览显示
+      const previewHTML = `
         <style>
-          /* 微信公众号标准样式 */
           .wechat-article {
             max-width: 677px;
             margin: 0 auto;
@@ -53,12 +84,9 @@ export function Preview() {
             color: #333333;
             word-wrap: break-word;
           }
-
           .wechat-content {
             padding: 20px 16px;
-            min-height: 100vh;
           }
-
           .wechat-article h1 {
             font-size: 24px;
             font-weight: bold;
@@ -67,7 +95,6 @@ export function Preview() {
             margin: 20px 0;
             text-align: center;
           }
-
           .wechat-article h2 {
             font-size: 20px;
             font-weight: bold;
@@ -77,7 +104,6 @@ export function Preview() {
             border-left: 4px solid ${primaryColor || '#1e6fff'};
             padding-left: 12px;
           }
-
           .wechat-article h3 {
             font-size: 18px;
             font-weight: bold;
@@ -85,7 +111,6 @@ export function Preview() {
             line-height: 1.4;
             margin: 20px 0 10px 0;
           }
-
           .wechat-article p {
             font-size: 17px;
             line-height: 1.75;
@@ -94,39 +119,28 @@ export function Preview() {
             text-align: justify;
             word-wrap: break-word;
           }
-
           .wechat-article a {
             color: ${primaryColor || '#576b95'};
             text-decoration: underline;
           }
-
           .wechat-article strong {
+            font-weight: bold;
             color: ${primaryColor || '#333333'};
-            font-weight: bold;
           }
-
-          .wechat-article strong {
-            font-weight: bold;
-            color: #333333;
-          }
-
           .wechat-article em {
             font-style: italic;
             color: #333333;
           }
-
           .wechat-article ul, .wechat-article ol {
             margin: 15px 0;
             padding-left: 20px;
           }
-
           .wechat-article li {
             margin: 8px 0;
             font-size: 17px;
             line-height: 1.75;
             color: #333333;
           }
-
           .wechat-article blockquote {
             margin: 15px 0;
             padding: 15px;
@@ -135,14 +149,12 @@ export function Preview() {
             font-style: italic;
             color: #666666;
           }
-
           .wechat-article img {
             max-width: 100%;
             height: auto;
             display: block;
             margin: 15px auto;
           }
-
           .wechat-article code {
             background-color: #f0f0f0;
             padding: 2px 4px;
@@ -151,7 +163,6 @@ export function Preview() {
             font-size: 14px;
             color: #d73a49;
           }
-
           .wechat-article pre {
             background-color: #f8f8f8;
             padding: 15px;
@@ -159,60 +170,12 @@ export function Preview() {
             overflow-x: auto;
             margin: 15px 0;
           }
-
           .wechat-article hr {
             border: none;
             height: 1px;
             background-color: #e0e0e0;
             margin: 30px 0;
           }
-
-          /* 头部样式 */
-          .wechat-header {
-            text-align: center;
-            padding: 20px 0 30px 0;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 30px;
-          }
-
-          .wechat-header .title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #000000;
-            line-height: 1.3;
-            margin: 0 0 15px 0;
-          }
-
-          .wechat-header .meta {
-            font-size: 14px;
-            color: #8c8c8c;
-          }
-
-          /* 尾部样式 */
-          .wechat-footer {
-            text-align: center;
-            padding: 40px 0 30px 0;
-            border-top: 1px solid #e0e0e0;
-            margin-top: 40px;
-          }
-
-          .wechat-footer .qrcode {
-            width: 150px;
-            height: 150px;
-            margin: 0 auto 15px auto;
-          }
-
-          .wechat-footer .qr-text {
-            font-size: 14px;
-            color: #8c8c8c;
-            margin-bottom: 20px;
-          }
-
-          .wechat-footer .copyright {
-            font-size: 12px;
-            color: #bbb;
-          }
-
           ${css}
         </style>
         
@@ -222,9 +185,15 @@ export function Preview() {
           </div>
         </div>
       `
+
+      // 返回两个版本：一个用于预览显示，一个用于复制
+      return { previewHTML, copyHTML: inlineStyledHTML }
     } catch (error) {
       console.error('Preview generation error:', error)
-      return '<div style="padding: 20px; color: red;">预览生成失败，请检查内容格式</div>'
+      return { 
+        previewHTML: '<div style="padding: 20px; color: red;">预览生成失败，请检查内容格式</div>',
+        copyHTML: '<div style="padding: 20px; color: red;">预览生成失败，请检查内容格式</div>'
+      }
     }
   }, [state.editor.content, state.templates.current, state.templates.variables])
   
@@ -275,27 +244,65 @@ export function Preview() {
     }
   }
 
-  // 复制纯文本内容
-  const copyPlainText = async () => {
-    try {
-      // 从Markdown生成纯文本
-      const plainText = state.editor.content
-        .replace(/#{1,6}\s/g, '') // 移除标题标记
-        .replace(/\*\*(.*?)\*\*/g, '$1') // 移除粗体标记
-        .replace(/\*(.*?)\*/g, '$1') // 移除斜体标记
-        .replace(/`(.*?)`/g, '$1') // 移除代码标记
-        .replace(/!\[.*?\]\(.*?\)/g, '[图片]') // 图片替换为文本
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // 链接只保留文字
-        .replace(/>\s?/g, '') // 移除引用标记
-        .replace(/[-*+]\s/g, '• ') // 列表标记替换
-        .replace(/\n\s*\n/g, '\n') // 合并多个换行
-        .trim()
 
-      await navigator.clipboard.writeText(plainText)
-      alert('纯文本内容已复制到剪贴板')
-    } catch (error) {
-      console.error('Copy failed:', error)
-      alert('复制失败')
+  // 处理预览区域的键盘事件
+  const handlePreviewKeyDown = (e: React.KeyboardEvent) => {
+    // 检测Ctrl+A (Windows) 或 Cmd+A (Mac)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      e.preventDefault() // 阻止默认的全页面选择
+      
+      // 创建包含内联样式的临时元素用于复制
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = previewData.copyHTML
+      tempDiv.style.position = 'absolute'
+      tempDiv.style.left = '-9999px'
+      tempDiv.style.opacity = '0'
+      document.body.appendChild(tempDiv)
+      
+      try {
+        const range = document.createRange()
+        const selection = window.getSelection()
+        
+        // 选择临时元素的内容
+        range.selectNodeContents(tempDiv)
+        selection?.removeAllRanges()
+        selection?.addRange(range)
+        
+        // 给用户一个视觉反馈
+        const notification = document.createElement('div')
+        notification.textContent = '✓ 已选择格式化内容，按 Ctrl+C 复制'
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #4CAF50;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 4px;
+          font-size: 14px;
+          z-index: 10000;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `
+        document.body.appendChild(notification)
+        
+        // 3秒后移除通知
+        setTimeout(() => {
+          document.body.removeChild(notification)
+          document.body.removeChild(tempDiv)
+        }, 3000)
+        
+      } catch (error) {
+        console.error('Selection failed:', error)
+        document.body.removeChild(tempDiv)
+      }
+    }
+  }
+
+  // 添加焦点处理，确保预览区域可以接收键盘事件
+  const handlePreviewClick = () => {
+    if (previewRef.current) {
+      previewRef.current.focus()
     }
   }
   
@@ -303,70 +310,58 @@ export function Preview() {
     <div className="preview-container">
       {/* 预览工具栏 */}
       <div className="preview-toolbar">
-        <div className="device-switcher">
-          <button
-            type="button"
-            className={`device-btn ${state.ui.deviceMode === 'mobile' ? 'active' : ''}`}
-            onClick={() => handleDeviceModeChange('mobile')}
-            title="手机预览"
-          >
-            📱
-          </button>
-          <button
-            type="button"
-            className={`device-btn ${state.ui.deviceMode === 'desktop' ? 'active' : ''}`}
-            onClick={() => handleDeviceModeChange('desktop')}
-            title="桌面预览"
-          >
-            💻
-          </button>
+        <div className="toolbar-left">
+          <div className="device-switcher">
+            <button
+              type="button"
+              className={`device-btn ${state.ui.deviceMode === 'mobile' ? 'active' : ''}`}
+              onClick={() => handleDeviceModeChange('mobile')}
+              title="手机预览"
+            >
+              📱
+            </button>
+            <button
+              type="button"
+              className={`device-btn ${state.ui.deviceMode === 'desktop' ? 'active' : ''}`}
+              onClick={() => handleDeviceModeChange('desktop')}
+              title="桌面预览"
+            >
+              💻
+            </button>
+          </div>
+          
+          <div className="preview-stats">
+            <span className="stat-item">{state.templates.current?.name}</span>
+            <span className="stat-divider">·</span>
+            <span className="stat-item">{state.editor.content.length} 字符</span>
+            <span className="stat-divider">·</span>
+            <span className="stat-item">{Math.max(1, Math.ceil(state.editor.content.length / 400))} 分钟</span>
+          </div>
         </div>
         
-        <div className="preview-actions">
-          <button
-            type="button"
-            onClick={copyRichContent}
-            className="action-btn primary"
-            title="复制富文本，可直接粘贴到微信公众号"
-          >
-            复制到公众号
-          </button>
-          <button
-            type="button"
-            onClick={copyPlainText}
-            className="action-btn secondary"
-            title="复制纯文本内容"
-          >
-            复制文本
-          </button>
+        <div className="copy-tip-inline">
+          点击预览区域，按 <kbd>Ctrl+A</kbd> 全选，<kbd>Ctrl+C</kbd> 复制
         </div>
       </div>
       
-      {/* 预览内容 */}
+      {/* 预览内容 - 关键：让这个区域可以直接全选复制 */}
       <div className={`preview-frame ${state.ui.deviceMode}`}>
         <div 
           ref={previewRef}
-          className="preview-content"
-          dangerouslySetInnerHTML={{ __html: previewHTML }}
+          className="preview-content selectable"
+          style={{
+            userSelect: 'text',
+            WebkitUserSelect: 'text',
+            MozUserSelect: 'text',
+            msUserSelect: 'text',
+            cursor: 'text',
+            outline: 'none'
+          }}
+          tabIndex={0}
+          onKeyDown={handlePreviewKeyDown}
+          onClick={handlePreviewClick}
+          dangerouslySetInnerHTML={{ __html: previewData.previewHTML }}
         />
-      </div>
-      
-      {/* 预览信息 */}
-      <div className="preview-info">
-        <div className="info-item">
-          <span className="info-label">当前模板:</span>
-          <span className="info-value">{state.templates.current?.name}</span>
-        </div>
-        <div className="info-item">
-          <span className="info-label">字符数:</span>
-          <span className="info-value">{state.editor.content.length}</span>
-        </div>
-        <div className="info-item">
-          <span className="info-label">预计阅读:</span>
-          <span className="info-value">
-            {Math.max(1, Math.ceil(state.editor.content.length / 400))} 分钟
-          </span>
-        </div>
       </div>
     </div>
   )

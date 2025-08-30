@@ -252,16 +252,7 @@ export class TemplateEngine {
   ): string {
     let result = html
     
-    // 注入头部元素
-    if (template.fixedElements.header) {
-      const headerHTML = this.renderTemplateString(
-        template.fixedElements.header.template,
-        variables
-      )
-      result = headerHTML + result
-    }
-    
-    // 注入尾部元素  
+    // 只注入尾部元素（根据用户配置条件显示）
     if (template.fixedElements.footer) {
       const footerHTML = this.renderTemplateString(
         template.fixedElements.footer.template,

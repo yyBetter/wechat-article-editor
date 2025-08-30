@@ -171,59 +171,39 @@ export const simpleDocTemplate: Template = {
   
   // 固定元素配置
   fixedElements: {
-    // 文章头部
-    header: {
-      template: `
-        <div class="article-header" style="text-align: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid #e1e4e8;">
-          {{#if logo}}
-          <div class="brand-logo" style="margin-bottom: 12px;">
-            <img src="{{logo}}" alt="Logo" style="height: 32px; width: auto;" />
-          </div>
-          {{/if}}
-          <h1 style="margin: 0 0 8px 0; font-size: 22px; font-weight: bold; color: #000;">{{title}}</h1>
-          {{#if author}}
-          <div class="article-meta" style="color: #666; font-size: 13px;">
-            <span>{{author}}</span>
-            {{#if date}} · <span>{{date}}</span>{{/if}}
-          </div>
-          {{/if}}
-        </div>
-      `,
-      position: 'before',
-      variables: {
-        logo: '{{logo}}',
-        title: '{{title}}',
-        author: '{{author}}',
-        date: '{{date}}'
-      }
-    },
-    
     // 文章尾部
     footer: {
       template: `
+        {{#if divider}}
         <div class="article-footer" style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e1e4e8; text-align: center;">
-          {{#if divider}}
           <div class="divider" style="margin: 24px 0;">
             <img src="{{divider}}" alt="分割线" style="width: 200px; height: auto; opacity: 0.6;" />
           </div>
-          {{/if}}
-          
-          {{#if qrcode}}
+        </div>
+        {{/if}}
+        
+        {{#if qrcode}}
+        <div class="article-footer" style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e1e4e8; text-align: center;">
           <div class="qr-section" style="margin: 24px 0;">
             <img src="{{qrcode}}" alt="关注二维码" style="width: 120px; height: 120px;" />
             <p style="margin: 8px 0 0 0; color: #666; font-size: 13px;">扫码关注获取更多精彩内容</p>
           </div>
-          {{/if}}
-          
-          <div class="copyright" style="margin-top: 20px; color: #999; font-size: 12px;">
-            <p style="margin: 0;">本文由公众号排版工具生成</p>
+        </div>
+        {{/if}}
+        
+        {{#if logo}}
+        <div class="article-footer" style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e1e4e8; text-align: center;">
+          <div class="brand-logo" style="margin: 24px 0;">
+            <img src="{{logo}}" alt="Logo" style="height: 32px; width: auto;" />
           </div>
         </div>
+        {{/if}}
       `,
       position: 'after',
       variables: {
         qrcode: '{{qrcode}}',
-        divider: '{{divider}}'
+        divider: '{{divider}}',
+        logo: '{{logo}}'
       }
     }
   }

@@ -139,60 +139,40 @@ export const imageTextTemplate: Template = {
   
   // 固定元素配置
   fixedElements: {
-    // 文章头部
-    header: {
-      template: `
-        <div class="article-header" style="text-align: center; margin-bottom: 48px;">
-          {{#if logo}}
-          <div class="brand-logo" style="margin-bottom: 20px;">
-            <img src="{{logo}}" alt="Logo" style="height: 40px; width: auto;" />
-          </div>
-          {{/if}}
-          <h1 style="margin: 0 0 12px 0; font-size: 28px; font-weight: bold; color: #000; letter-spacing: 1px;">{{title}}</h1>
-          {{#if author}}
-          <div class="article-meta" style="color: #666; font-size: 14px; margin-bottom: 32px;">
-            <span>{{author}}</span>
-            {{#if date}} · <span>{{date}}</span>{{/if}}
-          </div>
-          {{/if}}
-        </div>
-      `,
-      position: 'before',
-      variables: {
-        logo: '{{logo}}',
-        title: '{{title}}',
-        author: '{{author}}',
-        date: '{{date}}'
-      }
-    },
-    
     // 文章尾部
     footer: {
       template: `
+        {{#if divider}}
         <div class="article-footer" style="margin-top: 60px; text-align: center;">
-          {{#if divider}}
           <div class="divider" style="margin: 40px 0;">
             <img src="{{divider}}" alt="分割线" style="width: 240px; height: auto; opacity: 0.5;" />
           </div>
-          {{/if}}
-          
-          {{#if qrcode}}
+        </div>
+        {{/if}}
+        
+        {{#if qrcode}}
+        <div class="article-footer" style="margin-top: 60px; text-align: center;">
           <div class="qr-section" style="margin: 32px 0; background: #f9f9f9; padding: 24px; border-radius: 12px;">
             <img src="{{qrcode}}" alt="关注二维码" style="width: 140px; height: 140px;" />
             <p style="margin: 12px 0 0 0; color: #333; font-size: 15px; font-weight: 500;">长按识别二维码关注</p>
             <p style="margin: 4px 0 0 0; color: #999; font-size: 13px;">获取更多精彩内容</p>
           </div>
-          {{/if}}
-          
-          <div class="copyright" style="margin-top: 32px; color: #ccc; font-size: 12px; padding: 16px 0; border-top: 1px solid #f0f0f0;">
-            <p style="margin: 0;">- END -</p>
+        </div>
+        {{/if}}
+        
+        {{#if logo}}
+        <div class="article-footer" style="margin-top: 60px; text-align: center;">
+          <div class="brand-logo" style="margin: 32px 0; padding: 24px; background: #f9f9f9; border-radius: 12px;">
+            <img src="{{logo}}" alt="Logo" style="height: 40px; width: auto;" />
           </div>
         </div>
+        {{/if}}
       `,
       position: 'after', 
       variables: {
         qrcode: '{{qrcode}}',
-        divider: '{{divider}}'
+        divider: '{{divider}}',
+        logo: '{{logo}}'
       }
     }
   }
