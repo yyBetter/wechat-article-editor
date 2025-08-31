@@ -67,6 +67,14 @@ export const Preview = memo(function Preview() {
       const primaryColor = brandColors[0]
       const secondaryColor = brandColors[1]
       const accentColor = brandColors[2]
+      
+      // 调试信息
+      console.log('🎨 预览组件品牌色彩调试:', {
+        brandColors,
+        primaryColor,
+        secondaryColor,
+        combinedVariables
+      })
 
       // 将CSS样式转换为内联样式，确保复制时保持格式
       const inlineStyledHTML = `
@@ -390,7 +398,7 @@ export const Preview = memo(function Preview() {
           tabIndex={0}
           onKeyDown={handlePreviewKeyDown}
           onClick={handlePreviewClick}
-          dangerouslySetInnerHTML={{ __html: state.preview.html || previewData.previewHTML }}
+          dangerouslySetInnerHTML={{ __html: previewData.previewHTML }}
         />
       </div>
     </div>
