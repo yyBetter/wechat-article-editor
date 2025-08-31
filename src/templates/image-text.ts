@@ -88,9 +88,12 @@ export const imageTextTemplate: Template = {
       // 图片 - 统一样式和间距
       img: {
         width: '100%',
+        maxWidth: '100%',
+        height: 'auto',
         marginBottom: '12px',
         borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        display: 'block'
       },
       
       // 分割线
@@ -111,9 +114,12 @@ export const imageTextTemplate: Template = {
       // 图片样式
       image: {
         width: '100%',
+        maxWidth: '100%',
+        height: 'auto',
         marginBottom: '12px',
         borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        display: 'block'
       },
       
       // 图片标题

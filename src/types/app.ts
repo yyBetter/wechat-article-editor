@@ -43,6 +43,7 @@ export interface TemplateState {
 // 资源状态
 export interface AssetState {
   images: ContentAsset[]
+  imageMap: Record<string, string> // 图片占位符到真实base64的映射
   fixedAssets: FixedAssetConfig
   uploadQueue: UploadQueueItem[]
   cdnConfig: CDNConfig | null
@@ -123,6 +124,7 @@ export type AppAction =
   | { type: 'SET_PREVIEW_HTML'; payload: string }
   | { type: 'ADD_ASSET'; payload: ContentAsset }
   | { type: 'REMOVE_ASSET'; payload: string }
+  | { type: 'UPDATE_IMAGE_MAP'; payload: { id: string; data: string } }
   | { type: 'UPDATE_FIXED_ASSETS'; payload: Partial<FixedAssetConfig> }
   | { type: 'SET_UI_STATE'; payload: Partial<UIState> }
   | { type: 'EXPORT_START' }

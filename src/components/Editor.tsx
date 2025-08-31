@@ -1,10 +1,11 @@
-// Markdown编辑器组件
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
+// Markdown编辑器组件 - 高性能优化版本
+import React, { useCallback, useEffect, useRef, useState, useMemo, memo } from 'react'
 import { useApp } from '../utils/app-context'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
+import { notification } from '../utils/notification'
 
-// 防抖Hook
+// 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
 
@@ -21,9 +22,86 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue
 }
 
+// 高性能图片管理器
+class ImageManager {
+  private cache = new Map<string, string>()
+  private displayCache = new Map<string, string>()
+  private idCounter = 0
+  
+  // 缓存base64图片并返回占位符
+  cacheImage(base64Data: string, alt: string = ''): string {
+    // 检查是否已缓存
+    const existing = Array.from(this.cache.entries()).find(([, value]) => value === base64Data)
+    if (existing) {
+      return `![${alt}](🖼️ ${existing[0]})`
+    }
+    
+    const key = `img_${this.idCounter++}`
+    this.cache.set(key, base64Data)
+    const placeholder = `![${alt}](🖼️ ${key})`
+    this.displayCache.set(placeholder, base64Data)
+    return placeholder
+  }
+  
+  // 还原占位符为实际图片数据
+  restoreImage(placeholder: string): string {
+    const cached = this.displayCache.get(placeholder)
+    return cached || placeholder
+  }
+  
+  // 批量转换显示内容（仅在需要时执行regex）
+  convertToDisplay(content: string): string {
+    if (!content.includes('data:image/')) {
+      return content
+    }
+    
+    return content.replace(
+      /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[A-Za-z0-9+/=]+\)/g,
+      (match, alt) => this.cacheImage(match, alt)
+    )
+  }
+  
+  // 批量还原实际内容
+  convertToActual(displayContent: string): string {
+    if (!displayContent.includes('🖼️')) {
+      return displayContent
+    }
+    
+    return displayContent.replace(
+      /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
+      (match, alt, key) => {
+        const cached = this.cache.get(key)
+        return cached || match
+      }
+    )
+  }
+  
+  // 清理未使用的缓存
+  cleanup(currentContent: string): void {
+    const usedKeys = new Set<string>()
+    const matches = currentContent.matchAll(/🖼️ (img_\d+)/g)
+    for (const match of matches) {
+      usedKeys.add(match[1])
+    }
+    
+    for (const key of this.cache.keys()) {
+      if (!usedKeys.has(key)) {
+        this.cache.delete(key)
+        // 从显示缓存中移除相关条目
+        for (const [placeholder, data] of this.displayCache.entries()) {
+          if (data === this.cache.get(key)) {
+            this.displayCache.delete(placeholder)
+          }
+        }
+      }
+    }
+  }
+}
+
 const templateEngine = new TemplateEngine(templates)
 
-export function Editor() {
+// 使用 React.memo 优化组件渲染性能
+export const Editor = memo(function Editor() {
   const { state, dispatch } = useApp()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -31,87 +109,137 @@ export function Editor() {
   const [isUploading, setIsUploading] = useState(false)
   const [displayContent, setDisplayContent] = useState('')
   
-  // 缓存base64图片映射，避免重复处理
-  const base64Cache = useRef<Map<string, string>>(new Map())
+  // 简化的图片映射管理
+  const imageMap = useRef(new Map<string, string>())
+  const imageIdCounter = useRef(0)
   
-  // 防抖处理显示内容更新，减少频繁的状态更新
-  const debouncedDisplayContent = useDebounce(displayContent, 150)
+  // 优化防抖延迟，减少用户输入延迟感知
+  const debouncedDisplayContent = useDebounce(displayContent, 100)
   
-  // 转换显示内容，将长的base64图片替换为简化占位符
-  const convertDisplayContent = useCallback((content: string) => {
-    let counter = 0
-    return content.replace(
-      /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[A-Za-z0-9+/=]+\)/g,
-      (match, alt) => {
-        // 缓存完整的base64图片数据
-        const key = `img_${counter++}`
-        base64Cache.current.set(key, match)
-        return `![${alt}](🖼️ ${key})`
-      }
-    )
-  }, [])
-
-  // 转换编辑内容，将简化占位符还原为实际内容
-  const convertEditContent = useCallback((displayContent: string) => {
-    // 使用缓存的数据快速还原
-    return displayContent.replace(
+  // 将占位符还原为实际图片数据（供预览使用）
+  const restoreImagesForPreview = useCallback((content: string) => {
+    if (!content || !content.includes('🖼️')) {
+      return content
+    }
+    
+    console.log('🔍 预览还原调试:', {
+      content,
+      mapSize: imageMap.current.size,
+      mapKeys: Array.from(imageMap.current.keys())
+    })
+    
+    // 还原所有图片占位符
+    const restored = content.replace(
       /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
-      (match, alt, key) => {
-        const cachedImage = base64Cache.current.get(key)
-        return cachedImage || match
+      (match, alt, imageId) => {
+        const actualImage = imageMap.current.get(imageId)
+        console.log(`🔧 还原图片: ${imageId} -> ${actualImage ? '找到' : '未找到'}`)
+        return actualImage || `![${alt}](图片丢失: ${imageId})`
+      }
+    )
+    
+    console.log('✅ 还原结果:', restored.substring(0, 200) + '...')
+    return restored
+  }, [])
+  
+  // 初始化时转换显示内容
+  const convertToDisplayContent = useCallback((content: string) => {
+    if (!content || !content.includes('data:image/')) {
+      return content
+    }
+    
+    // 将长base64图片转换为占位符
+    return content.replace(
+      /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[A-Za-z0-9+/=]{200,}\)/g,
+      (match, alt) => {
+        // 为已存在的图片创建映射
+        const imageId = `img_${imageIdCounter.current++}`
+        imageMap.current.set(imageId, match)
+        return `![${alt}](🖼️ ${imageId})`
       }
     )
   }, [])
   
-  // 处理内容变化 - 立即更新显示，延迟更新实际内容
+  // 处理用户输入变化
   const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newDisplayContent = e.target.value
     setDisplayContent(newDisplayContent)
-  }, [])
+    
+    // 直接同步到实际内容（普通输入不做转换）
+    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: newDisplayContent })
+  }, [dispatch])
   
-  // 防抖更新实际内容，避免频繁处理
-  useEffect(() => {
-    const actualContent = convertEditContent(debouncedDisplayContent)
-    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: actualContent })
-  }, [debouncedDisplayContent, convertEditContent, dispatch])
+  // 移除防抖更新，改为直接同步（在handleContentChange中）
   
-  // 自动更新预览
+  // 使用显示内容进行预览，确保包含占位符
+  const debouncedPreviewContent = useDebounce(displayContent, 300)
+  
+  // 分离模板分析和预览渲染，优化性能
+  const templateAnalysis = useMemo(() => {
+    if (!debouncedPreviewContent) return null
+    try {
+      return templateEngine.analyzeContent(debouncedPreviewContent)
+    } catch (error) {
+      console.error('Template analysis error:', error)
+      return null
+    }
+  }, [debouncedPreviewContent])
+  
+  // 自动模板推荐（仅在分析结果变化时执行）
   useEffect(() => {
-    if (state.templates.current && state.editor.content) {
-      try {
-        // 分析内容并推荐模板
-        const analysis = templateEngine.analyzeContent(state.editor.content)
-        
-        // 如果当前没有手动选择模板，使用推荐模板
-        if (state.templates.current.id !== analysis.suggestedTemplate) {
-          const recommendedTemplate = templates.find(t => t.id === analysis.suggestedTemplate)
-          if (recommendedTemplate && !state.templates.variables.title) {
-            dispatch({ type: 'SELECT_TEMPLATE', payload: analysis.suggestedTemplate })
-          }
+    if (templateAnalysis && state.templates.current) {
+      const { suggestedTemplate } = templateAnalysis
+      if (state.templates.current.id !== suggestedTemplate) {
+        const recommendedTemplate = templates.find(t => t.id === suggestedTemplate)
+        if (recommendedTemplate && !state.templates.variables.title) {
+          dispatch({ type: 'SELECT_TEMPLATE', payload: suggestedTemplate })
         }
-        
-        // 合并模板变量和品牌资源
-        const combinedVariables = {
-          ...state.templates.variables,
-          brandColors: state.assets.fixedAssets.brandColors,
-          logo: state.assets.fixedAssets.logo,
-          qrcode: state.assets.fixedAssets.qrcode,
-          divider: state.assets.fixedAssets.watermark
-        }
-        
-        // 渲染预览
-        const { html, css } = templateEngine.renderTemplate(
-          state.templates.current.id,
-          state.editor.content,
-          combinedVariables
-        )
-        
-        dispatch({ type: 'SET_PREVIEW_HTML', payload: html })
-      } catch (error) {
-        console.error('Preview rendering error:', error)
       }
     }
-  }, [state.editor.content, state.templates.current, state.templates.variables, dispatch])
+  }, [templateAnalysis, state.templates.current, state.templates.variables.title, dispatch])
+  
+  // 预览渲染（仅在相关依赖变化时执行）
+  const previewData = useMemo(() => {
+    if (!state.templates.current || !debouncedPreviewContent) {
+      return null
+    }
+    
+    try {
+      // 合并模板变量和品牌资源
+      const combinedVariables = {
+        ...state.templates.variables,
+        brandColors: state.assets.fixedAssets.brandColors,
+        logo: state.assets.fixedAssets.logo,
+        qrcode: state.assets.fixedAssets.qrcode,
+        divider: state.assets.fixedAssets.watermark
+      }
+      
+      // 先将占位符还原为实际图片数据
+      const contentWithImages = restoreImagesForPreview(debouncedPreviewContent)
+      
+      return templateEngine.renderTemplate(
+        state.templates.current.id,
+        contentWithImages,
+        combinedVariables
+      )
+    } catch (error) {
+      console.error('Preview rendering error:', error)
+      return null
+    }
+  }, [
+    state.templates.current,
+    debouncedPreviewContent,
+    state.templates.variables,
+    state.assets.fixedAssets,
+    restoreImagesForPreview
+  ])
+  
+  // 更新预览HTML（仅在需要时）
+  useEffect(() => {
+    if (previewData?.html) {
+      dispatch({ type: 'SET_PREVIEW_HTML', payload: previewData.html })
+    }
+  }, [previewData, dispatch])
   
   // 插入Markdown语法辅助函数
   const insertMarkdown = useCallback((syntax: string, placeholder = '') => {
@@ -159,28 +287,73 @@ export function Editor() {
     
     setDisplayContent(newDisplayContent)
     
-    // 转换为实际内容并更新
-    const actualContent = convertEditContent(newDisplayContent)
-    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: actualContent })
+    // 直接更新实际内容
+    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: newDisplayContent })
     
     // 重新聚焦并设置光标位置
     setTimeout(() => {
       textarea.focus()
       textarea.setSelectionRange(start + newText.length, start + newText.length)
     }, 10)
-  }, [displayContent, convertEditContent, dispatch])
+  }, [displayContent, dispatch])
 
-  // 同步显示内容
+  // 初始化时转换显示内容（仅在加载时执行一次）
   useEffect(() => {
-    setDisplayContent(convertDisplayContent(state.editor.content))
-  }, [state.editor.content, convertDisplayContent])
+    if (!displayContent && state.editor.content) {
+      const initialDisplayContent = convertToDisplayContent(state.editor.content)
+      setDisplayContent(initialDisplayContent)
+    }
+  }, [state.editor.content, displayContent, convertToDisplayContent])
 
+  // 图片压缩函数
+  const compressImage = useCallback((file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      
+      img.onload = () => {
+        // 计算新尺寸
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width
+          width = maxWidth
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        
+        // 绘制并压缩
+        ctx?.drawImage(img, 0, 0, width, height)
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            // 创建新的File对象
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            })
+            resolve(compressedFile)
+          } else {
+            resolve(file) // 压缩失败时返回原文件
+          }
+        }, 'image/jpeg', quality)
+      }
+      
+      img.onerror = () => resolve(file) // 加载失败时返回原文件
+      img.src = URL.createObjectURL(file)
+    })
+  }, [])
+  
   // 将文件转换为Base64
   const fileToBase64 = useCallback((file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = () => resolve(reader.result as string)
-      reader.onerror = reject
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error)
+        reject(new Error('文件读取失败'))
+      }
       reader.readAsDataURL(file)
     })
   }, [])
@@ -188,55 +361,122 @@ export function Editor() {
   // 处理图片文件上传
   const handleImageUpload = useCallback(async (file: File) => {
     try {
-      // 验证文件大小 (限制5MB)
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      if (file.size > maxSize) {
-        alert('图片文件过大，请选择小于5MB的图片')
+      // 验证文件类型
+      if (!file.type.startsWith('image/')) {
+        notification.warning('请选择图片文件', {
+          details: '支持的格式: PNG, JPG, JPEG, GIF, WebP'
+        })
         return
       }
-
+      
+      // 验证文件大小并进行智能压缩
+      const maxSize = 2 * 1024 * 1024 // 2MB
+      let processedFile = file
+      
       setIsUploading(true)
+      
+      if (file.size > maxSize) {
+        // 尝试压缩图片
+        console.log(`图片过大 (${(file.size / 1024 / 1024).toFixed(2)}MB)，正在压缩...`)
+        processedFile = await compressImage(file)
+        
+        // 如果压缩后仍然过大，使用更高压缩率
+        if (processedFile.size > maxSize) {
+          processedFile = await compressImage(file, 800, 0.6)
+        }
+        
+        // 最终检查
+        if (processedFile.size > maxSize) {
+          notification.error('图片文件仍然过大', {
+            title: `压缩后仍有 ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`,
+            details: '建议:选择更小的图片或使用图片压缩工具先进行压缩',
+            duration: 6000
+          })
+          return
+        }
+        
+        console.log(`压缩完成: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`)
+        notification.success('图片压缩完成', {
+          details: `${(file.size / 1024 / 1024).toFixed(2)}MB → ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`
+        })
+      }
 
       // 转换为Base64格式
-      const base64Url = await fileToBase64(file)
+      const base64Url = await fileToBase64(processedFile)
       
       // 插入图片Markdown语法
       const textarea = textareaRef.current
       if (textarea) {
         const start = textarea.selectionStart
         const end = textarea.selectionEnd
-        const fileName = file.name.replace(/\.[^/.]+$/, "") // 去掉扩展名作为alt文本
+        const fileName = processedFile.name.replace(/\.[^/.]+$/, "") // 去掉扩展名作为alt文本
+        const sizeInfo = processedFile !== file ? ` (已压缩: ${(processedFile.size / 1024).toFixed(0)}KB)` : ''
         
-        // 创建实际的base64图片markdown
-        const actualImageMarkdown = `![${fileName}](${base64Url})`
+        // 生成图片ID用于占位
+        const imageId = `img_${imageIdCounter.current++}`
         
-        // 生成唯一的缓存key
-        const cacheKey = `img_${Date.now()}`
-        base64Cache.current.set(cacheKey, actualImageMarkdown)
+        // 存储实际的base64数据到本地映射和全局状态
+        const actualImageMarkdown = `![${fileName}${sizeInfo}](${base64Url})`
+        imageMap.current.set(imageId, actualImageMarkdown)
         
-        // 创建显示用的简化版本
-        const displayImageMarkdown = `![${fileName}](🖼️ ${cacheKey})`
+        // 同时更新全局状态中的图片映射
+        dispatch({ 
+          type: 'UPDATE_IMAGE_MAP', 
+          payload: { id: imageId, data: actualImageMarkdown }
+        })
         
-        // 只更新显示内容，实际内容通过防抖机制自动更新
+        // 在编辑器中显示简洁的占位符
+        const placeholderMarkdown = `![${fileName}${sizeInfo}](🖼️ ${imageId})`
+        
+        // 更新显示内容使用占位符，实际内容存储完整数据
         const newDisplayContent = 
           displayContent.substring(0, start) +
-          displayImageMarkdown +
+          placeholderMarkdown +
           displayContent.substring(end)
         setDisplayContent(newDisplayContent)
+        
+        // 实际内容也暂时使用占位符，预览时会还原
+        dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: newDisplayContent })
         
         // 重新聚焦
         setTimeout(() => {
           textarea.focus()
-          textarea.setSelectionRange(start + displayImageMarkdown.length, start + displayImageMarkdown.length)
+          textarea.setSelectionRange(start + placeholderMarkdown.length, start + placeholderMarkdown.length)
         }, 10)
+        
+        // 显示成功提示
+        notification.success('图片上传成功', {
+          details: processedFile !== file ? '已自动压缩优化' : '已插入到编辑器'
+        })
       }
     } catch (error) {
       console.error('图片上传失败:', error)
-      alert('图片上传失败，请重试')
+      
+      // 提供更详细的错误信息
+      let errorTitle = '图片上传失败'
+      let errorDetails = '请重试或选择其他图片'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('文件读取失败')) {
+          errorTitle = '文件读取失败'
+          errorDetails = '请检查文件是否损坏或尝试其他图片文件'
+        } else if (error.message.includes('网络')) {
+          errorTitle = '网络错误'
+          errorDetails = '请检查网络连接后重试'
+        } else {
+          errorTitle = '处理失败'
+          errorDetails = error.message
+        }
+      }
+      
+      notification.error(errorTitle, {
+        details: errorDetails,
+        duration: 8000
+      })
     } finally {
       setIsUploading(false)
     }
-  }, [displayContent, fileToBase64])
+  }, [displayContent, fileToBase64, compressImage])
 
   // 处理文件选择
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -298,10 +538,24 @@ export function Editor() {
     fileInputRef.current?.click()
   }, [])
   
-  return (
-    <div className="editor-container">
-      {/* 工具栏 */}
-      <div className="editor-toolbar">
+  // 清理损坏的base64内容
+  const cleanupBrokenContent = useCallback(() => {
+    // 使用更简单的字符串操作来清理base64内容
+    let cleanContent = state.editor.content
+    
+    // 查找并替换长base64图片
+    const base64ImageRegex = new RegExp('!\\[([^\\]]*)\\]\\(data:image\\/[^;]+;base64,[A-Za-z0-9+/=]{100,}\\)', 'g')
+    cleanContent = cleanContent.replace(base64ImageRegex, '![图片已清理](🖼️ 请重新上传)')
+    
+    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: cleanContent })
+    notification.info('已清理损坏的图片内容', {
+      details: '请重新上传您的图片'
+    })
+  }, [state.editor.content, dispatch])
+  
+  // 工具栏组件 - 使用 memo 避免不必要的重渲染
+  const ToolbarComponent = useMemo(() => (
+    <div className="editor-toolbar">
         <div className="toolbar-group">
           <button 
             type="button"
@@ -343,9 +597,10 @@ export function Editor() {
             type="button"
             onClick={handleImageButtonClick}
             title="插入图片 (支持截图粘贴)"
-            className="toolbar-btn"
+            className={`toolbar-btn image-upload ${isUploading ? 'uploading' : ''}`}
+            disabled={isUploading}
           >
-            🖼️
+            {isUploading ? '⏳' : '🖼️'}
           </button>
         </div>
         
@@ -376,8 +631,35 @@ export function Editor() {
           >
             💻
           </button>
+          
+          <button 
+            type="button"
+            onClick={cleanupBrokenContent}
+            title="清理损坏的图片内容"
+            className="toolbar-btn"
+            style={{ background: '#ff6b6b', color: 'white' }}
+          >
+            🧹
+          </button>
         </div>
-      </div>
+    </div>
+  ), [cleanupBrokenContent])
+  
+  // 编辑器状态栏组件 - 使用 memo 优化
+  const StatusComponent = useMemo(() => (
+    <div className="editor-status">
+      <span className="status-item">
+        字数: {state.editor.content.length}
+      </span>
+      <span className="status-item">
+        {state.editor.isChanged ? '未保存' : '已保存'}
+      </span>
+    </div>
+  ), [state.editor.content.length, state.editor.isChanged])
+  
+  return (
+    <div className="editor-container">
+      {ToolbarComponent}
       
       {/* 编辑器 */}
       <div 
@@ -413,6 +695,9 @@ export function Editor() {
             <div className="upload-message">
               <span className="upload-icon">⏳</span>
               <span>正在处理图片...</span>
+              <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.8 }}>
+                正在压缩和优化，请稍候
+              </div>
             </div>
           </div>
         )}
@@ -427,15 +712,8 @@ export function Editor() {
         />
         
         {/* 状态栏 */}
-        <div className="editor-status">
-          <span className="status-item">
-            字数: {state.editor.content.length}
-          </span>
-          <span className="status-item">
-            {state.editor.isChanged ? '未保存' : '已保存'}
-          </span>
-        </div>
+        {StatusComponent}
       </div>
     </div>
   )
-}
+})

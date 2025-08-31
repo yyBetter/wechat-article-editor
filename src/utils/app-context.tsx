@@ -50,6 +50,7 @@ const initialState: AppState = {
   
   assets: {
     images: [],
+    imageMap: {},
     fixedAssets: {
       logo: null,
       qrcode: null,
@@ -138,6 +139,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
         assets: {
           ...state.assets,
           images: state.assets.images.filter(img => img.id !== action.payload)
+        }
+      }
+      
+    case 'UPDATE_IMAGE_MAP':
+      return {
+        ...state,
+        assets: {
+          ...state.assets,
+          imageMap: {
+            ...state.assets.imageMap,
+            [action.payload.id]: action.payload.data
+          }
         }
       }
       

@@ -154,9 +154,12 @@ export const simpleDocTemplate: Template = {
       // 图片
       img: {
         width: '100%',
+        maxWidth: '100%',
+        height: 'auto',
         marginBottom: '16px',
         borderRadius: '4px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        display: 'block'
       },
       
       // 分割线

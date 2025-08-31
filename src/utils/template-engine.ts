@@ -7,6 +7,12 @@ import { ContentStructure, ContentMetadata } from '../types/content'
 export class TemplateEngine {
   private templates: Map<string, Template> = new Map()
   
+  // 性能优化：增加缓存机制
+  private cssCache = new Map<string, string>()
+  private markdownCache = new Map<string, string>()
+  private analysisCache = new Map<string, ContentMetadata>()
+  private templateStringCache = new Map<string, string>()
+  
   constructor(templates: Template[]) {
     templates.forEach(template => {
       this.templates.set(template.id, template)
@@ -23,19 +29,37 @@ export class TemplateEngine {
     })
   }
   
-  // 解析Markdown内容
+  // 解析Markdown内容（增加缓存）
   parseMarkdown(content: string): string {
+    // 检查缓存
+    if (this.markdownCache.has(content)) {
+      return this.markdownCache.get(content)!
+    }
+    
     try {
       const html = marked(content)
-      return DOMPurify.sanitize(html)
+      const sanitized = DOMPurify.sanitize(html)
+      
+      // 缓存结果（限制缓存大小避免内存泄露）
+      if (this.markdownCache.size > 100) {
+        this.markdownCache.clear()
+      }
+      this.markdownCache.set(content, sanitized)
+      
+      return sanitized
     } catch (error) {
       console.error('Markdown parsing error:', error)
       return content
     }
   }
   
-  // 分析内容特征
+  // 分析内容特征（增加缓存）
   analyzeContent(content: string): ContentMetadata {
+    // 检查缓存
+    if (this.analysisCache.has(content)) {
+      return this.analysisCache.get(content)!
+    }
+    
     const lines = content.split('\n')
     const words = content.replace(/[^\u4e00-\u9fa5\w]/g, ' ').split(/\s+/).filter(w => w.length > 0)
     
@@ -63,7 +87,7 @@ export class TemplateEngine {
     const wordCount = words.length
     const estimatedReadTime = Math.ceil(wordCount / 200) // 假设每分钟200字
     
-    return {
+    const result = {
       wordCount,
       imageCount,
       estimatedReadTime,
@@ -77,6 +101,14 @@ export class TemplateEngine {
         hasCode
       })
     }
+    
+    // 缓存结果（限制缓存大小）
+    if (this.analysisCache.size > 50) {
+      this.analysisCache.clear()
+    }
+    this.analysisCache.set(content, result)
+    
+    return result
   }
   
   // 智能推荐模板
@@ -142,16 +174,25 @@ export class TemplateEngine {
     }
   }
   
-  // 生成CSS样式
+  // 生成CSS样式（增加缓存）
   private generateCSS(template: Template, variables?: TemplateVariables): string {
     const { styles } = template
-    let css = ''
     
     // 获取品牌色彩
     const brandColors = variables?.brandColors || ['#1e6fff', '#333333', '#666666']
     const primaryColor = brandColors[0]
     const secondaryColor = brandColors[1] || '#333333'
     const accentColor = brandColors[2] || '#666666'
+    
+    // 创建缓存键（包括模板和品牌色）
+    const cacheKey = `${template.id}-${primaryColor}-${secondaryColor}-${accentColor}`
+    
+    // 检查缓存
+    if (this.cssCache.has(cacheKey)) {
+      return this.cssCache.get(cacheKey)!
+    }
+    
+    let css = ''
     
     // 容器样式
     css += `.article-container {\n`
@@ -219,6 +260,12 @@ export class TemplateEngine {
       css += `}\n\n`
     }
     
+    // 缓存CSS结果（限制缓存大小）
+    if (this.cssCache.size > 20) {
+      this.cssCache.clear()
+    }
+    this.cssCache.set(cacheKey, css)
+    
     return css
   }
   
@@ -264,8 +311,17 @@ export class TemplateEngine {
     return result
   }
   
-  // 简单模板变量替换
+  // 简单模板变量替换（增加缓存）
   private renderTemplateString(template: string, variables: TemplateVariables): string {
+    // 创建缓存键（包括模板和变量）
+    const variablesKey = JSON.stringify(variables)
+    const cacheKey = `${template}-${variablesKey}`
+    
+    // 检查缓存
+    if (this.templateStringCache.has(cacheKey)) {
+      return this.templateStringCache.get(cacheKey)!
+    }
+    
     let result = template
     
     // 多轮处理条件语句，直到没有条件语句为止
@@ -299,7 +355,15 @@ export class TemplateEngine {
     // 清理多余的空白行
     result = result.replace(/\n\s*\n\s*\n/g, '\n\n')
     
-    return result.trim()
+    const finalResult = result.trim()
+    
+    // 缓存结果（限制缓存大小）
+    if (this.templateStringCache.size > 30) {
+      this.templateStringCache.clear()
+    }
+    this.templateStringCache.set(cacheKey, finalResult)
+    
+    return finalResult
   }
   
   // 用容器包装HTML
@@ -320,5 +384,23 @@ export class TemplateEngine {
   // 获取所有模板
   getAllTemplates(): Template[] {
     return Array.from(this.templates.values())
+  }
+  
+  // 清理所有缓存（用于内存管理）
+  clearCaches(): void {
+    this.cssCache.clear()
+    this.markdownCache.clear()
+    this.analysisCache.clear()
+    this.templateStringCache.clear()
+  }
+  
+  // 获取缓存统计信息
+  getCacheStats(): { css: number; markdown: number; analysis: number; templateString: number } {
+    return {
+      css: this.cssCache.size,
+      markdown: this.markdownCache.size,
+      analysis: this.analysisCache.size,
+      templateString: this.templateStringCache.size
+    }
   }
 }

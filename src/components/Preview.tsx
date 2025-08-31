@@ -1,15 +1,42 @@
-// 预览组件  
-import React, { useMemo, useRef, useEffect } from 'react'
+// 预览组件 - 高性能优化版本
+import React, { useMemo, useRef, useEffect, memo, useCallback } from 'react'
 import { useApp } from '../utils/app-context'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
 
 const templateEngine = new TemplateEngine(templates)
 
-export function Preview() {
+// 使用 React.memo 优化组件渲染性能
+export const Preview = memo(function Preview() {
   const { state, dispatch } = useApp()
   const previewRef = useRef<HTMLDivElement>(null)
   
+  // 还原图片占位符为真实图片数据的函数
+  const restoreImagePlaceholders = useCallback((content: string) => {
+    if (!content.includes('🖼️')) {
+      return content
+    }
+    
+    let restoredContent = content
+    const { imageMap } = state.assets
+    
+    // 还原所有图片占位符
+    restoredContent = restoredContent.replace(
+      /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
+      (match, alt, imageId) => {
+        const actualImageData = imageMap[imageId]
+        if (actualImageData) {
+          return actualImageData
+        } else {
+          console.warn(`图片映射未找到: ${imageId}`)
+          return `![${alt}](图片加载失败: ${imageId})`
+        }
+      }
+    )
+    
+    return restoredContent
+  }, [state.assets.imageMap])
+
   // 生成预览HTML
   const previewData = useMemo(() => {
     if (!state.templates.current || !state.editor.content) {
@@ -17,6 +44,9 @@ export function Preview() {
     }
     
     try {
+      // 还原图片占位符为真实图片数据
+      const contentWithImages = restoreImagePlaceholders(state.editor.content)
+      
       // 合并模板变量和品牌资源
       const combinedVariables = {
         ...state.templates.variables,
@@ -28,7 +58,7 @@ export function Preview() {
       
       const { html, css } = templateEngine.renderTemplate(
         state.templates.current.id,
-        state.editor.content,
+        contentWithImages,
         combinedVariables
       )
       
@@ -195,19 +225,19 @@ export function Preview() {
         copyHTML: '<div style="padding: 20px; color: red;">预览生成失败，请检查内容格式</div>'
       }
     }
-  }, [state.editor.content, state.templates.current, state.templates.variables])
+  }, [state.editor.content, state.templates.current, state.templates.variables, state.assets.imageMap, restoreImagePlaceholders])
   
-  // 处理设备模式切换
-  const handleDeviceModeChange = (mode: 'mobile' | 'desktop') => {
+  // 优化事件处理器，使用 useCallback 保持引用稳定
+  const handleDeviceModeChange = useCallback((mode: 'mobile' | 'desktop') => {
     dispatch({ type: 'SET_UI_STATE', payload: { ...state.ui, deviceMode: mode } })
-  }
+  }, [dispatch, state.ui])
   
-  // 复制富文本内容到剪贴板（适用于微信公众号）
-  const copyRichContent = async () => {
+  // 优化复制功能，使用 useCallback 缓存
+  const copyRichContent = useCallback(async () => {
     try {
       // 创建临时div来渲染富文本
       const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = previewHTML
+      tempDiv.innerHTML = previewData.previewHTML
       tempDiv.style.position = 'absolute'
       tempDiv.style.left = '-9999px'
       document.body.appendChild(tempDiv)
@@ -236,17 +266,17 @@ export function Preview() {
       
       // 降级方案：复制HTML代码
       try {
-        await navigator.clipboard.writeText(previewHTML)
+        await navigator.clipboard.writeText(previewData.previewHTML)
         alert('已复制HTML代码到剪贴板')
       } catch {
         alert('复制失败，请手动选择内容复制')
       }
     }
-  }
+  }, [previewData.previewHTML])
 
 
-  // 处理预览区域的键盘事件
-  const handlePreviewKeyDown = (e: React.KeyboardEvent) => {
+  // 优化键盘事件处理，使用 useCallback
+  const handlePreviewKeyDown = useCallback((e: React.KeyboardEvent) => {
     // 检测Ctrl+A (Windows) 或 Cmd+A (Mac)
     if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
       e.preventDefault() // 阻止默认的全页面选择
@@ -297,14 +327,14 @@ export function Preview() {
         document.body.removeChild(tempDiv)
       }
     }
-  }
+  }, [previewData.copyHTML])
 
-  // 添加焦点处理，确保预览区域可以接收键盘事件
-  const handlePreviewClick = () => {
+  // 优化点击处理，使用 useCallback
+  const handlePreviewClick = useCallback(() => {
     if (previewRef.current) {
       previewRef.current.focus()
     }
-  }
+  }, [])
   
   return (
     <div className="preview-container">
@@ -360,9 +390,9 @@ export function Preview() {
           tabIndex={0}
           onKeyDown={handlePreviewKeyDown}
           onClick={handlePreviewClick}
-          dangerouslySetInnerHTML={{ __html: previewData.previewHTML }}
+          dangerouslySetInnerHTML={{ __html: state.preview.html || previewData.previewHTML }}
         />
       </div>
     </div>
   )
-}
+})
