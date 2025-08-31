@@ -79,4 +79,4 @@ coverage/
 .dynamodb/
 
 # TernJS port file
-.tern-port
+.tern-port.claude/
