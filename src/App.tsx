@@ -6,6 +6,7 @@ import { Editor } from './components/Editor'
 import { Preview } from './components/Preview'
 import { TemplateSelector } from './components/TemplateSelector'
 import { DocumentList } from './components/DocumentList'
+import { VersionHistory } from './components/VersionHistory'
 import { PublishGuide } from './components/PublishGuide'
 import { PublishFlow } from './components/PublishFlow'
 import { Settings } from './components/Settings'
@@ -19,6 +20,7 @@ function AppContent() {
   const { state, dispatch } = useApp()
   const { login } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [versionHistoryDocument, setVersionHistoryDocument] = useState<string | null>(null)
   
   // 切换侧边栏
   const toggleSidebar = () => {
@@ -50,6 +52,23 @@ function AppContent() {
         payload: user.brandSettings
       })
     }
+  }
+
+  // 显示版本历史
+  const handleShowVersionHistory = (documentId: string) => {
+    setVersionHistoryDocument(documentId)
+    switchPanel('documents') // 确保在文档面板中
+  }
+
+  // 关闭版本历史
+  const handleCloseVersionHistory = () => {
+    setVersionHistoryDocument(null)
+  }
+
+  // 版本恢复后的处理
+  const handleVersionRestore = (document: any) => {
+    console.log('版本恢复成功:', document.title)
+    // 可以添加额外的UI反馈
   }
   
   return (
@@ -137,15 +156,26 @@ function AppContent() {
             {/* 侧边栏内容 */}
             <div className="sidebar-content">
               {state.ui.activePanel === 'documents' && (
-                <DocumentList 
-                  onNewDocument={() => {
-                    // 清空编辑器内容，开始新文档
-                    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
-                    dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
-                    // 切换回模板选择面板
-                    switchPanel('templates')
-                  }}
-                />
+                <>
+                  {versionHistoryDocument ? (
+                    <VersionHistory 
+                      documentId={versionHistoryDocument}
+                      onRestoreVersion={handleVersionRestore}
+                      onClose={handleCloseVersionHistory}
+                    />
+                  ) : (
+                    <DocumentList 
+                      onNewDocument={() => {
+                        // 清空编辑器内容，开始新文档
+                        dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+                        dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
+                        // 切换回模板选择面板
+                        switchPanel('templates')
+                      }}
+                      onShowVersionHistory={handleShowVersionHistory}
+                    />
+                  )}
+                </>
               )}
               {state.ui.activePanel === 'templates' && <TemplateSelector />}
               {state.ui.activePanel === 'settings' && <Settings />}

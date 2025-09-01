@@ -1084,6 +1084,383 @@ body {
   color: #6c757d;
 }
 
+/* 版本历史样式 */
+.version-history-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.version-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e1e4e8;
+  background: #fafbfc;
+}
+
+.toolbar-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.current-doc-info {
+  font-size: 14px;
+  font-weight: 400;
+  color: #666;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.toolbar-btn.create-snapshot {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.toolbar-btn.create-snapshot:hover:not(:disabled) {
+  background: #218838;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.current-version-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #e3f2fd;
+  border-bottom: 1px solid #e1e4e8;
+  font-size: 12px;
+}
+
+.current-version-badge {
+  background: #1e6fff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.version-count {
+  color: #666;
+}
+
+.version-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.version-item {
+  padding: 16px;
+  border-bottom: 1px solid #e1e4e8;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.version-item:hover {
+  background: #f8f9fa;
+}
+
+.version-item.selected {
+  background: #e3f2fd;
+  border-left: 3px solid #1e6fff;
+}
+
+.version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.version-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.version-number {
+  font-family: monospace;
+  font-size: 12px;
+  background: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.version-type {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: white;
+  font-weight: 500;
+}
+
+.version-time {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.version-content {
+  margin-bottom: 8px;
+}
+
+.version-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.version-reason {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+.version-metadata {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.meta-item {
+  font-size: 11px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.version-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 4px 8px;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-btn.view:hover {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.action-btn.restore:hover {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.action-btn.delete:hover {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+/* 版本详情模态框 */
+.version-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.version-detail-content {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  max-height: 80vh;
+  width: 90%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e4e8;
+  background: #f8f9fa;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  color: #6c757d;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.version-meta-info {
+  margin-bottom: 20px;
+}
+
+.meta-row {
+  display: flex;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.meta-label {
+  font-weight: 600;
+  min-width: 80px;
+  color: #333;
+  font-size: 14px;
+}
+
+.meta-value {
+  font-size: 14px;
+  color: #666;
+}
+
+.version-type-badge {
+  color: white !important;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.version-content-preview h4 {
+  font-size: 14px;
+  margin: 16px 0 8px 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.content-text {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.title-text {
+  font-weight: 600;
+}
+
+.content-preview {
+  font-family: monospace;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.version-actions-detail {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e1e4e8;
+}
+
+.detail-action-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.restore-btn {
+  background: #28a745;
+  color: white;
+}
+
+.restore-btn:hover {
+  background: #218838;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .app-main {

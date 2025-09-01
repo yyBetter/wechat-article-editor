@@ -187,50 +187,82 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json(createErrorResponse('文档不存在', 'DOCUMENT_NOT_FOUND'))
     }
     
-    // 准备更新数据
-    const updateData: any = {}
+    // 检查内容是否有实质性变更（用于版本历史）
+    const hasContentChange = content !== undefined && content !== existingDocument.content
+    const hasTitleChange = title !== undefined && title !== existingDocument.title
+    const hasTemplateChange = templateId !== undefined && templateId !== existingDocument.templateId
+    const hasVariableChange = templateVariables !== undefined && 
+      JSON.stringify(templateVariables) !== existingDocument.templateVariables
     
-    if (title !== undefined) updateData.title = title
-    if (content !== undefined) {
-      updateData.content = content
-      
-      // 重新计算内容元数据
-      const wordCount = content.replace(/[^\u4e00-\u9fa5\w]/g, ' ').split(/\s+/).filter((w: string) => w.length > 0).length
-      const imageCount = (content.match(/!\[.*?\]\(.*?\)/g) || []).length
-      const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200))
-      
-      updateData.metadata = JSON.stringify({
-        wordCount,
-        imageCount,
-        estimatedReadTime
-      })
-    }
+    const shouldCreateVersion = hasContentChange || hasTitleChange || hasTemplateChange || hasVariableChange
     
-    if (templateId !== undefined) updateData.templateId = templateId
-    if (templateVariables !== undefined) updateData.templateVariables = JSON.stringify(templateVariables)
-    if (status !== undefined) updateData.status = status
-    
-    const updatedDocument = await prisma.document.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        templateId: true,
-        templateVariables: true,
-        status: true,
-        metadata: true,
-        createdAt: true,
-        updatedAt: true
+    // 使用事务确保版本历史和文档更新的一致性
+    const result = await prisma.$transaction(async (tx) => {
+      // 如果有实质性变更，先保存当前版本到历史记录
+      if (shouldCreateVersion) {
+        await tx.documentVersion.create({
+          data: {
+            documentId: id,
+            title: existingDocument.title,
+            content: existingDocument.content,
+            templateId: existingDocument.templateId,
+            templateVariables: existingDocument.templateVariables,
+            metadata: existingDocument.metadata,
+            changeType: 'AUTO_SAVE', // 自动保存类型
+            changeReason: '自动保存版本',
+            createdAt: existingDocument.updatedAt // 使用文档的最后更新时间作为版本时间
+          }
+        })
       }
+      
+      // 准备更新数据
+      const updateData: any = {}
+      
+      if (title !== undefined) updateData.title = title
+      if (content !== undefined) {
+        updateData.content = content
+        
+        // 重新计算内容元数据
+        const wordCount = content.replace(/[^\u4e00-\u9fa5\w]/g, ' ').split(/\s+/).filter((w: string) => w.length > 0).length
+        const imageCount = (content.match(/!\[.*?\]\(.*?\)/g) || []).length
+        const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200))
+        
+        updateData.metadata = JSON.stringify({
+          wordCount,
+          imageCount,
+          estimatedReadTime
+        })
+      }
+      
+      if (templateId !== undefined) updateData.templateId = templateId
+      if (templateVariables !== undefined) updateData.templateVariables = JSON.stringify(templateVariables)
+      if (status !== undefined) updateData.status = status
+      
+      // 更新文档
+      const updatedDocument = await tx.document.update({
+        where: { id },
+        data: updateData,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          templateId: true,
+          templateVariables: true,
+          status: true,
+          metadata: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      })
+      
+      return updatedDocument
     })
     
     // 解析JSON字段
     const documentWithParsedData = {
-      ...updatedDocument,
-      templateVariables: JSON.parse(updatedDocument.templateVariables),
-      metadata: JSON.parse(updatedDocument.metadata)
+      ...result,
+      templateVariables: JSON.parse(result.templateVariables),
+      metadata: JSON.parse(result.metadata)
     }
     
     res.json(createSuccessResponse(documentWithParsedData))
@@ -316,6 +348,324 @@ router.post('/:id/duplicate', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Duplicate document error:', error)
     res.status(500).json(createErrorResponse('复制文档失败'))
+  }
+})
+
+// ===== 版本历史相关API =====
+
+// 获取文档的版本历史列表
+router.get('/:id/versions', authenticateToken, async (req, res) => {
+  try {
+    const { id: documentId } = req.params
+    const userId = req.user!.id
+    const page = parseInt(req.query.page as string) || 1
+    const limit = parseInt(req.query.limit as string) || 20
+    
+    const skip = (page - 1) * limit
+    
+    // 验证文档是否属于当前用户
+    const document = await prisma.document.findFirst({
+      where: { id: documentId, userId }
+    })
+    
+    if (!document) {
+      return res.status(404).json(createErrorResponse('文档不存在', 'DOCUMENT_NOT_FOUND'))
+    }
+    
+    // 获取版本历史列表
+    const [versions, total] = await Promise.all([
+      prisma.documentVersion.findMany({
+        where: { documentId },
+        select: {
+          id: true,
+          title: true,
+          changeType: true,
+          changeReason: true,
+          metadata: true,
+          createdAt: true,
+          // 不返回完整内容，只在需要时获取
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.documentVersion.count({ where: { documentId } })
+    ])
+    
+    // 解析JSON字段并格式化响应
+    const versionsWithParsedData = versions.map(version => ({
+      ...version,
+      metadata: JSON.parse(version.metadata),
+      // 添加版本序号 (最新版本号 = total - index)
+      versionNumber: total - (versions.indexOf(version) + skip)
+    }))
+    
+    res.json(createSuccessResponse({
+      versions: versionsWithParsedData,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      },
+      document: {
+        id: document.id,
+        title: document.title,
+        currentVersion: total + 1 // 当前文档版本号
+      }
+    }))
+  } catch (error) {
+    console.error('Get document versions error:', error)
+    res.status(500).json(createErrorResponse('获取版本历史失败'))
+  }
+})
+
+// 获取特定版本的详细内容
+router.get('/:id/versions/:versionId', authenticateToken, async (req, res) => {
+  try {
+    const { id: documentId, versionId } = req.params
+    const userId = req.user!.id
+    
+    // 验证文档是否属于当前用户
+    const document = await prisma.document.findFirst({
+      where: { id: documentId, userId }
+    })
+    
+    if (!document) {
+      return res.status(404).json(createErrorResponse('文档不存在', 'DOCUMENT_NOT_FOUND'))
+    }
+    
+    // 获取版本详细内容
+    const version = await prisma.documentVersion.findFirst({
+      where: { 
+        id: versionId,
+        documentId 
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        templateId: true,
+        templateVariables: true,
+        metadata: true,
+        changeType: true,
+        changeReason: true,
+        createdAt: true
+      }
+    })
+    
+    if (!version) {
+      return res.status(404).json(createErrorResponse('版本不存在', 'VERSION_NOT_FOUND'))
+    }
+    
+    // 解析JSON字段
+    const versionWithParsedData = {
+      ...version,
+      templateVariables: JSON.parse(version.templateVariables),
+      metadata: JSON.parse(version.metadata)
+    }
+    
+    res.json(createSuccessResponse(versionWithParsedData))
+  } catch (error) {
+    console.error('Get version detail error:', error)
+    res.status(500).json(createErrorResponse('获取版本详情失败'))
+  }
+})
+
+// 恢复到特定版本
+router.post('/:id/versions/:versionId/restore', authenticateToken, async (req, res) => {
+  try {
+    const { id: documentId, versionId } = req.params
+    const userId = req.user!.id
+    
+    // 验证文档是否属于当前用户
+    const document = await prisma.document.findFirst({
+      where: { id: documentId, userId }
+    })
+    
+    if (!document) {
+      return res.status(404).json(createErrorResponse('文档不存在', 'DOCUMENT_NOT_FOUND'))
+    }
+    
+    // 获取要恢复的版本
+    const version = await prisma.documentVersion.findFirst({
+      where: { 
+        id: versionId,
+        documentId 
+      }
+    })
+    
+    if (!version) {
+      return res.status(404).json(createErrorResponse('版本不存在', 'VERSION_NOT_FOUND'))
+    }
+    
+    // 使用事务进行版本恢复
+    const result = await prisma.$transaction(async (tx) => {
+      // 先保存当前版本到历史记录
+      await tx.documentVersion.create({
+        data: {
+          documentId,
+          title: document.title,
+          content: document.content,
+          templateId: document.templateId,
+          templateVariables: document.templateVariables,
+          metadata: document.metadata,
+          changeType: 'MANUAL_SAVE',
+          changeReason: `恢复前备份 - 准备恢复到版本 ${versionId.slice(0, 8)}`,
+          createdAt: document.updatedAt
+        }
+      })
+      
+      // 恢复文档到指定版本
+      const restoredDocument = await tx.document.update({
+        where: { id: documentId },
+        data: {
+          title: version.title,
+          content: version.content,
+          templateId: version.templateId,
+          templateVariables: version.templateVariables,
+          metadata: version.metadata
+        },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          templateId: true,
+          templateVariables: true,
+          status: true,
+          metadata: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      })
+      
+      // 创建恢复操作的版本记录
+      await tx.documentVersion.create({
+        data: {
+          documentId,
+          title: version.title,
+          content: version.content,
+          templateId: version.templateId,
+          templateVariables: version.templateVariables,
+          metadata: version.metadata,
+          changeType: 'RESTORE',
+          changeReason: `从版本 ${versionId.slice(0, 8)} 恢复`,
+        }
+      })
+      
+      return restoredDocument
+    })
+    
+    // 解析JSON字段
+    const documentWithParsedData = {
+      ...result,
+      templateVariables: JSON.parse(result.templateVariables),
+      metadata: JSON.parse(result.metadata)
+    }
+    
+    res.json(createSuccessResponse({
+      document: documentWithParsedData,
+      message: '文档已成功恢复到指定版本'
+    }))
+  } catch (error) {
+    console.error('Restore version error:', error)
+    res.status(500).json(createErrorResponse('版本恢复失败'))
+  }
+})
+
+// 手动创建版本快照 (用户主动保存)
+router.post('/:id/versions', authenticateToken, async (req, res) => {
+  try {
+    const { id: documentId } = req.params
+    const userId = req.user!.id
+    const { reason = '手动保存' } = req.body
+    
+    // 验证文档是否属于当前用户
+    const document = await prisma.document.findFirst({
+      where: { id: documentId, userId }
+    })
+    
+    if (!document) {
+      return res.status(404).json(createErrorResponse('文档不存在', 'DOCUMENT_NOT_FOUND'))
+    }
+    
+    // 创建版本快照
+    const version = await prisma.documentVersion.create({
+      data: {
+        documentId,
+        title: document.title,
+        content: document.content,
+        templateId: document.templateId,
+        templateVariables: document.templateVariables,
+        metadata: document.metadata,
+        changeType: 'MANUAL_SAVE',
+        changeReason: reason
+      },
+      select: {
+        id: true,
+        title: true,
+        changeType: true,
+        changeReason: true,
+        metadata: true,
+        createdAt: true
+      }
+    })
+    
+    // 解析JSON字段
+    const versionWithParsedData = {
+      ...version,
+      metadata: JSON.parse(version.metadata)
+    }
+    
+    res.status(201).json(createSuccessResponse({
+      version: versionWithParsedData,
+      message: '版本快照创建成功'
+    }))
+  } catch (error) {
+    console.error('Create version snapshot error:', error)
+    res.status(500).json(createErrorResponse('创建版本快照失败'))
+  }
+})
+
+// 删除版本记录 (谨慎操作)
+router.delete('/:id/versions/:versionId', authenticateToken, async (req, res) => {
+  try {
+    const { id: documentId, versionId } = req.params
+    const userId = req.user!.id
+    
+    // 验证文档是否属于当前用户
+    const document = await prisma.document.findFirst({
+      where: { id: documentId, userId }
+    })
+    
+    if (!document) {
+      return res.status(404).json(createErrorResponse('文档不存在', 'DOCUMENT_NOT_FOUND'))
+    }
+    
+    // 验证版本是否存在
+    const version = await prisma.documentVersion.findFirst({
+      where: { 
+        id: versionId,
+        documentId 
+      }
+    })
+    
+    if (!version) {
+      return res.status(404).json(createErrorResponse('版本不存在', 'VERSION_NOT_FOUND'))
+    }
+    
+    // 删除版本记录
+    await prisma.documentVersion.delete({
+      where: { id: versionId }
+    })
+    
+    res.json(createSuccessResponse({ 
+      message: '版本记录删除成功',
+      deletedVersionId: versionId
+    }))
+  } catch (error) {
+    console.error('Delete version error:', error)
+    res.status(500).json(createErrorResponse('删除版本失败'))
   }
 })
 

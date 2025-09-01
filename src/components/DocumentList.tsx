@@ -8,6 +8,7 @@ import { notification } from '../utils/notification'
 interface DocumentListProps {
   onSelectDocument?: (document: Document) => void
   onNewDocument?: () => void
+  onShowVersionHistory?: (documentId: string) => void
 }
 
 interface DocumentListState {
@@ -26,7 +27,7 @@ interface DocumentListState {
   selectedDocuments: Set<string>
 }
 
-export function DocumentList({ onSelectDocument, onNewDocument }: DocumentListProps) {
+export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHistory }: DocumentListProps) {
   const { state: authState } = useAuth()
   const { dispatch } = useApp()
   
@@ -455,6 +456,13 @@ export function DocumentList({ onSelectDocument, onNewDocument }: DocumentListPr
                     title="加载到编辑器"
                   >
                     📝
+                  </button>
+                  <button
+                    className="action-btn"
+                    onClick={() => onShowVersionHistory?.(document.id)}
+                    title="查看版本历史"
+                  >
+                    📚
                   </button>
                   <button
                     className="action-btn"
