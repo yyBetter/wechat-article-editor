@@ -17,7 +17,12 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm run lint)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx prisma generate:*)",
+      "Read(/Users/yangyu/develop/project/**)"
     ],
     "deny": [],
     "ask": []

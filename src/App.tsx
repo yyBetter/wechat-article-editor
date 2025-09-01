@@ -1,18 +1,24 @@
 // 主应用组件
-import React from 'react'
+import React, { useState } from 'react'
 import { AppProvider, useApp } from './utils/app-context'
+import { AuthProvider, useAuth } from './utils/auth-context'
 import { Editor } from './components/Editor'
 import { Preview } from './components/Preview'
 import { TemplateSelector } from './components/TemplateSelector'
+import { DocumentList } from './components/DocumentList'
 import { PublishGuide } from './components/PublishGuide'
 import { PublishFlow } from './components/PublishFlow'
 import { Settings } from './components/Settings'
+import { AuthModal } from './components/auth/AuthModal'
+import { UserMenu } from './components/auth/UserMenu'
 import './App.css'
 import './styles/sidebar.css'
 import './styles/publish.css'
 
 function AppContent() {
   const { state, dispatch } = useApp()
+  const { login } = useAuth()
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   
   // 切换侧边栏
   const toggleSidebar = () => {
@@ -23,11 +29,27 @@ function AppContent() {
   }
   
   // 切换面板
-  const switchPanel = (panel: 'editor' | 'templates' | 'assets' | 'export' | 'guide' | 'settings') => {
+  const switchPanel = (panel: 'editor' | 'templates' | 'documents' | 'assets' | 'export' | 'guide' | 'settings') => {
     dispatch({ 
       type: 'SET_UI_STATE', 
       payload: { activePanel: panel }
     })
+  }
+
+  // 处理认证成功
+  const handleAuthSuccess = (user: any, token: string) => {
+    console.log('用户登录成功:', user)
+    
+    // 重要：调用AuthContext的login方法更新认证状态
+    login(user, token)
+    
+    // 同步用户的品牌设置到现有的AppState
+    if (user.brandSettings) {
+      dispatch({
+        type: 'UPDATE_FIXED_ASSETS',
+        payload: user.brandSettings
+      })
+    }
   }
   
   return (
@@ -64,6 +86,9 @@ function AppContent() {
             >
               📤 导出
             </button>
+            
+            {/* 用户菜单 */}
+            <UserMenu onOpenAuthModal={() => setAuthModalOpen(true)} />
           </div>
         </div>
       </header>
@@ -75,6 +100,14 @@ function AppContent() {
           <aside className="app-sidebar">
             {/* 侧边栏标签 */}
             <nav className="sidebar-nav">
+              <button
+                type="button"
+                className={`nav-tab ${state.ui.activePanel === 'documents' ? 'active' : ''}`}
+                onClick={() => switchPanel('documents')}
+                title="文档管理和历史记录"
+              >
+                📄 文档
+              </button>
               <button
                 type="button"
                 className={`nav-tab ${state.ui.activePanel === 'templates' ? 'active' : ''}`}
@@ -103,6 +136,17 @@ function AppContent() {
             
             {/* 侧边栏内容 */}
             <div className="sidebar-content">
+              {state.ui.activePanel === 'documents' && (
+                <DocumentList 
+                  onNewDocument={() => {
+                    // 清空编辑器内容，开始新文档
+                    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+                    dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
+                    // 切换回模板选择面板
+                    switchPanel('templates')
+                  }}
+                />
+              )}
               {state.ui.activePanel === 'templates' && <TemplateSelector />}
               {state.ui.activePanel === 'settings' && <Settings />}
               {state.ui.activePanel === 'guide' && <PublishFlow />}
@@ -133,14 +177,23 @@ function AppContent() {
           <span className="version-info">v1.0.0</span>
         </div>
       </footer>
+
+      {/* 认证弹窗 */}
+      <AuthModal 
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </div>
   )
 }
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </AuthProvider>
   )
 }

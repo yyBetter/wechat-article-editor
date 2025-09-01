@@ -1,6 +1,8 @@
 // Markdown编辑器组件 - 高性能优化版本
 import React, { useCallback, useEffect, useRef, useState, useMemo, memo } from 'react'
 import { useApp } from '../utils/app-context'
+import { useAuth } from '../utils/auth-context'
+import { useAutoSave } from '../hooks/useAutoSave'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
 import { notification } from '../utils/notification'
@@ -103,10 +105,31 @@ const templateEngine = new TemplateEngine(templates)
 // 使用 React.memo 优化组件渲染性能
 export const Editor = memo(function Editor() {
   const { state, dispatch } = useApp()
+  const { state: authState } = useAuth()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+
+  // 自动保存功能
+  const autoSave = useAutoSave(
+    state.templates.variables.title || '未命名文档',
+    state.editor.content,
+    state.templates.current?.id || 'simple-doc',
+    state.templates.variables,
+    {
+      enabled: authState.isAuthenticated,
+      onSave: (document) => {
+        console.log('文档已自动保存:', document.title)
+        // 可以显示保存成功通知
+        notification.success('文档已自动保存')
+      },
+      onError: (error) => {
+        console.error('自动保存失败:', error)
+        notification.error('自动保存失败: ' + error.message)
+      }
+    }
+  )
   const [displayContent, setDisplayContent] = useState('')
   
   // 简化的图片映射管理
@@ -651,11 +674,54 @@ export const Editor = memo(function Editor() {
       <span className="status-item">
         字数: {state.editor.content.length}
       </span>
-      <span className="status-item">
-        {state.editor.isChanged ? '未保存' : '已保存'}
-      </span>
+      
+      {/* 自动保存状态指示器 */}
+      {authState.isAuthenticated ? (
+        <span className={`status-item save-status ${autoSave.isSaving ? 'saving' : ''} ${autoSave.hasUnsavedChanges ? 'unsaved' : 'saved'}`}>
+          {autoSave.isSaving ? (
+            <>
+              <span className="save-icon">💾</span>
+              保存中...
+            </>
+          ) : autoSave.hasUnsavedChanges ? (
+            <>
+              <span className="save-icon">⚠️</span>
+              有未保存更改
+            </>
+          ) : autoSave.lastSaved ? (
+            <>
+              <span className="save-icon">✅</span>
+              已保存 {new Date(autoSave.lastSaved).toLocaleTimeString()}
+            </>
+          ) : (
+            <>
+              <span className="save-icon">📝</span>
+              等待保存
+            </>
+          )}
+        </span>
+      ) : (
+        <span className="status-item">
+          {state.editor.isChanged ? '未保存' : '已保存'}
+        </span>
+      )}
+      
+      {/* 当前文档ID显示（调试用） */}
+      {authState.isAuthenticated && autoSave.currentDocumentId && (
+        <span className="status-item document-id" title="当前文档ID">
+          📄 {autoSave.currentDocumentId.slice(0, 8)}...
+        </span>
+      )}
     </div>
-  ), [state.editor.content.length, state.editor.isChanged])
+  ), [
+    state.editor.content.length, 
+    state.editor.isChanged,
+    authState.isAuthenticated,
+    autoSave.isSaving,
+    autoSave.hasUnsavedChanges,
+    autoSave.lastSaved,
+    autoSave.currentDocumentId
+  ])
   
   return (
     <div className="editor-container">
