@@ -59,7 +59,7 @@ export interface ExportState {
 // UI状态
 export interface UIState {
   sidebarOpen: boolean
-  activePanel: 'editor' | 'templates' | 'assets' | 'export' | 'guide' | 'settings'
+  activePanel: 'editor' | 'templates' | 'documents' | 'assets' | 'export' | 'guide' | 'settings'
   showPreview: boolean
   theme: 'light' | 'dark'
   fontSize: 'small' | 'medium' | 'large'

@@ -131,6 +131,7 @@ export const Editor = memo(function Editor() {
     }
   )
   const [displayContent, setDisplayContent] = useState('')
+  const [isManualSaving, setIsManualSaving] = useState(false)
   
   // 简化的图片映射管理
   const imageMap = useRef(new Map<string, string>())
@@ -138,6 +139,49 @@ export const Editor = memo(function Editor() {
   
   // 优化防抖延迟，减少用户输入延迟感知
   const debouncedDisplayContent = useDebounce(displayContent, 100)
+
+  // 手动保存功能
+  const handleManualSave = useCallback(async () => {
+    if (!authState.isAuthenticated || isManualSaving) {
+      return
+    }
+
+    try {
+      setIsManualSaving(true)
+      
+      // 调用自动保存的手动保存方法
+      await autoSave.save()
+      
+      notification.success('文档已手动保存', {
+        details: 'Cmd+S 快捷键保存成功'
+      })
+    } catch (error) {
+      console.error('手动保存失败:', error)
+      notification.error('手动保存失败', {
+        details: error instanceof Error ? error.message : '请重试'
+      })
+    } finally {
+      setIsManualSaving(false)
+    }
+  }, [authState.isAuthenticated, isManualSaving, autoSave])
+
+  // 键盘快捷键监听
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+S (Mac) 或 Ctrl+S (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault() // 阻止浏览器默认保存行为
+        handleManualSave()
+      }
+    }
+
+    // 添加全局键盘监听
+    document.addEventListener('keydown', handleKeyDown)
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [handleManualSave])
   
   // 将占位符还原为实际图片数据（供预览使用）
   const restoreImagesForPreview = useCallback((content: string) => {
@@ -655,6 +699,19 @@ export const Editor = memo(function Editor() {
             💻
           </button>
           
+          {/* 手动保存按钮 */}
+          {authState.isAuthenticated && (
+            <button 
+              type="button"
+              onClick={handleManualSave}
+              title="手动保存 (Cmd+S / Ctrl+S)"
+              className={`toolbar-btn save-btn ${isManualSaving ? 'saving' : ''}`}
+              disabled={isManualSaving}
+            >
+              {isManualSaving ? '💾' : '💾'}
+            </button>
+          )}
+          
           <button 
             type="button"
             onClick={cleanupBrokenContent}
@@ -666,7 +723,7 @@ export const Editor = memo(function Editor() {
           </button>
         </div>
     </div>
-  ), [cleanupBrokenContent])
+  ), [cleanupBrokenContent, authState.isAuthenticated, handleManualSave, isManualSaving])
   
   // 编辑器状态栏组件 - 使用 memo 优化
   const StatusComponent = useMemo(() => (
@@ -675,18 +732,23 @@ export const Editor = memo(function Editor() {
         字数: {state.editor.content.length}
       </span>
       
-      {/* 自动保存状态指示器 */}
+      {/* 保存状态指示器 */}
       {authState.isAuthenticated ? (
-        <span className={`status-item save-status ${autoSave.isSaving ? 'saving' : ''} ${autoSave.hasUnsavedChanges ? 'unsaved' : 'saved'}`}>
-          {autoSave.isSaving ? (
+        <span className={`status-item save-status ${isManualSaving || autoSave.isSaving ? 'saving' : ''} ${autoSave.hasUnsavedChanges ? 'unsaved' : 'saved'}`}>
+          {isManualSaving ? (
             <>
               <span className="save-icon">💾</span>
-              保存中...
+              手动保存中...
+            </>
+          ) : autoSave.isSaving ? (
+            <>
+              <span className="save-icon">💾</span>
+              自动保存中...
             </>
           ) : autoSave.hasUnsavedChanges ? (
             <>
               <span className="save-icon">⚠️</span>
-              有未保存更改
+              有未保存更改 <span className="shortcut-hint">(Cmd+S 保存)</span>
             </>
           ) : autoSave.lastSaved ? (
             <>
@@ -696,7 +758,7 @@ export const Editor = memo(function Editor() {
           ) : (
             <>
               <span className="save-icon">📝</span>
-              等待保存
+              等待保存 <span className="shortcut-hint">(Cmd+S 手动保存)</span>
             </>
           )}
         </span>
@@ -717,6 +779,7 @@ export const Editor = memo(function Editor() {
     state.editor.content.length, 
     state.editor.isChanged,
     authState.isAuthenticated,
+    isManualSaving,
     autoSave.isSaving,
     autoSave.hasUnsavedChanges,
     autoSave.lastSaved,

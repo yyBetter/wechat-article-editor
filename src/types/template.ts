@@ -86,6 +86,8 @@ export interface ListStyle {
 export interface ImageStyle {
   width: string
   height?: string
+  maxWidth?: string
+  display?: string
   marginBottom: string
   borderRadius?: string
   boxShadow?: string
@@ -125,5 +127,5 @@ export interface TemplateVariables {
   logo?: string
   qrcode?: string
   divider?: string
-  [key: string]: string | undefined
+  [key: string]: string | string[] | undefined
 }

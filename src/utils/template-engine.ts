@@ -209,11 +209,11 @@ export class TemplateEngine {
         let finalValue = value
         if (prop === 'color') {
           // 替换预定义颜色变量
-          if (value === '#1e6fff' || value.includes('primary')) {
+          if (value === '#1e6fff' || (typeof value === 'string' && value.includes('primary'))) {
             finalValue = primaryColor
-          } else if (value === '#333333' || value.includes('secondary')) {
+          } else if (value === '#333333' || (typeof value === 'string' && value.includes('secondary'))) {
             finalValue = secondaryColor
-          } else if (value === '#666666' || value.includes('accent')) {
+          } else if (value === '#666666' || (typeof value === 'string' && value.includes('accent'))) {
             finalValue = accentColor
           }
         }

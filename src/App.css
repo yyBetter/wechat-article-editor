@@ -354,6 +354,40 @@ body {
   font-size: 11px;
 }
 
+/* 手动保存按钮样式 */
+.toolbar-btn.save-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.toolbar-btn.save-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.toolbar-btn.save-btn.saving {
+  background: #ffc107 !important;
+  color: #000;
+  cursor: not-allowed;
+  animation: savingPulse 1.5s infinite;
+}
+
+@keyframes savingPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.shortcut-hint {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-left: 4px;
+  font-style: italic;
+}
+
 /* 预览区域 */
 .preview-section {
   flex: 1;

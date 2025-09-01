@@ -39,7 +39,7 @@ export function useAutoSave(
     hasUnsavedChanges: false
   })
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<number | null>(null)
   const lastContentRef = useRef<string>('')
   const lastTitleRef = useRef<string>('')
   const savingRef = useRef<boolean>(false)

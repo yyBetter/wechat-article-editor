@@ -18,7 +18,7 @@ import './styles/publish.css'
 
 function AppContent() {
   const { state, dispatch } = useApp()
-  const { login } = useAuth()
+  const { state: authState, login } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [versionHistoryDocument, setVersionHistoryDocument] = useState<string | null>(null)
   
@@ -97,6 +97,13 @@ function AppContent() {
           </div>
           
           <div className="header-actions">
+            {/* 快捷键提示 */}
+            {authState.isAuthenticated && (
+              <span className="shortcut-info" title="使用 Cmd+S (Mac) 或 Ctrl+S (Windows/Linux) 手动保存">
+                💾 Cmd+S
+              </span>
+            )}
+            
             <button 
               type="button"
               className="header-btn"
