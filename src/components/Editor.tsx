@@ -620,10 +620,11 @@ export const Editor = memo(function Editor() {
     })
   }, [state.editor.content, dispatch])
   
-  // 工具栏组件 - 使用 memo 避免不必要的重渲染
+  // 重新设计的工具栏组件 - 按使用频率分组
   const ToolbarComponent = useMemo(() => (
     <div className="editor-toolbar">
-        <div className="toolbar-group">
+        {/* 高频格式工具 */}
+        <div className="toolbar-group primary">
           <button 
             type="button"
             onClick={() => insertMarkdown('bold')}
@@ -650,28 +651,12 @@ export const Editor = memo(function Editor() {
           >
             H2
           </button>
-          
-          <button 
-            type="button"
-            onClick={() => insertMarkdown('link')}
-            title="链接"
-            className="toolbar-btn"
-          >
-            🔗
-          </button>
-          
-          <button 
-            type="button"
-            onClick={handleImageButtonClick}
-            title="插入图片 (支持截图粘贴)"
-            className={`toolbar-btn image-upload ${isUploading ? 'uploading' : ''}`}
-            disabled={isUploading}
-          >
-            {isUploading ? '⏳' : '🖼️'}
-          </button>
         </div>
         
-        <div className="toolbar-group">
+        <div className="toolbar-divider"></div>
+        
+        {/* 结构工具 */}
+        <div className="toolbar-group secondary">
           <button 
             type="button"
             onClick={() => insertMarkdown('list')}
@@ -698,6 +683,30 @@ export const Editor = memo(function Editor() {
           >
             💻
           </button>
+        </div>
+        
+        <div className="toolbar-divider"></div>
+        
+        {/* 操作工具 */}
+        <div className="toolbar-group actions">
+          <button 
+            type="button"
+            onClick={() => insertMarkdown('link')}
+            title="链接"
+            className="toolbar-btn"
+          >
+            🔗
+          </button>
+          
+          <button 
+            type="button"
+            onClick={handleImageButtonClick}
+            title="插入图片 (支持截图粘贴)"
+            className={`toolbar-btn image-upload ${isUploading ? 'uploading' : ''}`}
+            disabled={isUploading}
+          >
+            {isUploading ? '⏳' : '🖼️'}
+          </button>
           
           {/* 手动保存按钮 */}
           {authState.isAuthenticated && (
@@ -708,16 +717,19 @@ export const Editor = memo(function Editor() {
               className={`toolbar-btn save-btn ${isManualSaving ? 'saving' : ''}`}
               disabled={isManualSaving}
             >
-              {isManualSaving ? '💾' : '💾'}
+              {isManualSaving ? '⏳' : '💾'}
             </button>
           )}
-          
+        </div>
+        
+        {/* 调试工具 - 样式弱化显示 */}
+        <div className="toolbar-divider"></div>
+        <div className="toolbar-group debug">
           <button 
             type="button"
             onClick={cleanupBrokenContent}
-            title="清理损坏的图片内容"
-            className="toolbar-btn"
-            style={{ background: '#ff6b6b', color: 'white' }}
+            title="清理损坏的图片内容 (调试工具)"
+            className="toolbar-btn debug-btn"
           >
             🧹
           </button>
@@ -725,55 +737,65 @@ export const Editor = memo(function Editor() {
     </div>
   ), [cleanupBrokenContent, authState.isAuthenticated, handleManualSave, isManualSaving])
   
-  // 编辑器状态栏组件 - 使用 memo 优化
+  // 优化的编辑器状态栏组件 - 保存状态主显示区
   const StatusComponent = useMemo(() => (
     <div className="editor-status">
-      <span className="status-item">
-        字数: {state.editor.content.length}
-      </span>
+      <div className="status-left">
+        <span className="status-item word-count">
+          📝 {state.editor.content.length} 字
+        </span>
+      </div>
       
-      {/* 保存状态指示器 */}
-      {authState.isAuthenticated ? (
-        <span className={`status-item save-status ${isManualSaving || autoSave.isSaving ? 'saving' : ''} ${autoSave.hasUnsavedChanges ? 'unsaved' : 'saved'}`}>
-          {isManualSaving ? (
-            <>
-              <span className="save-icon">💾</span>
-              手动保存中...
-            </>
-          ) : autoSave.isSaving ? (
-            <>
-              <span className="save-icon">💾</span>
-              自动保存中...
-            </>
-          ) : autoSave.hasUnsavedChanges ? (
-            <>
-              <span className="save-icon">⚠️</span>
-              有未保存更改 <span className="shortcut-hint">(Cmd+S 保存)</span>
-            </>
-          ) : autoSave.lastSaved ? (
-            <>
-              <span className="save-icon">✅</span>
-              已保存 {new Date(autoSave.lastSaved).toLocaleTimeString()}
-            </>
-          ) : (
-            <>
-              <span className="save-icon">📝</span>
-              等待保存 <span className="shortcut-hint">(Cmd+S 手动保存)</span>
-            </>
-          )}
-        </span>
-      ) : (
-        <span className="status-item">
-          {state.editor.isChanged ? '未保存' : '已保存'}
-        </span>
-      )}
+      <div className="status-center">
+        {/* 统一的保存状态显示 */}
+        {authState.isAuthenticated ? (
+          <span className={`save-status-main ${isManualSaving || autoSave.isSaving ? 'saving' : ''} ${autoSave.hasUnsavedChanges ? 'unsaved' : 'saved'}`}>
+            {isManualSaving ? (
+              <>
+                <span className="status-icon saving">⏳</span>
+                <span className="status-text">手动保存中...</span>
+              </>
+            ) : autoSave.isSaving ? (
+              <>
+                <span className="status-icon saving">💾</span>
+                <span className="status-text">自动保存中...</span>
+              </>
+            ) : autoSave.hasUnsavedChanges ? (
+              <>
+                <span className="status-icon unsaved">⚠️</span>
+                <span className="status-text">有未保存更改</span>
+                <span className="status-hint">Cmd+S 保存</span>
+              </>
+            ) : autoSave.lastSaved ? (
+              <>
+                <span className="status-icon saved">✅</span>
+                <span className="status-text">已保存</span>
+                <span className="status-time">{new Date(autoSave.lastSaved).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+              </>
+            ) : (
+              <>
+                <span className="status-icon ready">📝</span>
+                <span className="status-text">就绪编辑</span>
+                <span className="status-hint">Cmd+S 保存</span>
+              </>
+            )}
+          </span>
+        ) : (
+          <span className="save-status-main guest">
+            <span className="status-icon">🔐</span>
+            <span className="status-text">游客模式 - 无法保存</span>
+          </span>
+        )}
+      </div>
       
-      {/* 当前文档ID显示（调试用） */}
-      {authState.isAuthenticated && autoSave.currentDocumentId && (
-        <span className="status-item document-id" title="当前文档ID">
-          📄 {autoSave.currentDocumentId.slice(0, 8)}...
-        </span>
-      )}
+      <div className="status-right">
+        {/* 当前文档信息 */}
+        {authState.isAuthenticated && autoSave.currentDocumentId && (
+          <span className="status-item document-info" title="当前文档">
+            📄 {autoSave.currentDocumentId.slice(0, 8)}...
+          </span>
+        )}
+      </div>
     </div>
   ), [
     state.editor.content.length, 

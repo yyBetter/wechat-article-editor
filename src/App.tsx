@@ -37,6 +37,14 @@ function AppContent() {
       payload: { activePanel: panel }
     })
   }
+  
+  // 切换预览显示
+  const togglePreview = () => {
+    dispatch({ 
+      type: 'SET_UI_STATE', 
+      payload: { showPreview: !state.ui.showPreview }
+    })
+  }
 
   // 处理认证成功
   const handleAuthSuccess = (user: any, token: string) => {
@@ -97,12 +105,15 @@ function AppContent() {
           </div>
           
           <div className="header-actions">
-            {/* 快捷键提示 */}
-            {authState.isAuthenticated && (
-              <span className="shortcut-info" title="使用 Cmd+S (Mac) 或 Ctrl+S (Windows/Linux) 手动保存">
-                💾 Cmd+S
-              </span>
-            )}
+            
+            <button 
+              type="button"
+              className="header-btn"
+              onClick={togglePreview}
+              title={state.ui.showPreview ? '隐藏预览' : '显示预览'}
+            >
+              {state.ui.showPreview ? '📱 隐藏预览' : '👁️ 显示预览'}
+            </button>
             
             <button 
               type="button"
@@ -124,69 +135,98 @@ function AppContent() {
         {/* 左侧边栏 */}
         {state.ui.sidebarOpen && (
           <aside className="app-sidebar">
-            {/* 侧边栏标签 */}
+            {/* 简化的侧边栏导航 */}
             <nav className="sidebar-nav">
               <button
                 type="button"
-                className={`nav-tab ${state.ui.activePanel === 'documents' ? 'active' : ''}`}
-                onClick={() => switchPanel('documents')}
-                title="文档管理和历史记录"
-              >
-                📄 文档
-              </button>
-              <button
-                type="button"
-                className={`nav-tab ${state.ui.activePanel === 'templates' ? 'active' : ''}`}
+                className={`nav-tab ${['templates', 'documents'].includes(state.ui.activePanel) ? 'active' : ''}`}
                 onClick={() => switchPanel('templates')}
-                title="选择和设置模板"
+                title="模板选择和文档管理"
               >
-                🎨 模板
+                📝 创作
               </button>
               <button
                 type="button"
-                className={`nav-tab ${state.ui.activePanel === 'guide' ? 'active' : ''}`}
+                className={`nav-tab ${['guide', 'settings'].includes(state.ui.activePanel) ? 'active' : ''}`}
                 onClick={() => switchPanel('guide')}
-                title="查看发布步骤和使用说明"
+                title="发布指南和设置"
               >
-                📖 发布
-              </button>
-              <button
-                type="button"
-                className={`nav-tab ${state.ui.activePanel === 'settings' ? 'active' : ''}`}
-                onClick={() => switchPanel('settings')}
-                title="全局设置和品牌配置"
-              >
-                ⚙️ 设置
+                ⚙️ 更多
               </button>
             </nav>
             
             {/* 侧边栏内容 */}
             <div className="sidebar-content">
-              {state.ui.activePanel === 'documents' && (
-                <>
-                  {versionHistoryDocument ? (
-                    <VersionHistory 
-                      documentId={versionHistoryDocument}
-                      onRestoreVersion={handleVersionRestore}
-                      onClose={handleCloseVersionHistory}
-                    />
-                  ) : (
-                    <DocumentList 
-                      onNewDocument={() => {
-                        // 清空编辑器内容，开始新文档
-                        dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
-                        dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
-                        // 切换回模板选择面板
-                        switchPanel('templates')
-                      }}
-                      onShowVersionHistory={handleShowVersionHistory}
-                    />
-                  )}
-                </>
+              {/* 创作组合 - 模板和文档 */}
+              {['templates', 'documents'].includes(state.ui.activePanel) && (
+                <div className="content-group">
+                  {/* 子菜单 */}
+                  <div className="sub-nav">
+                    <button
+                      className={`sub-nav-btn ${state.ui.activePanel === 'templates' ? 'active' : ''}`}
+                      onClick={() => switchPanel('templates')}
+                    >
+                      🎨 选择模板
+                    </button>
+                    <button
+                      className={`sub-nav-btn ${state.ui.activePanel === 'documents' ? 'active' : ''}`}
+                      onClick={() => switchPanel('documents')}
+                    >
+                      📄 我的文档
+                    </button>
+                  </div>
+                  
+                  {/* 子内容 */}
+                  <div className="sub-content">
+                    {state.ui.activePanel === 'templates' && <TemplateSelector />}
+                    {state.ui.activePanel === 'documents' && (
+                      <>
+                        {versionHistoryDocument ? (
+                          <VersionHistory 
+                            documentId={versionHistoryDocument}
+                            onRestoreVersion={handleVersionRestore}
+                            onClose={handleCloseVersionHistory}
+                          />
+                        ) : (
+                          <DocumentList 
+                            onNewDocument={() => {
+                              dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+                              dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
+                              switchPanel('templates')
+                            }}
+                            onShowVersionHistory={handleShowVersionHistory}
+                          />
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
               )}
-              {state.ui.activePanel === 'templates' && <TemplateSelector />}
-              {state.ui.activePanel === 'settings' && <Settings />}
-              {state.ui.activePanel === 'guide' && <PublishFlow />}
+              
+              {/* 更多组合 - 发布和设置 */}
+              {['guide', 'settings'].includes(state.ui.activePanel) && (
+                <div className="content-group">
+                  <div className="sub-nav">
+                    <button
+                      className={`sub-nav-btn ${state.ui.activePanel === 'guide' ? 'active' : ''}`}
+                      onClick={() => switchPanel('guide')}
+                    >
+                      📖 发布指南
+                    </button>
+                    <button
+                      className={`sub-nav-btn ${state.ui.activePanel === 'settings' ? 'active' : ''}`}
+                      onClick={() => switchPanel('settings')}
+                    >
+                      🔧 全局设置
+                    </button>
+                  </div>
+                  
+                  <div className="sub-content">
+                    {state.ui.activePanel === 'guide' && <PublishFlow />}
+                    {state.ui.activePanel === 'settings' && <Settings />}
+                  </div>
+                </div>
+              )}
             </div>
           </aside>
         )}
@@ -197,16 +237,21 @@ function AppContent() {
         </div>
         
         {/* 预览区域 */}
-        <div className="preview-section">
-          <Preview />
-        </div>
+        {state.ui.showPreview && (
+          <div className={`preview-section ${!state.ui.showPreview ? 'collapsed' : ''}`}>
+            <Preview />
+          </div>
+        )}
       </div>
       
       {/* 底部状态栏 */}
       <footer className="app-footer">
         <div className="footer-left">
           <span className="status-text">
-            {state.editor.isChanged ? '有未保存的更改' : '所有更改已保存'}
+            {authState.isAuthenticated ? 
+              `已登录用户: ${authState.user?.email || '未知用户'}` : 
+              '未登录 - 部分功能限制'
+            }
           </span>
         </div>
         
