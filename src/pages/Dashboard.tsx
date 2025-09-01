@@ -9,6 +9,47 @@ import { UserMenu } from '../components/auth/UserMenu'
 import { getDocuments } from '../utils/document-api'
 import { notification } from '../utils/notification'
 
+// 字数统计函数 - 与服务端保持一致
+function countWords(content: string): number {
+  if (!content || content.trim() === '') return 0
+  
+  // 移除 markdown 语法字符，但保留文字内容
+  let cleanContent = content
+    // 移除代码块
+    .replace(/```[\s\S]*?```/g, ' ')
+    // 移除内联代码
+    .replace(/`[^`]+`/g, ' ')
+    // 移除图片和链接语法
+    .replace(/!?\[[^\]]*\]\([^)]*\)/g, ' ')
+    // 移除标题符号
+    .replace(/^#{1,6}\s+/gm, '')
+    // 移除列表符号
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    // 移除引用符号
+    .replace(/^>\s*/gm, '')
+    // 移除加粗、斜体符号
+    .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
+    // 移除多余空格和换行
+    .replace(/\s+/g, ' ')
+    .trim()
+  
+  if (!cleanContent) return 0
+  
+  // 统计中文字符
+  const chineseChars = (cleanContent.match(/[\u4e00-\u9fa5]/g) || []).length
+  
+  // 统计英文单词（不包括单独的数字和符号）
+  const englishWords = cleanContent
+    .replace(/[\u4e00-\u9fa5]/g, ' ') // 移除中文
+    .replace(/[^a-zA-Z\s]/g, ' ') // 只保留英文字母
+    .split(/\s+/)
+    .filter(word => word.length > 1) // 只统计长度>1的单词
+    .length
+  
+  return chineseChars + englishWords
+}
+
 interface DashboardStats {
   totalDocuments: number
   totalWords: number
@@ -38,11 +79,12 @@ export function Dashboard() {
     try {
       setLoading(true)
       const response = await getDocuments()
+      console.log('API响应数据:', response)
       const documents = response.documents || []
       
-      const totalWords = documents.reduce((sum: number, doc: any) => 
-        sum + (doc.metadata?.wordCount || 0), 0
-      )
+      const totalWords = documents.reduce((sum: number, doc: any) => {
+        return sum + (doc.metadata?.wordCount ?? 0)
+      }, 0)
       
       setStats({
         totalDocuments: documents.length,
@@ -82,6 +124,9 @@ export function Dashboard() {
 
   // 编辑现有文章
   const handleEditArticle = (documentId: string) => {
+    // 清理当前编辑器状态，避免显示上一个文档的内容
+    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+    dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '加载中...' } })
     navigate(`/editor/${documentId}`)
   }
 
@@ -202,16 +247,16 @@ export function Dashboard() {
                     
                     <div className="article-meta">
                       <span className="meta-item">
-                        📝 {doc.metadata?.wordCount || 0} 字
+                        📝 {doc.metadata?.wordCount ?? 0} 字
                       </span>
                       <span className="meta-item">
-                        🖼️ {doc.metadata?.imageCount || 0} 图
+                        🖼️ {doc.metadata?.imageCount ?? 0} 图
                       </span>
                     </div>
                     
                     <div className="article-preview">
                       {doc.content ? 
-                        doc.content.substring(0, 100).replace(/[#*>`]/g, '') + '...' : 
+                        doc.content.substring(0, 80).replace(/[#*>`\n]/g, '').trim() + '...' : 
                         '暂无内容'
                       }
                     </div>

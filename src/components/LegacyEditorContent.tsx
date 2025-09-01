@@ -31,6 +31,9 @@ export function LegacyEditorContent() {
   // 根据URL参数加载文档
   useEffect(() => {
     if (documentId && authState.isAuthenticated) {
+      // 立即清理编辑器状态
+      dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+      dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '加载中...' } })
       loadDocument(documentId)
     }
   }, [documentId, authState.isAuthenticated])
@@ -39,9 +42,9 @@ export function LegacyEditorContent() {
   const loadDocument = async (id: string) => {
     try {
       setLoading(true)
-      const response = await getDocument(id)
-      if (response.success && response.document) {
-        const doc = response.document
+      const doc = await getDocument(id)
+      if (doc) {
+        console.log('加载的文档数据:', doc)
         dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: doc.content || '' })
         dispatch({ 
           type: 'UPDATE_TEMPLATE_VARIABLES', 

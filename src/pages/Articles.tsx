@@ -5,9 +5,50 @@ import { useAuth } from '../utils/auth-context'
 import { useApp } from '../utils/app-context'
 import { AuthModal } from '../components/auth/AuthModal'
 import { UserMenu } from '../components/auth/UserMenu'
-import { getDocuments, deleteDocument } from '../utils/document-api'
+import { getDocuments, deleteDocument, batchUpdateMetadata } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import '../styles/articles.css'
+
+// 字数统计函数 - 与服务端保持一致
+function countWords(content: string): number {
+  if (!content || content.trim() === '') return 0
+  
+  // 移除 markdown 语法字符，但保留文字内容
+  let cleanContent = content
+    // 移除代码块
+    .replace(/```[\s\S]*?```/g, ' ')
+    // 移除内联代码
+    .replace(/`[^`]+`/g, ' ')
+    // 移除图片和链接语法
+    .replace(/!?\[[^\]]*\]\([^)]*\)/g, ' ')
+    // 移除标题符号
+    .replace(/^#{1,6}\s+/gm, '')
+    // 移除列表符号
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    // 移除引用符号
+    .replace(/^>\s*/gm, '')
+    // 移除加粗、斜体符号
+    .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
+    // 移除多余空格和换行
+    .replace(/\s+/g, ' ')
+    .trim()
+  
+  if (!cleanContent) return 0
+  
+  // 统计中文字符
+  const chineseChars = (cleanContent.match(/[\u4e00-\u9fa5]/g) || []).length
+  
+  // 统计英文单词（不包括单独的数字和符号）
+  const englishWords = cleanContent
+    .replace(/[\u4e00-\u9fa5]/g, ' ') // 移除中文
+    .replace(/[^a-zA-Z\s]/g, ' ') // 只保留英文字母
+    .split(/\s+/)
+    .filter(word => word.length > 1) // 只统计长度>1的单词
+    .length
+  
+  return chineseChars + englishWords
+}
 
 interface Document {
   id: string
@@ -59,9 +100,9 @@ export function Articles() {
     try {
       setLoading(true)
       const response = await getDocuments()
-      if (response.success) {
-        setDocuments(response.documents || [])
-      }
+      console.log('Articles API响应:', response)
+      const documents = response.documents || []
+      setDocuments(documents)
     } catch (error) {
       console.error('加载文档失败:', error)
       notification.error('加载文档失败')
@@ -96,6 +137,9 @@ export function Articles() {
 
   // 编辑文章
   const handleEditArticle = (documentId: string) => {
+    // 清理当前编辑器状态，避免显示上一个文档的内容
+    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+    dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '加载中...' } })
     navigate(`/editor/${documentId}`)
   }
 
@@ -136,6 +180,26 @@ export function Articles() {
     } catch (error) {
       console.error('批量删除失败:', error)
       notification.error('批量删除失败')
+    }
+  }
+
+  // 批量更新metadata
+  const handleBatchUpdateMetadata = async () => {
+    if (!window.confirm('确定要重新计算所有文章的字数统计吗？这将更新所有文章的metadata。')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await batchUpdateMetadata()
+      console.log('批量更新结果:', response)
+      notification.success('所有文章的字数统计已更新')
+      loadDocuments() // 重新加载数据
+    } catch (error) {
+      console.error('批量更新metadata失败:', error)
+      notification.error('批量更新失败')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -293,6 +357,25 @@ export function Articles() {
             </div>
 
             <div className="toolbar-right">
+              <button 
+                className="update-metadata-btn"
+                onClick={handleBatchUpdateMetadata}
+                disabled={loading}
+                style={{
+                  marginRight: '10px',
+                  padding: '6px 12px',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1
+                }}
+              >
+                {loading ? '更新中...' : '🔄 重算字数'}
+              </button>
+              
               {selectedIds.size > 0 && (
                 <div className="batch-actions">
                   <span className="selected-count">已选择 {selectedIds.size} 项</span>
@@ -373,10 +456,10 @@ export function Articles() {
                   
                   <div className="item-stats">
                     <span className="stat-item">
-                      📝 {doc.metadata?.wordCount || 0} 字
+                      📝 {doc.metadata?.wordCount ?? 0} 字
                     </span>
                     <span className="stat-item">
-                      🖼️ {doc.metadata?.imageCount || 0} 图
+                      🖼️ {doc.metadata?.imageCount ?? 0} 图
                     </span>
                   </div>
                   

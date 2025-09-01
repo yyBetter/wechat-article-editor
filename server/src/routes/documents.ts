@@ -4,6 +4,36 @@ import { PrismaClient } from '@prisma/client'
 import { authenticateToken } from '../middleware/auth'
 import { createSuccessResponse, createErrorResponse } from '../utils/validation'
 
+// 字数统计函数
+function countWords(content: string): number {
+  if (!content) return 0
+  
+  // 移除 markdown 语法字符
+  const cleanContent = content
+    .replace(/```[\s\S]*?```/g, '') // 移除代码块
+    .replace(/`[^`]*`/g, '') // 移除内联代码
+    .replace(/!\[.*?\]\(.*?\)/g, '') // 移除图片
+    .replace(/\[.*?\]\(.*?\)/g, '') // 移除链接
+    .replace(/#{1,6}\s/g, '') // 移除标题符号
+    .replace(/[*_]{1,2}/g, '') // 移除加粗斜体
+    .replace(/>/g, '') // 移除引用
+    .replace(/[-*+]\s/g, '') // 移除列表符号
+    .replace(/\d+\.\s/g, '') // 移除有序列表
+  
+  // 统计中文字符
+  const chineseChars = (cleanContent.match(/[\u4e00-\u9fa5]/g) || []).length
+  
+  // 统计英文单词（包括数字）
+  const englishWords = cleanContent
+    .replace(/[\u4e00-\u9fa5]/g, ' ') // 替换中文为空格
+    .replace(/[^\w\s]/g, ' ') // 移除标点符号
+    .split(/\s+/)
+    .filter(word => word.length > 0)
+    .length
+  
+  return chineseChars + englishWords
+}
+
 const router = express.Router()
 const prisma = new PrismaClient()
 
@@ -124,7 +154,7 @@ router.post('/', authenticateToken, async (req, res) => {
     const { title, content, templateId, templateVariables, status = 'DRAFT' } = req.body
     
     // 计算内容元数据
-    const wordCount = content ? content.replace(/[^\u4e00-\u9fa5\w]/g, ' ').split(/\s+/).filter((w: string) => w.length > 0).length : 0
+    const wordCount = countWords(content || '')
     const imageCount = content ? (content.match(/!\[.*?\]\(.*?\)/g) || []).length : 0
     const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200))
     
@@ -223,7 +253,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
         updateData.content = content
         
         // 重新计算内容元数据
-        const wordCount = content.replace(/[^\u4e00-\u9fa5\w]/g, ' ').split(/\s+/).filter((w: string) => w.length > 0).length
+        const wordCount = countWords(content)
         const imageCount = (content.match(/!\[.*?\]\(.*?\)/g) || []).length
         const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200))
         
@@ -666,6 +696,56 @@ router.delete('/:id/versions/:versionId', authenticateToken, async (req, res) =>
   } catch (error) {
     console.error('Delete version error:', error)
     res.status(500).json(createErrorResponse('删除版本失败'))
+  }
+})
+
+// 批量重新计算所有文档的metadata
+router.post('/batch-update-metadata', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user!.id
+    
+    // 获取用户的所有文档
+    const documents = await prisma.document.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        title: true,
+        content: true
+      }
+    })
+    
+    let updatedCount = 0
+    
+    // 为每个文档重新计算metadata
+    for (const doc of documents) {
+      const wordCount = countWords(doc.content || '')
+      const imageCount = doc.content ? (doc.content.match(/!\[.*?\]\(.*?\)/g) || []).length : 0
+      const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200))
+      
+      const metadata = {
+        wordCount,
+        imageCount,
+        estimatedReadTime
+      }
+      
+      await prisma.document.update({
+        where: { id: doc.id },
+        data: {
+          metadata: JSON.stringify(metadata)
+        }
+      })
+      
+      updatedCount++
+      console.log(`更新文档 "${doc.title}": ${wordCount}字, ${imageCount}图`)
+    }
+    
+    res.json(createSuccessResponse({
+      message: `成功更新 ${updatedCount} 个文档的metadata`,
+      updatedCount
+    }))
+  } catch (error) {
+    console.error('Batch update metadata error:', error)
+    res.status(500).json(createErrorResponse('批量更新metadata失败'))
   }
 })
 

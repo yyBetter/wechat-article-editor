@@ -109,12 +109,16 @@ export async function getDocuments(params: DocumentListParams = {}): Promise<Doc
   const queryString = searchParams.toString()
   const endpoint = `/documents${queryString ? `?${queryString}` : ''}`
   
-  return apiRequest<DocumentListResponse>(endpoint)
+  const response = await apiRequest<DocumentListResponse>(endpoint)
+  console.log('Raw API response:', response)
+  return response
 }
 
 // 获取单个文档
 export async function getDocument(id: string): Promise<Document> {
-  return apiRequest<Document>(`/documents/${id}`)
+  const response = await apiRequest<Document>(`/documents/${id}`)
+  console.log('Get document response:', response)
+  return response
 }
 
 // 创建文档
@@ -137,6 +141,14 @@ export async function updateDocument(id: string, data: UpdateDocumentRequest): P
 export async function deleteDocument(id: string): Promise<{ message: string }> {
   return apiRequest<{ message: string }>(`/documents/${id}`, {
     method: 'DELETE'
+  })
+}
+
+// 批量更新所有文档的metadata
+export async function batchUpdateMetadata(): Promise<{ message: string; updatedCount: number }> {
+  return apiRequest<{ message: string; updatedCount: number }>('/documents/batch-update-metadata', {
+    method: 'POST',
+    body: JSON.stringify({})
   })
 }
 
