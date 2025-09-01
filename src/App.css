@@ -97,6 +97,20 @@ body {
   background: #e9ecef;
 }
 
+.header-btn.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #666;
+  border: 1px solid #e1e4e8;
+  margin-right: 12px;
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+.header-btn.back-btn:hover {
+  background: #f8f9fa;
+  color: #333;
+}
+
 /* 主要内容区域 */
 .app-main {
   display: flex;
