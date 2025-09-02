@@ -13,7 +13,7 @@ import { PublishFlow } from './PublishFlow'
 import { Settings } from './Settings'
 import { AuthModal } from './auth/AuthModal'
 import { UserMenu } from './auth/UserMenu'
-import { getDocument } from '../utils/document-api'
+import { getDocument, saveCurrentContent } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import '../App.css'
 import '../styles/sidebar.css'
@@ -27,6 +27,39 @@ export function LegacyEditorContent() {
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [versionHistoryDocument, setVersionHistoryDocument] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [previousUserId, setPreviousUserId] = useState<string | null>(authState.user?.id || null)
+  const [isSavingBeforeLogout, setIsSavingBeforeLogout] = useState(false)
+
+  // 监听认证状态变化，处理账号切换的情况
+  useEffect(() => {
+    const currentUserId = authState.user?.id || null
+    const wasAuthenticated = previousUserId !== null
+    const isNowAuthenticated = currentUserId !== null
+    const userChanged = previousUserId && currentUserId && previousUserId !== currentUserId
+    const userLoggedOut = wasAuthenticated && !isNowAuthenticated
+    
+    // 如果用户切换账号或登出，且编辑器有内容
+    if ((userChanged || userLoggedOut) && !isSavingBeforeLogout) {
+      const hasContent = state.editor.content.trim().length > 0 || (state.templates.variables.title && state.templates.variables.title.trim().length > 0)
+      
+      if (hasContent && previousUserId) {
+        console.log('检测到账号切换，准备保存当前内容...')
+        // 自动保存并跳转首页
+        handleAccountSwitch()
+      } else if (userChanged || userLoggedOut) {
+        console.log('账号切换且无内容，直接跳转首页')
+        // 没有内容，直接跳转首页
+        dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+        dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
+        navigate('/')
+      }
+    }
+    
+    // 更新上一次的用户ID
+    if (currentUserId !== previousUserId) {
+      setPreviousUserId(currentUserId)
+    }
+  }, [authState.user?.id, authState.isAuthenticated])
 
   // 根据URL参数加载文档
   useEffect(() => {
@@ -37,6 +70,45 @@ export function LegacyEditorContent() {
       loadDocument(documentId)
     }
   }, [documentId, authState.isAuthenticated])
+
+  // 处理账号切换：自动保存并跳转首页
+  const handleAccountSwitch = async () => {
+    try {
+      setIsSavingBeforeLogout(true)
+      
+      // 显示保存提示
+      notification.info('检测到账号切换，正在保存当前内容...')
+      
+      // 保存当前内容到原账号（使用存储的token）
+      const currentContent = {
+        title: state.templates.variables.title || '未命名文档',
+        content: state.editor.content || '',
+        templateId: state.templates.current?.id || 'simple-doc',
+        templateVariables: state.templates.variables
+      }
+      
+      await saveCurrentContent(currentContent)
+      notification.success('当前内容已保存到原账号')
+      
+      // 清理编辑器状态
+      dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+      dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
+      
+      // 跳转到首页
+      navigate('/')
+      
+    } catch (error) {
+      console.error('保存失败:', error)
+      notification.error('保存失败，但已跳转到首页')
+      
+      // 即使保存失败，也要跳转到首页避免数据混乱
+      dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
+      dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
+      navigate('/')
+    } finally {
+      setIsSavingBeforeLogout(false)
+    }
+  }
 
   // 加载指定文档
   const loadDocument = async (id: string) => {

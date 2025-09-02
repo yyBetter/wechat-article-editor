@@ -1,7 +1,7 @@
 // 认证弹窗组件 - 登录注册统一入口
 // 设计原则：不影响现有功能，可选择性使用
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { LoginForm } from './LoginForm'
 import { RegisterForm } from './RegisterForm'
 
@@ -14,6 +14,13 @@ interface AuthModalProps {
 
 export function AuthModal({ isOpen, onClose, defaultMode = 'login', onAuthSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode)
+
+  // 弹窗关闭时重置模式为默认值
+  useEffect(() => {
+    if (!isOpen) {
+      setMode(defaultMode)
+    }
+  }, [isOpen, defaultMode])
 
   if (!isOpen) return null
 

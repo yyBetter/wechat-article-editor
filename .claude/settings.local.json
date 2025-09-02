@@ -22,7 +22,9 @@
       "Bash(npm:*)",
       "Bash(mkdir:*)",
       "Bash(npx prisma generate:*)",
-      "Read(/Users/yangyu/develop/project/**)"
+      "Read(/Users/yangyu/develop/project/**)",
+      "Bash(git push:*)",
+      "Read(/Users/yangyu/Library/Caches/Hapigo/Media/DraggingPasteboardTemp/**)"
     ],
     "deny": [],
     "ask": []

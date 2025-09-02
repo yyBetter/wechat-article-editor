@@ -114,11 +114,15 @@ export function Dashboard() {
 
   // 创建新文章
   const handleNewArticle = () => {
-    // 清空编辑器内容
+    if (!authState.isAuthenticated) {
+      // 未登录用户，引导登录
+      setAuthModalOpen(true)
+      return
+    }
+    
+    // 已登录用户，正常创建文章
     dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
     dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
-    
-    // 跳转到编辑器页面
     navigate('/editor')
   }
 
