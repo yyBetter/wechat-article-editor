@@ -24,7 +24,16 @@
       "Bash(npx prisma generate:*)",
       "Read(/Users/yangyu/develop/project/**)",
       "Bash(git push:*)",
-      "Read(/Users/yangyu/Library/Caches/Hapigo/Media/DraggingPasteboardTemp/**)"
+      "Read(/Users/yangyu/Library/Caches/Hapigo/Media/DraggingPasteboardTemp/**)",
+      "Bash(git clean:*)",
+      "Bash(pkill:*)",
+      "Bash(npx prisma:*)",
+      "Bash(sqlite3:*)",
+      "Bash(chmod:*)",
+      "Bash(./create-deploy-package.sh:*)",
+      "Bash(scp:*)",
+      "Bash(ssh-keygen:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []
