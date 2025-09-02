@@ -52,6 +52,50 @@ function countWords(content: string): number {
 
 // Document 接口已从 document-api 导入
 
+// 智能标题生成函数
+function generateSmartTitle(content: string, originalTitle?: string): string {
+  // 如果有原标题且不是默认标题，直接使用
+  if (originalTitle && originalTitle.trim() && 
+      !originalTitle.includes('无标题') && 
+      !originalTitle.includes('标题?') && 
+      !originalTitle.includes('未命名文档')) {
+    return originalTitle
+  }
+  
+  if (!content || content.trim() === '') {
+    return '空文档'
+  }
+  
+  // 清理markdown语法
+  const cleanContent = content
+    .replace(/```[\s\S]*?```/g, ' ') // 移除代码块
+    .replace(/`[^`]+`/g, ' ') // 移除内联代码
+    .replace(/!?\[[^\]]*\]\([^)]*\)/g, ' ') // 移除图片和链接
+    .replace(/[#*>`_~]/g, '') // 移除markdown符号
+    .replace(/\s+/g, ' ') // 合并多个空格
+    .trim()
+  
+  if (!cleanContent) {
+    return '无内容'
+  }
+  
+  // 提取第一句话作为标题（最多15个字）
+  const firstSentence = cleanContent
+    .split(/[。！？；\.\!\?\;]/)[0]
+    .trim()
+  
+  if (firstSentence.length > 1) {
+    return firstSentence.length > 15 
+      ? firstSentence.substring(0, 15) + '...'
+      : firstSentence
+  }
+  
+  // 如果第一句话太短，取前15个字
+  return cleanContent.length > 15 
+    ? cleanContent.substring(0, 15) + '...'
+    : cleanContent
+}
+
 interface SortOption {
   field: 'updatedAt' | 'createdAt' | 'title'
   direction: 'asc' | 'desc'
@@ -284,13 +328,24 @@ export function Articles() {
           <div className="articles-toolbar">
             <div className="toolbar-left">
               <div className="search-box">
-                <input
-                  type="text"
-                  placeholder="搜索文章标题或内容..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="search-input"
-                />
+                <div className="search-input-wrapper">
+                  <span className="search-icon">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="搜索文章标题或内容..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="search-input"
+                  />
+                  {searchQuery && (
+                    <button 
+                      className="search-clear"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </div>
               
               <select
@@ -382,10 +437,15 @@ export function Articles() {
                   
                   <div className="item-content" onClick={() => handleEditArticle(doc.id)}>
                     <div className="item-title">
-                      <h3>{doc.title || '无标题'}</h3>
+                      <div className="title-row">
+                        <h3>{generateSmartTitle(doc.content, doc.title)}</h3>
+                        <span className={`status-badge ${doc.status?.toLowerCase() || 'draft'}`}>
+                          {doc.status === 'PUBLISHED' ? '已发布' : '草稿'}
+                        </span>
+                      </div>
                       <div className="item-preview">
                         {doc.content ? 
-                          doc.content.substring(0, 120).replace(/[#*>`]/g, '') + '...' : 
+                          doc.content.substring(0, 80).replace(/[#*>`\n]/g, ' ').replace(/\s+/g, ' ').trim() + '...' : 
                           '暂无内容'
                         }
                       </div>
