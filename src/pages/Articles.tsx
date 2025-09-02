@@ -5,7 +5,7 @@ import { useAuth } from '../utils/auth-context'
 import { useApp } from '../utils/app-context'
 import { AuthModal } from '../components/auth/AuthModal'
 import { UserMenu } from '../components/auth/UserMenu'
-import { getDocuments, deleteDocument, batchUpdateMetadata, Document } from '../utils/document-api'
+import { getDocuments, deleteDocument, Document } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import '../styles/articles.css'
 
@@ -53,7 +53,7 @@ function countWords(content: string): number {
 // Document 接口已从 document-api 导入
 
 interface SortOption {
-  field: 'updatedAt' | 'createdAt' | 'title' | 'wordCount'
+  field: 'updatedAt' | 'createdAt' | 'title'
   direction: 'asc' | 'desc'
   label: string
 }
@@ -61,8 +61,7 @@ interface SortOption {
 const SORT_OPTIONS: SortOption[] = [
   { field: 'updatedAt', direction: 'desc', label: '最近更新' },
   { field: 'createdAt', direction: 'desc', label: '创建时间' },
-  { field: 'title', direction: 'asc', label: '标题 A-Z' },
-  { field: 'wordCount', direction: 'desc', label: '字数排序' }
+  { field: 'title', direction: 'asc', label: '标题 A-Z' }
 ]
 
 export function Articles() {
@@ -166,25 +165,6 @@ export function Articles() {
     }
   }
 
-  // 批量更新metadata
-  const handleBatchUpdateMetadata = async () => {
-    if (!window.confirm('确定要重新计算所有文章的字数统计吗？这将更新所有文章的metadata。')) {
-      return
-    }
-
-    try {
-      setLoading(true)
-      const response = await batchUpdateMetadata()
-      console.log('批量更新结果:', response)
-      notification.success('所有文章的字数统计已更新')
-      loadDocuments() // 重新加载数据
-    } catch (error) {
-      console.error('批量更新metadata失败:', error)
-      notification.error('批量更新失败')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   // 切换选择
   const toggleSelection = (documentId: string) => {
@@ -217,11 +197,6 @@ export function Articles() {
       const { field, direction } = sortOption
       let aValue = a[field]
       let bValue = b[field]
-
-      if (field === 'wordCount') {
-        aValue = a.metadata?.wordCount || 0
-        bValue = b.metadata?.wordCount || 0
-      }
 
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return direction === 'asc' 
@@ -340,25 +315,6 @@ export function Articles() {
             </div>
 
             <div className="toolbar-right">
-              <button 
-                className="update-metadata-btn"
-                onClick={handleBatchUpdateMetadata}
-                disabled={loading}
-                style={{
-                  marginRight: '10px',
-                  padding: '6px 12px',
-                  backgroundColor: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1
-                }}
-              >
-                {loading ? '更新中...' : '🔄 重算字数'}
-              </button>
-              
               {selectedIds.size > 0 && (
                 <div className="batch-actions">
                   <span className="selected-count">已选择 {selectedIds.size} 项</span>
@@ -409,7 +365,6 @@ export function Articles() {
                   />
                 </div>
                 <div className="header-title">标题</div>
-                <div className="header-stats">统计</div>
                 <div className="header-date">更新时间</div>
                 <div className="header-actions">操作</div>
               </div>
@@ -437,14 +392,6 @@ export function Articles() {
                     </div>
                   </div>
                   
-                  <div className="item-stats">
-                    <span className="stat-item">
-                      📝 {doc.metadata?.wordCount ?? 0} 字
-                    </span>
-                    <span className="stat-item">
-                      🖼️ {doc.metadata?.imageCount ?? 0} 图
-                    </span>
-                  </div>
                   
                   <div className="item-date">
                     <div className="date-primary">

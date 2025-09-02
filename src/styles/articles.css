@@ -183,7 +183,7 @@
 
 .list-header {
   display: grid;
-  grid-template-columns: 40px 1fr 150px 150px 120px;
+  grid-template-columns: 40px 1fr 150px 120px;
   gap: 16px;
   padding: 12px 20px;
   background: #f8f9fa;
@@ -196,7 +196,7 @@
 
 .article-item {
   display: grid;
-  grid-template-columns: 40px 1fr 150px 150px 120px;
+  grid-template-columns: 40px 1fr 150px 120px;
   gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid #e1e4e8;
@@ -243,19 +243,7 @@
   -webkit-box-orient: vertical;
 }
 
-.item-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.stat-item {
-  font-size: 12px;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+/* .item-stats 样式已移除，因为统计列已被删除 */
 
 .item-date {
   text-align: right;
@@ -496,15 +484,9 @@
     margin-bottom: 8px;
   }
   
-  .item-stats,
   .item-date,
   .item-actions {
     margin-bottom: 8px;
-  }
-  
-  .item-stats {
-    flex-direction: row;
-    gap: 16px;
   }
   
   .item-actions {
