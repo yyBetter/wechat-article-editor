@@ -6,8 +6,6 @@ import { useAuth } from '../utils/auth-context'
 import { Editor } from './Editor'
 import { Preview } from './Preview'
 import { TemplateSelector } from './TemplateSelector'
-import { DocumentList } from './DocumentList'
-import { VersionHistory } from './VersionHistory'
 import { PublishGuide } from './PublishGuide'
 import { PublishFlow } from './PublishFlow'
 import { Settings } from './Settings'
@@ -25,7 +23,6 @@ export function LegacyEditorContent() {
   const { state, dispatch } = useApp()
   const { state: authState, login } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [versionHistoryDocument, setVersionHistoryDocument] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [previousUserId, setPreviousUserId] = useState<string | null>(authState.user?.id || null)
   const [isSavingBeforeLogout, setIsSavingBeforeLogout] = useState(false)
@@ -183,22 +180,6 @@ export function LegacyEditorContent() {
     }
   }
 
-  // 显示版本历史
-  const handleShowVersionHistory = (documentId: string) => {
-    setVersionHistoryDocument(documentId)
-    switchPanel('documents') // 确保在文档面板中
-  }
-
-  // 关闭版本历史
-  const handleCloseVersionHistory = () => {
-    setVersionHistoryDocument(null)
-  }
-
-  // 版本恢复后的处理
-  const handleVersionRestore = (document: any) => {
-    console.log('版本恢复成功:', document.title)
-    // 可以添加额外的UI反馈
-  }
   
   return (
     <div className={`app ${state.ui.theme}`}>
@@ -248,6 +229,15 @@ export function LegacyEditorContent() {
             <button 
               type="button"
               className="header-btn"
+              onClick={() => navigate('/articles')}
+              title="文章管理"
+            >
+              📄 文章管理
+            </button>
+            
+            <button 
+              type="button"
+              className="header-btn"
               onClick={() => switchPanel('export')}
               title="导出设置"
             >
@@ -269,11 +259,11 @@ export function LegacyEditorContent() {
             <nav className="sidebar-nav">
               <button
                 type="button"
-                className={`nav-tab ${['templates', 'documents'].includes(state.ui.activePanel) ? 'active' : ''}`}
+                className={`nav-tab ${state.ui.activePanel === 'templates' ? 'active' : ''}`}
                 onClick={() => switchPanel('templates')}
-                title="模板选择和文档管理"
+                title="模板选择"
               >
-                📝 创作
+                🎨 模板
               </button>
               <button
                 type="button"
@@ -287,48 +277,11 @@ export function LegacyEditorContent() {
             
             {/* 侧边栏内容 */}
             <div className="sidebar-content">
-              {/* 创作组合 - 模板和文档 */}
-              {['templates', 'documents'].includes(state.ui.activePanel) && (
+              {/* 模板选择 */}
+              {state.ui.activePanel === 'templates' && (
                 <div className="content-group">
-                  {/* 子菜单 */}
-                  <div className="sub-nav">
-                    <button
-                      className={`sub-nav-btn ${state.ui.activePanel === 'templates' ? 'active' : ''}`}
-                      onClick={() => switchPanel('templates')}
-                    >
-                      🎨 选择模板
-                    </button>
-                    <button
-                      className={`sub-nav-btn ${state.ui.activePanel === 'documents' ? 'active' : ''}`}
-                      onClick={() => switchPanel('documents')}
-                    >
-                      📄 我的文档
-                    </button>
-                  </div>
-                  
-                  {/* 子内容 */}
                   <div className="sub-content">
-                    {state.ui.activePanel === 'templates' && <TemplateSelector />}
-                    {state.ui.activePanel === 'documents' && (
-                      <>
-                        {versionHistoryDocument ? (
-                          <VersionHistory 
-                            documentId={versionHistoryDocument}
-                            onRestoreVersion={handleVersionRestore}
-                            onClose={handleCloseVersionHistory}
-                          />
-                        ) : (
-                          <DocumentList 
-                            onNewDocument={() => {
-                              dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
-                              dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
-                              switchPanel('templates')
-                            }}
-                            onShowVersionHistory={handleShowVersionHistory}
-                          />
-                        )}
-                      </>
-                    )}
+                    <TemplateSelector />
                   </div>
                 </div>
               )}

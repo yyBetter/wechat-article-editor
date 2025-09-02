@@ -43,6 +43,13 @@ export function useAutoSave(
   const lastContentRef = useRef<string>('')
   const lastTitleRef = useRef<string>('')
   const savingRef = useRef<boolean>(false)
+  const currentDocumentIdRef = useRef<string | null>(null)
+  const onSaveRef = useRef(onSave)
+  const onErrorRef = useRef(onError)
+
+  // 更新回调函数ref
+  onSaveRef.current = onSave
+  onErrorRef.current = onError
 
   // 检测内容是否有变化
   const hasContentChanged = useCallback(() => {
@@ -51,7 +58,13 @@ export function useAutoSave(
 
   // 执行保存
   const performSave = useCallback(async () => {
-    if (!authState.isAuthenticated || savingRef.current || !hasContentChanged()) {
+    if (!authState.isAuthenticated || savingRef.current) {
+      return
+    }
+
+    // 内联检查变化，避免依赖hasContentChanged函数
+    const contentChanged = content !== lastContentRef.current || title !== lastTitleRef.current
+    if (!contentChanged) {
       return
     }
 
@@ -64,10 +77,11 @@ export function useAutoSave(
         content,
         templateId,
         templateVariables,
-        documentId: autoSaveState.currentDocumentId || undefined
+        documentId: currentDocumentIdRef.current || undefined
       })
 
-      // 更新状态
+      // 更新状态和引用
+      currentDocumentIdRef.current = document.id
       setAutoSaveState(prev => ({
         ...prev,
         isSaving: false,
@@ -80,13 +94,13 @@ export function useAutoSave(
       lastContentRef.current = content
       lastTitleRef.current = title
 
-      onSave?.(document)
+      onSaveRef.current?.(document)
       
       console.log('文档已自动保存:', document.title)
     } catch (error) {
       console.error('自动保存失败:', error)
       setAutoSaveState(prev => ({ ...prev, isSaving: false }))
-      onError?.(error as Error)
+      onErrorRef.current?.(error as Error)
     } finally {
       savingRef.current = false
     }
@@ -95,11 +109,7 @@ export function useAutoSave(
     title,
     content,
     templateId,
-    templateVariables,
-    autoSaveState.currentDocumentId,
-    hasContentChanged,
-    onSave,
-    onError
+    templateVariables
   ])
 
   // 手动保存
@@ -113,6 +123,7 @@ export function useAutoSave(
 
   // 设置当前文档ID（用于加载已有文档时）
   const setCurrentDocumentId = useCallback((documentId: string | null) => {
+    currentDocumentIdRef.current = documentId
     setAutoSaveState(prev => ({
       ...prev,
       currentDocumentId: documentId,
@@ -133,6 +144,7 @@ export function useAutoSave(
       timeoutRef.current = null
     }
     
+    currentDocumentIdRef.current = null
     setAutoSaveState({
       isSaving: false,
       lastSaved: null,
@@ -146,7 +158,14 @@ export function useAutoSave(
 
   // 自动保存逻辑
   useEffect(() => {
-    if (!enabled || !authState.isAuthenticated || !hasContentChanged()) {
+    if (!enabled || !authState.isAuthenticated) {
+      return
+    }
+
+    // 检查内容是否有变化（内联检查避免函数依赖）
+    const contentChanged = content !== lastContentRef.current || title !== lastTitleRef.current
+    
+    if (!contentChanged) {
       return
     }
 
@@ -159,14 +178,16 @@ export function useAutoSave(
     }
 
     // 设置新的定时器
-    timeoutRef.current = setTimeout(performSave, delay)
+    timeoutRef.current = setTimeout(() => {
+      performSave()
+    }, delay)
 
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
     }
-  }, [enabled, authState.isAuthenticated, content, title, templateId, templateVariables, delay, hasContentChanged, performSave])
+  }, [enabled, authState.isAuthenticated, content, title, templateId, templateVariables, delay])
 
   // 组件卸载时清理
   useEffect(() => {
