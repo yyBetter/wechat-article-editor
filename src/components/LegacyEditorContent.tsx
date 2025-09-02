@@ -222,7 +222,7 @@ export function LegacyEditorContent() {
             ☰
           </button>
           <h1 className="app-title">
-            {loading ? '加载中...' : documentId ? `编辑: ${state.templateVariables?.title || '无标题'}` : '公众号排版工具'}
+            {loading ? '加载中...' : documentId ? `编辑: ${state.templates.variables?.title || '无标题'}` : '公众号排版工具'}
           </h1>
         </div>
         

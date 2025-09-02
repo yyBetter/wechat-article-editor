@@ -5,7 +5,7 @@ import { useAuth } from '../utils/auth-context'
 import { useApp } from '../utils/app-context'
 import { AuthModal } from '../components/auth/AuthModal'
 import { UserMenu } from '../components/auth/UserMenu'
-import { getDocuments, deleteDocument, batchUpdateMetadata } from '../utils/document-api'
+import { getDocuments, deleteDocument, batchUpdateMetadata, Document } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import '../styles/articles.css'
 
@@ -50,20 +50,7 @@ function countWords(content: string): number {
   return chineseChars + englishWords
 }
 
-interface Document {
-  id: string
-  title: string
-  content: string
-  createdAt: string
-  updatedAt: string
-  templateId?: string
-  templateVariables?: any
-  metadata?: {
-    wordCount: number
-    imageCount: number
-    readTime: number
-  }
-}
+// Document 接口已从 document-api 导入
 
 interface SortOption {
   field: 'updatedAt' | 'createdAt' | 'title' | 'wordCount'
@@ -150,13 +137,9 @@ export function Articles() {
     }
 
     try {
-      const response = await deleteDocument(documentId)
-      if (response.success) {
-        notification.success('文章已删除')
-        loadDocuments() // 重新加载列表
-      } else {
-        notification.error('删除失败')
-      }
+      await deleteDocument(documentId)
+      notification.success('文章已删除')
+      loadDocuments() // 重新加载列表
     } catch (error) {
       console.error('删除文章失败:', error)
       notification.error('删除文章失败')
