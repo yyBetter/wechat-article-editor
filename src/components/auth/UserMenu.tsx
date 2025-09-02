@@ -1,5 +1,6 @@
 // 用户菜单组件 - 显示在应用头部
 import React, { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../utils/auth-context'
 
 interface UserMenuProps {
@@ -8,6 +9,7 @@ interface UserMenuProps {
 
 export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
   const { state, logout } = useAuth()
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -92,24 +94,12 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
               className="menu-item"
               onClick={() => {
                 setIsOpen(false)
-                // TODO: 打开用户设置
+                navigate('/settings')
               }}
               type="button"
             >
               <span className="menu-icon">⚙️</span>
               个人设置
-            </button>
-            
-            <button 
-              className="menu-item"
-              onClick={() => {
-                setIsOpen(false)
-                // TODO: 打开我的文档
-              }}
-              type="button"
-            >
-              <span className="menu-icon">📄</span>
-              我的文档
             </button>
             
             <div className="menu-divider"></div>

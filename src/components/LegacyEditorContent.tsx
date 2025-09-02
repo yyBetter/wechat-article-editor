@@ -8,7 +8,7 @@ import { Preview } from './Preview'
 import { TemplateSelector } from './TemplateSelector'
 import { PublishGuide } from './PublishGuide'
 import { PublishFlow } from './PublishFlow'
-import { Settings } from './Settings'
+import { GlobalSettings } from './GlobalSettings'
 import { AuthModal } from './auth/AuthModal'
 import { UserMenu } from './auth/UserMenu'
 import { getDocument, saveCurrentContent } from '../utils/document-api'
@@ -16,6 +16,7 @@ import { notification } from '../utils/notification'
 import '../App.css'
 import '../styles/sidebar.css'
 import '../styles/publish.css'
+import '../styles/settings.css'
 
 export function LegacyEditorContent() {
   const navigate = useNavigate()
@@ -26,6 +27,7 @@ export function LegacyEditorContent() {
   const [loading, setLoading] = useState(false)
   const [previousUserId, setPreviousUserId] = useState<string | null>(authState.user?.id || null)
   const [isSavingBeforeLogout, setIsSavingBeforeLogout] = useState(false)
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(documentId || null)
 
   // 监听认证状态变化，处理账号切换的情况
   useEffect(() => {
@@ -58,15 +60,37 @@ export function LegacyEditorContent() {
     }
   }, [authState.user?.id, authState.isAuthenticated])
 
-  // 根据URL参数加载文档
+  // 根据URL参数加载文档或初始化新建
   useEffect(() => {
     if (documentId && authState.isAuthenticated) {
-      // 立即清理编辑器状态
+      // 编辑现有文档：立即清理编辑器状态并加载
       dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
       dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '加载中...' } })
+      setCurrentDocumentId(documentId) // 设置当前文档ID
       loadDocument(documentId)
+    } else if (!documentId && authState.isAuthenticated) {
+      // 新建文档：清空内容，提供更简洁的起始模板
+      setCurrentDocumentId(null) // 清空文档ID
+      dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: `# 文章标题
+
+在这里开始你的创作...
+
+## 小标题
+
+你可以使用 **粗体**、*斜体* 等 Markdown 语法来格式化文章。
+
+- 支持列表
+- 支持图片拖拽上传  
+- 支持实时预览
+
+> 💡 提示：内容会自动保存，专心创作即可` })
+      dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
+      console.log('🆕 初始化新建文档模式')
+    } else {
+      // 未认证状态
+      setCurrentDocumentId(null)
     }
-  }, [documentId, authState.isAuthenticated])
+  }, [documentId, authState.isAuthenticated, dispatch])
 
   // 处理账号切换：自动保存并跳转首页
   const handleAccountSwitch = async () => {
@@ -118,8 +142,8 @@ export function LegacyEditorContent() {
         dispatch({ 
           type: 'UPDATE_TEMPLATE_VARIABLES', 
           payload: { 
-            title: doc.title || '',
-            ...doc.templateVariables 
+            ...doc.templateVariables,
+            title: doc.title || ''
           }
         })
         if (doc.templateId) {
@@ -235,15 +259,6 @@ export function LegacyEditorContent() {
               📄 文章管理
             </button>
             
-            <button 
-              type="button"
-              className="header-btn"
-              onClick={() => switchPanel('export')}
-              title="导出设置"
-            >
-              📤 导出
-            </button>
-            
             {/* 用户菜单 */}
             <UserMenu onOpenAuthModal={() => setAuthModalOpen(true)} />
           </div>
@@ -306,7 +321,7 @@ export function LegacyEditorContent() {
                   
                   <div className="sub-content">
                     {state.ui.activePanel === 'guide' && <PublishFlow />}
-                    {state.ui.activePanel === 'settings' && <Settings />}
+                    {state.ui.activePanel === 'settings' && <GlobalSettings />}
                   </div>
                 </div>
               )}
@@ -316,7 +331,7 @@ export function LegacyEditorContent() {
         
         {/* 编辑器区域 */}
         <div className="editor-section">
-          <Editor />
+          <Editor currentDocumentId={currentDocumentId} />
         </div>
         
         {/* 预览区域 */}

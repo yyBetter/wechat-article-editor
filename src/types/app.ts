@@ -64,6 +64,7 @@ export interface UIState {
   theme: 'light' | 'dark'
   fontSize: 'small' | 'medium' | 'large'
   deviceMode: 'mobile' | 'desktop'
+  userHasSelectedTemplate: boolean
 }
 
 // 固定资源配置

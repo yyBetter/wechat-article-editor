@@ -3,6 +3,8 @@ import React from 'react'
 import { useApp } from '../utils/app-context'
 import { Template } from '../types/template'
 import { templatePresets } from '../templates'
+import { DocumentSettings } from './DocumentSettings'
+import { TemplateCustomizer } from './TemplateCustomizer'
 
 export function TemplateSelector() {
   const { state, dispatch } = useApp()
@@ -10,6 +12,8 @@ export function TemplateSelector() {
   // 选择模板
   const selectTemplate = (templateId: string) => {
     dispatch({ type: 'SELECT_TEMPLATE', payload: templateId })
+    // 标记用户已手动选择模板，防止自动推荐覆盖
+    dispatch({ type: 'SET_UI_STATE', payload: { userHasSelectedTemplate: true } })
   }
   
   // 更新模板变量
@@ -61,6 +65,16 @@ export function TemplateSelector() {
             </div>
           )
         })}
+      </div>
+
+      {/* 文档信息设置 */}
+      <div className="settings-section">
+        <DocumentSettings />
+      </div>
+      
+      {/* 模板定制 */}
+      <div className="settings-section">
+        <TemplateCustomizer />
       </div>
 
       {/* 模板使用说明 */}

@@ -30,7 +30,11 @@ function useDebounce<T>(value: T, delay: number): T {
 const templateEngine = new TemplateEngine(templates)
 
 // 使用 React.memo 优化组件渲染性能
-export const Editor = memo(function Editor() {
+interface EditorProps {
+  currentDocumentId?: string | null
+}
+
+export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   const { state, dispatch } = useApp()
   const { state: authState } = useAuth()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -48,6 +52,11 @@ export const Editor = memo(function Editor() {
       enabled: authState.isAuthenticated,
       onSave: (document) => {
         console.log('文档已自动保存:', document.title)
+        // 如果是新建文档，第一次保存后需要通知父组件更新URL
+        if (!currentDocumentId && document.id) {
+          console.log('🆕 新建文档首次保存，文档ID:', document.id)
+          // 这里可以通过回调通知父组件更新URL，但目前先保持简单
+        }
         // 可以显示保存成功通知
         notification.success('文档已自动保存')
       },
@@ -57,6 +66,19 @@ export const Editor = memo(function Editor() {
       }
     }
   )
+  
+  // 当文档ID变化时，更新自动保存的当前文档ID
+  useEffect(() => {
+    if (currentDocumentId) {
+      console.log('🔗 设置当前文档ID:', currentDocumentId)
+      autoSave.setCurrentDocumentId(currentDocumentId)
+    } else {
+      console.log('🆕 重置自动保存状态 (新建文档)')
+      autoSave.reset()
+      // 重置用户模板选择状态，允许新文档自动推荐模板
+      dispatch({ type: 'SET_UI_STATE', payload: { userHasSelectedTemplate: false } })
+    }
+  }, [currentDocumentId, autoSave, dispatch])
   const [displayContent, setDisplayContent] = useState('')
   const [isManualSaving, setIsManualSaving] = useState(false)
   
@@ -74,8 +96,19 @@ export const Editor = memo(function Editor() {
     try {
       setIsManualSaving(true)
       
-      // 调用自动保存的手动保存方法
-      await autoSave.save()
+      // 使用最新的displayContent直接保存，不依赖全局状态同步
+      console.log('手动保存最新内容:', { 
+        content: displayContent.substring(0, 50) + '...',
+        title: state.templates.variables.title || '未命名文档'
+      })
+      
+      // 使用新的saveWithContent方法保存即时内容
+      await autoSave.saveWithContent(displayContent)
+      
+      // 保存成功后同步全局状态
+      if (displayContent !== state.editor.content) {
+        dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: displayContent })
+      }
       
       notification.success('文档已手动保存', {
         details: 'Cmd+S 快捷键保存成功'
@@ -88,7 +121,7 @@ export const Editor = memo(function Editor() {
     } finally {
       setIsManualSaving(false)
     }
-  }, [authState.isAuthenticated, isManualSaving, autoSave])
+  }, [authState.isAuthenticated, isManualSaving, autoSave, displayContent, state.templates.variables.title, state.editor.content, dispatch])
 
   // 键盘快捷键监听
   useEffect(() => {
@@ -137,18 +170,28 @@ export const Editor = memo(function Editor() {
     }
   }, [debouncedPreviewContent])
   
-  // 自动模板推荐（仅在分析结果变化时执行）
+  // 自动模板推荐（仅在初次加载且用户未主动选择时）
   useEffect(() => {
-    if (templateAnalysis && state.templates.current) {
+    // 只有在以下条件都满足时才自动推荐：
+    // 1. 有分析结果
+    // 2. 有当前模板
+    // 3. 用户没有主动选择过模板
+    // 4. 内容较少（初始状态）
+    if (templateAnalysis && 
+        state.templates.current && 
+        !state.ui.userHasSelectedTemplate && 
+        debouncedPreviewContent.length < 200) {
+      
       const { suggestedTemplate } = templateAnalysis
       if (state.templates.current.id !== suggestedTemplate) {
         const recommendedTemplate = templates.find(t => t.id === suggestedTemplate)
-        if (recommendedTemplate && !state.templates.variables.title) {
+        if (recommendedTemplate) {
+          console.log('🤖 自动推荐模板:', suggestedTemplate)
           dispatch({ type: 'SELECT_TEMPLATE', payload: suggestedTemplate })
         }
       }
     }
-  }, [templateAnalysis, state.templates.current, state.templates.variables.title, dispatch])
+  }, [templateAnalysis, state.templates.current, state.ui.userHasSelectedTemplate, debouncedPreviewContent.length, dispatch])
   
   // 预览渲染（仅在相关依赖变化时执行）
   const previewData = useMemo(() => {

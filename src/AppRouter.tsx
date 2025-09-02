@@ -5,6 +5,7 @@ import { AuthProvider } from './utils/auth-context'
 import { AppProvider } from './utils/app-context'
 import { Dashboard } from './pages/Dashboard'
 import { Articles } from './pages/Articles'
+import { UserSettings } from './pages/UserSettings'
 import { LegacyEditorContent } from './components/LegacyEditorContent'
 
 // 创建一个不包含Context提供器的LegacyEditor内容组件
@@ -28,6 +29,9 @@ export function AppRouter() {
             
             {/* 文章管理页面 */}
             <Route path="/articles" element={<Articles />} />
+            
+            {/* 用户设置页面 */}
+            <Route path="/settings" element={<UserSettings />} />
             
             {/* 兼容性路由 - 保持现有功能可访问 */}
             <Route path="/legacy" element={<LegacyEditorRoute />} />

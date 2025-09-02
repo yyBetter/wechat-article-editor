@@ -72,6 +72,14 @@ export function useAutoSave(
       savingRef.current = true
       setAutoSaveState(prev => ({ ...prev, isSaving: true }))
 
+      console.log('正在保存文档数据:', {
+        title: title || '未命名文档',
+        content: content.substring(0, 100) + '...',
+        templateId,
+        templateVariables,
+        documentId: currentDocumentIdRef.current || undefined
+      })
+
       const document = await saveCurrentContent({
         title: title || '未命名文档',
         content,
@@ -120,6 +128,68 @@ export function useAutoSave(
     }
     await performSave()
   }, [performSave])
+
+  // 使用指定内容手动保存
+  const saveWithContent = useCallback(async (immediateContent: string) => {
+    if (!authState.isAuthenticated || savingRef.current) {
+      return
+    }
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+
+    try {
+      savingRef.current = true
+      setAutoSaveState(prev => ({ ...prev, isSaving: true }))
+
+      console.log('正在保存指定内容:', {
+        title: title || '未命名文档',
+        content: immediateContent.substring(0, 100) + '...',
+        templateId,
+        templateVariables,
+        documentId: currentDocumentIdRef.current || undefined
+      })
+
+      const document = await saveCurrentContent({
+        title: title || '未命名文档',
+        content: immediateContent,
+        templateId,
+        templateVariables,
+        documentId: currentDocumentIdRef.current || undefined
+      })
+
+      // 更新状态和引用
+      currentDocumentIdRef.current = document.id
+      setAutoSaveState(prev => ({
+        ...prev,
+        isSaving: false,
+        lastSaved: new Date(),
+        currentDocumentId: document.id,
+        hasUnsavedChanges: false
+      }))
+
+      // 更新引用值 - 使用传入的内容
+      lastContentRef.current = immediateContent
+      lastTitleRef.current = title
+
+      onSaveRef.current?.(document)
+      
+      console.log('文档已手动保存:', document.title)
+    } catch (error) {
+      console.error('手动保存失败:', error)
+      setAutoSaveState(prev => ({ ...prev, isSaving: false }))
+      onErrorRef.current?.(error as Error)
+    } finally {
+      savingRef.current = false
+    }
+  }, [
+    authState.isAuthenticated,
+    title,
+    templateId,
+    templateVariables
+  ])
 
   // 设置当前文档ID（用于加载已有文档时）
   const setCurrentDocumentId = useCallback((documentId: string | null) => {
@@ -201,6 +271,7 @@ export function useAutoSave(
   return {
     ...autoSaveState,
     save,
+    saveWithContent,
     setCurrentDocumentId,
     reset
   }
