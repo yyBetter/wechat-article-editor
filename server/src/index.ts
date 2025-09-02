@@ -5,9 +5,11 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
+import path from 'path'
 import { PrismaClient } from '@prisma/client'
 import authRoutes from './routes/auth'
 import documentRoutes from './routes/documents'
+import uploadRoutes from './routes/uploads'
 
 // 加载环境变量
 dotenv.config()
@@ -17,7 +19,9 @@ const prisma = new PrismaClient()
 const PORT = process.env.PORT || 3002
 
 // 中间件配置
-app.use(helmet()) // 安全头
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" } // 允许跨域资源访问
+})) // 安全头
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3001',
   credentials: true
@@ -52,6 +56,16 @@ app.use('/api/auth', authRoutes)
 
 // 文档管理路由
 app.use('/api/documents', documentRoutes)
+
+// 上传管理路由
+app.use('/api/uploads', uploadRoutes)
+
+// 静态文件服务 - 为上传的图片提供访问路径（带缓存策略）
+app.use('/api/uploads/images', express.static(path.join(__dirname, '../uploads/images'), {
+  maxAge: '1y', // 缓存1年
+  etag: true,
+  lastModified: true
+}))
 
 // 错误处理中间件
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

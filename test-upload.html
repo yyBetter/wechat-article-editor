@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Image Upload</title>
+</head>
+<body>
+    <h1>Test Image Upload API</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="uploadImage()">Upload Image</button>
+    <div id="result"></div>
+
+    <script>
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWYwb2pvZW4wMDAwZ2UxOTcxanV5dTVhIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzU2Nzg2NDkzLCJleHAiOjE3NTczOTEyOTN9.y8vr0vFVO8Or9kKBsX5kldVZsPs9AUJdseVAYOd13rM';
+
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('http://localhost:3002/api/uploads/image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h2>Upload Result:</h2>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                    ${result.success ? `<img src="http://localhost:3002${result.data.url}" style="max-width: 300px;">` : ''}
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

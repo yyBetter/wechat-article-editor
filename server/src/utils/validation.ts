@@ -38,11 +38,12 @@ export type ApiResponse<T = any> = {
   data?: T
   error?: string
   code?: string
+  message?: string
 }
 
 // 创建成功响应
-export function createSuccessResponse<T>(data: T): ApiResponse<T> {
-  return { success: true, data }
+export function createSuccessResponse<T>(data: T, message?: string): ApiResponse<T> {
+  return { success: true, data, message }
 }
 
 // 创建错误响应

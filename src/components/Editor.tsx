@@ -6,6 +6,7 @@ import { useAutoSave } from '../hooks/useAutoSave'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
 import { notification } from '../utils/notification'
+import { uploadImage, getImageUrl } from '../utils/image-api'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -24,81 +25,7 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue
 }
 
-// 高性能图片管理器
-class ImageManager {
-  private cache = new Map<string, string>()
-  private displayCache = new Map<string, string>()
-  private idCounter = 0
-  
-  // 缓存base64图片并返回占位符
-  cacheImage(base64Data: string, alt: string = ''): string {
-    // 检查是否已缓存
-    const existing = Array.from(this.cache.entries()).find(([, value]) => value === base64Data)
-    if (existing) {
-      return `![${alt}](🖼️ ${existing[0]})`
-    }
-    
-    const key = `img_${this.idCounter++}`
-    this.cache.set(key, base64Data)
-    const placeholder = `![${alt}](🖼️ ${key})`
-    this.displayCache.set(placeholder, base64Data)
-    return placeholder
-  }
-  
-  // 还原占位符为实际图片数据
-  restoreImage(placeholder: string): string {
-    const cached = this.displayCache.get(placeholder)
-    return cached || placeholder
-  }
-  
-  // 批量转换显示内容（仅在需要时执行regex）
-  convertToDisplay(content: string): string {
-    if (!content.includes('data:image/')) {
-      return content
-    }
-    
-    return content.replace(
-      /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[A-Za-z0-9+/=]+\)/g,
-      (match, alt) => this.cacheImage(match, alt)
-    )
-  }
-  
-  // 批量还原实际内容
-  convertToActual(displayContent: string): string {
-    if (!displayContent.includes('🖼️')) {
-      return displayContent
-    }
-    
-    return displayContent.replace(
-      /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
-      (match, alt, key) => {
-        const cached = this.cache.get(key)
-        return cached || match
-      }
-    )
-  }
-  
-  // 清理未使用的缓存
-  cleanup(currentContent: string): void {
-    const usedKeys = new Set<string>()
-    const matches = currentContent.matchAll(/🖼️ (img_\d+)/g)
-    for (const match of matches) {
-      usedKeys.add(match[1])
-    }
-    
-    for (const key of this.cache.keys()) {
-      if (!usedKeys.has(key)) {
-        this.cache.delete(key)
-        // 从显示缓存中移除相关条目
-        for (const [placeholder, data] of this.displayCache.entries()) {
-          if (data === this.cache.get(key)) {
-            this.displayCache.delete(placeholder)
-          }
-        }
-      }
-    }
-  }
-}
+// 移除ImageManager类，现在使用服务器端图片存储
 
 const templateEngine = new TemplateEngine(templates)
 
@@ -133,9 +60,7 @@ export const Editor = memo(function Editor() {
   const [displayContent, setDisplayContent] = useState('')
   const [isManualSaving, setIsManualSaving] = useState(false)
   
-  // 简化的图片映射管理
-  const imageMap = useRef(new Map<string, string>())
-  const imageIdCounter = useRef(0)
+  // 移除图片映射管理，现在使用直接URL
   
   // 优化防抖延迟，减少用户输入延迟感知
   const debouncedDisplayContent = useDebounce(displayContent, 100)
@@ -183,49 +108,9 @@ export const Editor = memo(function Editor() {
     }
   }, [handleManualSave])
   
-  // 将占位符还原为实际图片数据（供预览使用）
-  const restoreImagesForPreview = useCallback((content: string) => {
-    if (!content || !content.includes('🖼️')) {
-      return content
-    }
-    
-    console.log('🔍 预览还原调试:', {
-      content,
-      mapSize: imageMap.current.size,
-      mapKeys: Array.from(imageMap.current.keys())
-    })
-    
-    // 还原所有图片占位符
-    const restored = content.replace(
-      /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
-      (match, alt, imageId) => {
-        const actualImage = imageMap.current.get(imageId)
-        console.log(`🔧 还原图片: ${imageId} -> ${actualImage ? '找到' : '未找到'}`)
-        return actualImage || `![${alt}](图片丢失: ${imageId})`
-      }
-    )
-    
-    console.log('✅ 还原结果:', restored.substring(0, 200) + '...')
-    return restored
-  }, [])
+  // 移除图片还原函数，现在直接使用URL，无需还原
   
-  // 初始化时转换显示内容
-  const convertToDisplayContent = useCallback((content: string) => {
-    if (!content || !content.includes('data:image/')) {
-      return content
-    }
-    
-    // 将长base64图片转换为占位符
-    return content.replace(
-      /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[A-Za-z0-9+/=]{200,}\)/g,
-      (match, alt) => {
-        // 为已存在的图片创建映射
-        const imageId = `img_${imageIdCounter.current++}`
-        imageMap.current.set(imageId, match)
-        return `![${alt}](🖼️ ${imageId})`
-      }
-    )
-  }, [])
+  // 移除base64转换函数，现在直接使用URL
   
   // 处理用户输入变化
   const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -281,12 +166,10 @@ export const Editor = memo(function Editor() {
         divider: state.assets.fixedAssets.watermark
       }
       
-      // 先将占位符还原为实际图片数据
-      const contentWithImages = restoreImagesForPreview(debouncedPreviewContent)
-      
+      // 直接使用内容渲染，无需还原图片
       return templateEngine.renderTemplate(
         state.templates.current.id,
-        contentWithImages,
+        debouncedPreviewContent,
         combinedVariables
       )
     } catch (error) {
@@ -297,8 +180,7 @@ export const Editor = memo(function Editor() {
     state.templates.current,
     debouncedPreviewContent,
     state.templates.variables,
-    state.assets.fixedAssets,
-    restoreImagesForPreview
+    state.assets.fixedAssets
   ])
   
   // 更新预览HTML（仅在需要时）
@@ -364,13 +246,16 @@ export const Editor = memo(function Editor() {
     }, 10)
   }, [displayContent, dispatch])
 
-  // 初始化时转换显示内容（仅在加载时执行一次）
+  // 同步全局状态到显示内容（确保状态一致）
   useEffect(() => {
-    if (!displayContent && state.editor.content) {
-      const initialDisplayContent = convertToDisplayContent(state.editor.content)
-      setDisplayContent(initialDisplayContent)
+    if (state.editor.content !== displayContent) {
+      console.log('🔄 同步编辑器内容:', { 
+        global: state.editor.content.substring(0, 50) + '...', 
+        display: displayContent.substring(0, 50) + '...' 
+      })
+      setDisplayContent(state.editor.content)
     }
-  }, [state.editor.content, displayContent, convertToDisplayContent])
+  }, [state.editor.content])
 
   // 图片压缩函数
   const compressImage = useCallback((file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<File> => {
@@ -436,84 +321,50 @@ export const Editor = memo(function Editor() {
         return
       }
       
-      // 验证文件大小并进行智能压缩
-      const maxSize = 2 * 1024 * 1024 // 2MB
-      let processedFile = file
+      // 验证用户是否已登录
+      if (!authState.isAuthenticated) {
+        notification.error('请先登录后再上传图片')
+        return
+      }
       
       setIsUploading(true)
       
-      if (file.size > maxSize) {
-        // 尝试压缩图片
-        console.log(`图片过大 (${(file.size / 1024 / 1024).toFixed(2)}MB)，正在压缩...`)
-        processedFile = await compressImage(file)
-        
-        // 如果压缩后仍然过大，使用更高压缩率
-        if (processedFile.size > maxSize) {
-          processedFile = await compressImage(file, 800, 0.6)
-        }
-        
-        // 最终检查
-        if (processedFile.size > maxSize) {
-          notification.error('图片文件仍然过大', {
-            title: `压缩后仍有 ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`,
-            details: '建议:选择更小的图片或使用图片压缩工具先进行压缩',
-            duration: 6000
-          })
-          return
-        }
-        
-        console.log(`压缩完成: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`)
-        notification.success('图片压缩完成', {
-          details: `${(file.size / 1024 / 1024).toFixed(2)}MB → ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`
-        })
-      }
-
-      // 转换为Base64格式
-      const base64Url = await fileToBase64(processedFile)
+      // 上传图片到服务器
+      console.log(`📤 开始上传图片: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`)
+      const imageInfo = await uploadImage(file)
+      
+      // 生成完整的访问URL
+      const fullImageUrl = getImageUrl(imageInfo.url)
       
       // 插入图片Markdown语法
       const textarea = textareaRef.current
       if (textarea) {
         const start = textarea.selectionStart
         const end = textarea.selectionEnd
-        const fileName = processedFile.name.replace(/\.[^/.]+$/, "") // 去掉扩展名作为alt文本
-        const sizeInfo = processedFile !== file ? ` (已压缩: ${(processedFile.size / 1024).toFixed(0)}KB)` : ''
+        const fileName = imageInfo.originalName.replace(/\.[^/.]+$/, "") // 去掉扩展名作为alt文本
+        const sizeInfo = ` (${(imageInfo.size / 1024).toFixed(1)}KB)`
         
-        // 生成图片ID用于占位
-        const imageId = `img_${imageIdCounter.current++}`
+        // 直接使用服务器返回的URL，无需占位符机制
+        const imageMarkdown = `![${fileName}${sizeInfo}](${fullImageUrl})`
         
-        // 存储实际的base64数据到本地映射和全局状态
-        const actualImageMarkdown = `![${fileName}${sizeInfo}](${base64Url})`
-        imageMap.current.set(imageId, actualImageMarkdown)
-        
-        // 同时更新全局状态中的图片映射
-        dispatch({ 
-          type: 'UPDATE_IMAGE_MAP', 
-          payload: { id: imageId, data: actualImageMarkdown }
-        })
-        
-        // 在编辑器中显示简洁的占位符
-        const placeholderMarkdown = `![${fileName}${sizeInfo}](🖼️ ${imageId})`
-        
-        // 更新显示内容使用占位符，实际内容存储完整数据
-        const newDisplayContent = 
+        // 更新显示内容和实际内容
+        const newContent = 
           displayContent.substring(0, start) +
-          placeholderMarkdown +
+          imageMarkdown +
           displayContent.substring(end)
-        setDisplayContent(newDisplayContent)
-        
-        // 实际内容也暂时使用占位符，预览时会还原
-        dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: newDisplayContent })
+        setDisplayContent(newContent)
+        dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: newContent })
         
         // 重新聚焦
         setTimeout(() => {
           textarea.focus()
-          textarea.setSelectionRange(start + placeholderMarkdown.length, start + placeholderMarkdown.length)
+          textarea.setSelectionRange(start + imageMarkdown.length, start + imageMarkdown.length)
         }, 10)
         
         // 显示成功提示
+        console.log(`✅ 图片上传成功: ${file.name} -> ${imageInfo.filename}`)
         notification.success('图片上传成功', {
-          details: processedFile !== file ? '已自动压缩优化' : '已插入到编辑器'
+          details: `已保存为: ${imageInfo.filename}`
         })
       }
     } catch (error) {
@@ -524,14 +375,17 @@ export const Editor = memo(function Editor() {
       let errorDetails = '请重试或选择其他图片'
       
       if (error instanceof Error) {
-        if (error.message.includes('文件读取失败')) {
-          errorTitle = '文件读取失败'
-          errorDetails = '请检查文件是否损坏或尝试其他图片文件'
+        if (error.message.includes('认证失败')) {
+          errorTitle = '认证失败'
+          errorDetails = '请重新登录后再试'
         } else if (error.message.includes('网络')) {
           errorTitle = '网络错误'
           errorDetails = '请检查网络连接后重试'
+        } else if (error.message.includes('文件类型')) {
+          errorTitle = '文件类型不支持'
+          errorDetails = '请选择 JPG、PNG、GIF 或 WebP 格式的图片'
         } else {
-          errorTitle = '处理失败'
+          errorTitle = '上传失败'
           errorDetails = error.message
         }
       }
@@ -543,7 +397,7 @@ export const Editor = memo(function Editor() {
     } finally {
       setIsUploading(false)
     }
-  }, [displayContent, fileToBase64, compressImage])
+  }, [displayContent, authState.isAuthenticated, dispatch])
 
   // 处理文件选择
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

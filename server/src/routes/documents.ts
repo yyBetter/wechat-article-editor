@@ -230,17 +230,25 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const result = await prisma.$transaction(async (tx) => {
       // 如果有实质性变更，先保存当前版本到历史记录
       if (shouldCreateVersion) {
+        // 获取当前文档的最新版本号
+        const latestVersion = await tx.documentVersion.findFirst({
+          where: { documentId: id },
+          orderBy: { version: 'desc' },
+          select: { version: true }
+        })
+        
+        const nextVersion = (latestVersion?.version || 0) + 1
+        
         await tx.documentVersion.create({
           data: {
             documentId: id,
+            version: nextVersion,
             title: existingDocument.title,
             content: existingDocument.content,
             templateId: existingDocument.templateId,
             templateVariables: existingDocument.templateVariables,
-            metadata: existingDocument.metadata,
             changeType: 'AUTO_SAVE', // 自动保存类型
-            changeReason: '自动保存版本',
-            createdAt: existingDocument.updatedAt // 使用文档的最后更新时间作为版本时间
+            changeDescription: '自动保存版本'
           }
         })
       }
