@@ -158,41 +158,84 @@ export function Dashboard() {
         <div className="dashboard-container">
           {/* 欢迎区域 */}
           <section className="welcome-section">
-            <div className="welcome-content">
-              <h2>
-                {authState.isAuthenticated ? 
-                  `欢迎回来，${authState.user?.email?.split('@')[0] || '用户'}！` : 
-                  '开始创作你的第一篇文章'
-                }
-              </h2>
-              <p className="welcome-subtitle">
-                {authState.isAuthenticated ? 
-                  '继续你的创作之旅，打造专业的公众号内容' : 
-                  '使用专业的排版工具，让你的文章脱颖而出'
-                }
-              </p>
-            </div>
-            
-            {/* 快速操作按钮 */}
-            <div className="quick-actions">
-              <button 
-                className="action-btn primary"
-                onClick={handleNewArticle}
-              >
-                <span className="btn-icon">✨</span>
-                <span>新建文章</span>
-              </button>
-              
-              {authState.isAuthenticated && (
-                <button 
-                  className="action-btn secondary"
-                  onClick={handleViewAllArticles}
-                >
-                  <span className="btn-icon">📚</span>
-                  <span>管理文章</span>
-                </button>
-              )}
-            </div>
+            {authState.isAuthenticated ? (
+              // 已登录用户界面
+              <>
+                <div className="welcome-content">
+                  <h2>欢迎回来，{authState.user?.email?.split('@')[0] || '用户'}！</h2>
+                  <p className="welcome-subtitle">继续你的创作之旅，打造专业的公众号内容</p>
+                </div>
+                
+                <div className="quick-actions">
+                  <button 
+                    className="action-btn primary"
+                    onClick={handleNewArticle}
+                  >
+                    <span className="btn-icon">✨</span>
+                    <span>新建文章</span>
+                  </button>
+                  
+                  <button 
+                    className="action-btn secondary"
+                    onClick={handleViewAllArticles}
+                  >
+                    <span className="btn-icon">📚</span>
+                    <span>管理文章</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              // 未登录用户界面 - 高端引导设计
+              <div className="hero-section">
+                <div className="hero-content">
+                  <div className="hero-badge">
+                    <span className="badge-icon">✨</span>
+                    <span>专业排版工具</span>
+                  </div>
+                  
+                  <h1 className="hero-title">
+                    让你的公众号文章
+                    <br />
+                    <span className="highlight">脱颖而出</span>
+                  </h1>
+                  
+                  <p className="hero-description">
+                    专业级 Markdown 编辑器，智能模板推荐，一键生成精美排版
+                    <br />
+                    助力内容创作者打造高品质公众号内容
+                  </p>
+                  
+                  <div className="hero-features">
+                    <div className="feature-item">
+                      <span className="feature-icon">🎨</span>
+                      <span>智能模板</span>
+                    </div>
+                    <div className="feature-item">
+                      <span className="feature-icon">☁️</span>
+                      <span>云端同步</span>
+                    </div>
+                    <div className="feature-item">
+                      <span className="feature-icon">📱</span>
+                      <span>实时预览</span>
+                    </div>
+                  </div>
+                  
+                  <div className="hero-cta">
+                    <button 
+                      className="cta-button primary"
+                      onClick={() => setAuthModalOpen(true)}
+                    >
+                      <span className="cta-icon">🚀</span>
+                      <span>开始创作</span>
+                    </button>
+                    
+                    <p className="cta-hint">
+                      立即登录，解锁所有功能
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* 统计卡片区域 */}
@@ -270,29 +313,6 @@ export function Dashboard() {
             </section>
           )}
 
-          {/* 访客状态提示 */}
-          {!authState.isAuthenticated && (
-            <section className="guest-section">
-              <div className="guest-card">
-                <div className="guest-icon">👋</div>
-                <div className="guest-content">
-                  <h3>立即登录，享受完整功能</h3>
-                  <ul className="feature-list">
-                    <li>✅ 文章云端同步保存</li>
-                    <li>✅ 版本历史管理</li>
-                    <li>✅ 多模板自由切换</li>
-                    <li>✅ 品牌元素自定义</li>
-                  </ul>
-                  <button 
-                    className="login-btn"
-                    onClick={() => setAuthModalOpen(true)}
-                  >
-                    🔐 立即登录
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
         </div>
       </main>
 
