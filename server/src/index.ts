@@ -22,14 +22,12 @@ dotenv.config()
 
 // 速率限制配置
 const rateLimiter = new RateLimiterMemory({
-  keyGenerator: (req) => req.ip, // 基于IP限制
   points: 100, // 每个IP每个时间窗口的请求次数
   duration: 900, // 15分钟时间窗口
 })
 
 // 登录限制器（更严格）
 const loginLimiter = new RateLimiterMemory({
-  keyGenerator: (req) => `${req.ip}_login`,
   points: 5, // 每15分钟只能尝试5次登录
   duration: 900,
   blockDuration: 900, // 超限后阻塞15分钟
@@ -42,7 +40,7 @@ const PORT = process.env.PORT || 3002
 // 速率限制中间件
 const rateLimitMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    await rateLimiter.consume(req.ip)
+    await rateLimiter.consume(req.ip || 'unknown')
     next()
   } catch (rejRes: any) {
     const remainingTime = Math.round(rejRes.msBeforeNext / 1000) || 1
@@ -57,7 +55,7 @@ const rateLimitMiddleware = async (req: express.Request, res: express.Response, 
 // 登录速率限制中间件
 const loginRateLimitMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    await loginLimiter.consume(req.ip)
+    await loginLimiter.consume(req.ip || 'unknown')
     next()
   } catch (rejRes: any) {
     const remainingTime = Math.round(rejRes.msBeforeNext / 1000) || 1
@@ -96,10 +94,23 @@ app.use(compression()) // Gzip压缩
 app.use(morgan(requestLoggerConfig.format, { stream: requestLoggerConfig.stream })) // 请求日志
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3001',
+    'http://localhost:3001', // 开发环境前端
+    'http://localhost:3002'  // 后端自身，用于图片访问
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
+// 静态文件服务配置 - 允许跨域访问图片
+app.use('/api/uploads', express.static(path.join(__dirname, '../uploads'), {
+  setHeaders: (res, path) => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET')
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+  }
 }))
 
 app.use(express.json({ limit: '10mb' })) // 支持较大的文档内容

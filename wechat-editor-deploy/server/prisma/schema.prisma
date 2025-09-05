@@ -1,0 +1,89 @@
+// Prisma数据库架构 - SQLite兼容版本
+// 设计原则：简洁、扩展性好、不影响现有前端功能
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 用户表 - 核心身份信息
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  avatar    String?
+  
+  // 用户偏好设置 (JSON字符串格式，与前端AppState兼容)
+  preferences String @default("{\"theme\":\"light\",\"autoSave\":true,\"defaultTemplate\":\"simple-doc\"}")
+  
+  // 品牌设置 (与现有fixedAssets结构兼容)
+  brandSettings String @default("{\"logo\":null,\"qrcode\":null,\"dividers\":[],\"brandColors\":[\"#1e6fff\",\"#333333\",\"#666666\"],\"customCSS\":\"\"}")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // 关联关系
+  documents Document[]
+  
+  @@map("users")
+}
+
+// 文档表 - 对应现有编辑器内容
+model Document {
+  id    String @id @default(cuid())
+  userId String
+  
+  // 文档内容 (与现有AppState.editor结构完全兼容)
+  title     String @default("未命名文档")
+  content   String @default("")
+  
+  // 模板信息 (与现有AppState.templates结构兼容)
+  templateId String @default("simple-doc")
+  templateVariables String @default("{}")
+  
+  // 状态管理 (使用字符串代替枚举)
+  status    String @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  
+  // 元数据 (JSON字符串)
+  metadata String @default("{\"wordCount\":0,\"imageCount\":0,\"estimatedReadTime\":1}")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // 关联关系
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions DocumentVersion[]
+  
+  @@map("documents")
+}
+
+// 文档版本表 - 历史记录功能
+model DocumentVersion {
+  id         String @id @default(cuid())
+  documentId String
+  
+  // 版本信息
+  version    Int
+  title      String
+  content    String
+  templateId String
+  templateVariables String
+  
+  // 变更记录 (使用字符串代替枚举)
+  changeType        String @default("EDIT") // CREATE | EDIT | TEMPLATE_CHANGE | PUBLISH | RESTORE
+  changeDescription String?
+  
+  createdAt DateTime @default(now())
+  
+  // 关联关系
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  // 确保同一文档的版本号唯一
+  @@unique([documentId, version])
+  @@map("document_versions")
+}

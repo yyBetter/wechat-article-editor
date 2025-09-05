@@ -539,18 +539,25 @@ router.post('/:id/versions/:versionId/restore', authenticateToken, async (req, r
     
     // 使用事务进行版本恢复
     const result = await prisma.$transaction(async (tx) => {
+      // 获取下一个版本号
+      const latestVersion = await tx.documentVersion.findFirst({
+        where: { documentId },
+        orderBy: { version: 'desc' }
+      })
+      const nextVersion = (latestVersion?.version || 0) + 1
+
       // 先保存当前版本到历史记录
       await tx.documentVersion.create({
         data: {
           documentId,
+          version: nextVersion,
           title: document.title,
           content: document.content,
           templateId: document.templateId,
           templateVariables: document.templateVariables,
           metadata: document.metadata,
           changeType: 'MANUAL_SAVE',
-          changeReason: `恢复前备份 - 准备恢复到版本 ${versionId.slice(0, 8)}`,
-          createdAt: document.updatedAt
+          changeReason: `恢复前备份 - 准备恢复到版本 ${versionId.slice(0, 8)}`
         }
       })
       
@@ -578,16 +585,18 @@ router.post('/:id/versions/:versionId/restore', authenticateToken, async (req, r
       })
       
       // 创建恢复操作的版本记录
+      const restoreVersion = nextVersion + 1
       await tx.documentVersion.create({
         data: {
           documentId,
+          version: restoreVersion,
           title: version.title,
           content: version.content,
           templateId: version.templateId,
           templateVariables: version.templateVariables,
           metadata: version.metadata,
           changeType: 'RESTORE',
-          changeReason: `从版本 ${versionId.slice(0, 8)} 恢复`,
+          changeReason: `从版本 ${versionId.slice(0, 8)} 恢复`
         }
       })
       
@@ -627,10 +636,18 @@ router.post('/:id/versions', authenticateToken, async (req, res) => {
       return res.status(404).json(createErrorResponse('文档不存在', 'DOCUMENT_NOT_FOUND'))
     }
     
+    // 获取下一个版本号
+    const latestVersion = await prisma.documentVersion.findFirst({
+      where: { documentId },
+      orderBy: { version: 'desc' }
+    })
+    const nextVersion = (latestVersion?.version || 0) + 1
+
     // 创建版本快照
     const version = await prisma.documentVersion.create({
       data: {
         documentId,
+        version: nextVersion,
         title: document.title,
         content: document.content,
         templateId: document.templateId,

@@ -48,13 +48,12 @@ export async function trackEvent(data: AnalyticsData) {
   try {
     const event = await prisma.analyticsEvent.create({
       data: {
-        event: data.event,
+        eventType: data.event,
+        eventData: data.properties ? JSON.stringify(data.properties) : '{}',
         userId: data.userId,
         sessionId: data.sessionId,
-        ip: data.ip,
-        userAgent: data.userAgent,
-        properties: data.properties ? JSON.stringify(data.properties) : null,
-        timestamp: data.timestamp || new Date()
+        ipAddress: data.ip,
+        userAgent: data.userAgent
       }
     })
     
@@ -84,56 +83,57 @@ export async function getUsageStats(days: number = 30) {
     const totalUsers = await prisma.user.count()
     
     // 活跃用户数
-    const activeUsers = await prisma.analyticsEvent.count({
+    const activeUsers = await prisma.analyticsEvent.groupBy({
+      by: ['userId'],
       where: {
-        timestamp: { gte: startDate },
+        createdAt: { gte: startDate },
         userId: { not: null }
       },
-      distinct: ['userId']
+      _count: true
     })
     
     // 文档创建数
     const documentsCreated = await prisma.analyticsEvent.count({
       where: {
-        event: AnalyticsEvent.DOCUMENT_CREATE,
-        timestamp: { gte: startDate }
+        eventType: AnalyticsEvent.DOCUMENT_CREATE,
+        createdAt: { gte: startDate }
       }
     })
     
     // 模板使用统计
     const templateStats = await prisma.analyticsEvent.groupBy({
-      by: ['properties'],
+      by: ['eventData'],
       where: {
-        event: AnalyticsEvent.TEMPLATE_SELECT,
-        timestamp: { gte: startDate }
+        eventType: AnalyticsEvent.TEMPLATE_SELECT,
+        createdAt: { gte: startDate }
       },
       _count: true
     })
     
     // 每日活跃用户
     const dailyActiveUsers = await prisma.$queryRaw`
-      SELECT DATE(timestamp) as date, COUNT(DISTINCT userId) as users
+      SELECT DATE(createdAt) as date, COUNT(DISTINCT userId) as users
       FROM analytics_events 
-      WHERE timestamp >= ${startDate} AND userId IS NOT NULL
-      GROUP BY DATE(timestamp)
+      WHERE createdAt >= ${startDate} AND userId IS NOT NULL
+      GROUP BY DATE(createdAt)
       ORDER BY date DESC
     `
     
     // 页面访问量
     const pageViews = await prisma.analyticsEvent.count({
       where: {
-        event: AnalyticsEvent.PAGE_VIEW,
-        timestamp: { gte: startDate }
+        eventType: AnalyticsEvent.PAGE_VIEW,
+        createdAt: { gte: startDate }
       }
     })
     
     return {
       totalUsers,
-      activeUsers,
+      activeUsers: activeUsers.length,
       documentsCreated,
       pageViews,
       templateStats: templateStats.map(stat => ({
-        template: stat.properties ? JSON.parse(stat.properties as string) : null,
+        template: stat.eventData ? JSON.parse(stat.eventData as string) : null,
         count: stat._count
       })),
       dailyActiveUsers,

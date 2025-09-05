@@ -1,0 +1,2 @@
+# This directory stores uploaded images locally
+# Images will be served statically via Express

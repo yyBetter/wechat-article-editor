@@ -205,7 +205,7 @@ export function useAutoSave(
       lastContentRef.current = content
       lastTitleRef.current = title
     }
-  }, [content, title])
+  }, []) // 移除content和title依赖，避免无限循环
 
   // 重置自动保存状态（用于新建文档）
   const reset = useCallback(() => {

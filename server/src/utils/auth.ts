@@ -1,9 +1,9 @@
 // 认证工具函数
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
+const JWT_EXPIRES_IN: string | number = process.env.JWT_EXPIRES_IN || '7d'
 
 // 密码加密
 export async function hashPassword(password: string): Promise<string> {
@@ -18,7 +18,10 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 
 // 生成JWT Token
 export function generateToken(payload: { userId: string; email: string }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
+  const options: any = { 
+    expiresIn: JWT_EXPIRES_IN
+  }
+  return jwt.sign(payload, JWT_SECRET, options)
 }
 
 // 验证JWT Token

@@ -11,8 +11,8 @@ import { createSuccessResponse, createErrorResponse } from '../utils/validation'
 declare global {
   namespace Express {
     interface Request {
-      file?: any
-      files?: any
+      file?: Express.Multer.File
+      files?: { [fieldname: string]: Express.Multer.File[] } | Express.Multer.File[]
     }
   }
 }

@@ -78,7 +78,7 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
       // 重置用户模板选择状态，允许新文档自动推荐模板
       dispatch({ type: 'SET_UI_STATE', payload: { userHasSelectedTemplate: false } })
     }
-  }, [currentDocumentId, autoSave, dispatch])
+  }, [currentDocumentId, dispatch]) // 移除autoSave依赖，避免循环
   const [displayContent, setDisplayContent] = useState('')
   const [isManualSaving, setIsManualSaving] = useState(false)
   
