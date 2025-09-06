@@ -1,183 +1,158 @@
-/* 设置组件样式 */
-
-.settings-section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+/* 设置页面样式 */
+.settings {
+  padding: 20px;
+  max-width: 100%;
+  height: 100%;
+  overflow-y: auto;
 }
 
-.settings-subtitle {
+.settings-header {
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f0f0f0;
+  pb: 16px;
+}
+
+.settings-header h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-tab {
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.settings-tab:hover {
+  background: #f8f9fa;
+  border-color: #007bff;
+}
+
+.settings-tab.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.settings-content {
+  margin-top: 20px;
+}
+
+/* 常规设置样式 */
+.general-settings {
+  max-width: 500px;
+}
+
+.general-settings h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.general-settings h5 {
+  margin: 20px 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
-  margin: 0 0 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  color: #666;
 }
 
-.settings-desc {
-  font-size: 12px;
-  color: #6b7280;
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.setting-item:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.setting-item span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* 存储和备份设置容器 */
+.storage-settings-container,
+.backup-settings-container {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.storage-settings-container .data-backup-container,
+.backup-settings-container .data-backup-container {
+  padding: 0;
+  max-width: none;
+}
+
+.storage-settings-container .backup-header,
+.backup-settings-container .backup-header {
+  text-align: left;
   margin-bottom: 16px;
 }
 
-/* 文档设置 */
-.document-settings .variable-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.storage-settings-container .close-btn,
+.backup-settings-container .close-btn {
+  display: none;
 }
 
-.variable-label {
-  font-size: 12px;
-  color: #374151;
-  font-weight: 500;
-  margin-bottom: 4px;
-  display: block;
-}
-
-.variable-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
-  background: #fafafa;
-  transition: all 0.2s;
-}
-
-.variable-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* 模板定制器 */
-.template-customizer .color-group {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.color-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.color-label {
-  font-size: 12px;
-  color: #374151;
-  font-weight: 500;
-}
-
-.color-input-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.color-preview {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  border: 1px solid #d1d5db;
-  flex-shrink: 0;
-}
-
-.color-input {
-  width: 40px;
-  height: 32px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  cursor: pointer;
-  background: none;
-  padding: 0;
-}
-
-.color-text {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 12px;
-  font-family: monospace;
-  background: #fafafa;
-}
-
-/* 全局设置 */
-.user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.info-value {
-  font-size: 12px;
-  color: #374151;
-  font-weight: 400;
-}
-
-.preference-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.preference-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.preference-item:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.preference-checkbox {
-  margin: 2px 0 0 0;
-  flex-shrink: 0;
-}
-
-.preference-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-  line-height: 1.4;
-}
-
-.preference-desc {
-  font-size: 11px;
-  color: #6b7280;
-  line-height: 1.4;
-  margin-top: 2px;
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .settings {
+    padding: 16px;
+  }
+  
+  .settings-tabs {
+    flex-direction: column;
+  }
+  
+  .settings-tab {
+    text-align: center;
+  }
+  
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .setting-item input[type="checkbox"] {
+    align-self: flex-end;
+  }
 }

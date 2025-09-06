@@ -1,7 +1,14 @@
-// 文档版本历史API工具函数
+// 文档版本历史API工具函数 - 支持本地和服务器存储
 import { getStoredToken } from './auth-api'
+import { getStorageConfig } from './storage-adapter'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002') + '/api'
+
+// 动态导入本地版本API（避免循环依赖）
+async function getLocalVersionAPI() {
+  const localAPI = await import('./local-version-api')
+  return localAPI
+}
 
 // 文档版本接口类型定义
 export interface DocumentVersion {
@@ -107,6 +114,25 @@ export async function getDocumentVersions(
   documentId: string,
   params: { page?: number; limit?: number } = {}
 ): Promise<DocumentVersionListResponse> {
+  const config = getStorageConfig()
+  
+  // 如果是本地或混合模式，使用本地存储
+  if (config.mode === 'local' || config.mode === 'hybrid') {
+    try {
+      const localAPI = await getLocalVersionAPI()
+      return await localAPI.getDocumentVersions(documentId, params)
+    } catch (error) {
+      console.error('本地版本列表获取失败，降级到服务器模式:', error)
+      // 如果本地获取失败且是混合模式，降级到服务器
+      if (config.mode === 'hybrid') {
+        // 继续执行服务器逻辑
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  // 服务器存储逻辑
   const searchParams = new URLSearchParams()
   
   if (params.page) searchParams.append('page', params.page.toString())
@@ -123,6 +149,25 @@ export async function getVersionDetail(
   documentId: string, 
   versionId: string
 ): Promise<DocumentVersion> {
+  const config = getStorageConfig()
+  
+  // 如果是本地或混合模式，使用本地存储
+  if (config.mode === 'local' || config.mode === 'hybrid') {
+    try {
+      const localAPI = await getLocalVersionAPI()
+      return await localAPI.getVersionDetail(documentId, versionId)
+    } catch (error) {
+      console.error('本地版本详情获取失败，尝试服务器模式:', error)
+      // 如果本地获取失败且是混合模式，尝试服务器
+      if (config.mode === 'hybrid') {
+        // 继续执行服务器逻辑
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  // 服务器存储逻辑
   return apiRequest<DocumentVersion>(`/documents/${documentId}/versions/${versionId}`)
 }
 
@@ -131,6 +176,25 @@ export async function restoreToVersion(
   documentId: string,
   versionId: string
 ): Promise<VersionRestoreResponse> {
+  const config = getStorageConfig()
+  
+  // 如果是本地或混合模式，使用本地存储
+  if (config.mode === 'local' || config.mode === 'hybrid') {
+    try {
+      const localAPI = await getLocalVersionAPI()
+      return await localAPI.restoreToVersion(documentId, versionId)
+    } catch (error) {
+      console.error('本地版本恢复失败，降级到服务器模式:', error)
+      // 如果本地恢复失败且是混合模式，降级到服务器
+      if (config.mode === 'hybrid') {
+        // 继续执行服务器逻辑
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  // 服务器存储逻辑
   return apiRequest<VersionRestoreResponse>(`/documents/${documentId}/versions/${versionId}/restore`, {
     method: 'POST'
   })
@@ -141,6 +205,25 @@ export async function createVersionSnapshot(
   documentId: string,
   reason: string = '手动保存'
 ): Promise<CreateVersionResponse> {
+  const config = getStorageConfig()
+  
+  // 如果是本地或混合模式，使用本地存储
+  if (config.mode === 'local' || config.mode === 'hybrid') {
+    try {
+      const localAPI = await getLocalVersionAPI()
+      return await localAPI.createVersionSnapshot(documentId, reason)
+    } catch (error) {
+      console.error('本地版本快照创建失败，降级到服务器模式:', error)
+      // 如果本地创建失败且是混合模式，降级到服务器
+      if (config.mode === 'hybrid') {
+        // 继续执行服务器逻辑
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  // 服务器存储逻辑
   return apiRequest<CreateVersionResponse>(`/documents/${documentId}/versions`, {
     method: 'POST',
     body: JSON.stringify({ reason })
@@ -152,6 +235,25 @@ export async function deleteVersion(
   documentId: string,
   versionId: string
 ): Promise<{ message: string; deletedVersionId: string }> {
+  const config = getStorageConfig()
+  
+  // 如果是本地或混合模式，使用本地存储
+  if (config.mode === 'local' || config.mode === 'hybrid') {
+    try {
+      const localAPI = await getLocalVersionAPI()
+      return await localAPI.deleteVersion(documentId, versionId)
+    } catch (error) {
+      console.error('本地版本删除失败，尝试服务器模式:', error)
+      // 如果本地删除失败且是混合模式，尝试服务器
+      if (config.mode === 'hybrid') {
+        // 继续执行服务器逻辑
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  // 服务器存储逻辑
   return apiRequest<{ message: string; deletedVersionId: string }>(
     `/documents/${documentId}/versions/${versionId}`,
     {

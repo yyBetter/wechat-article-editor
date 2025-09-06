@@ -1,8 +1,9 @@
 // 预览组件 - 高性能优化版本
-import React, { useMemo, useRef, useEffect, memo, useCallback } from 'react'
+import React, { useMemo, useRef, useEffect, memo, useCallback, useState } from 'react'
 import { useApp } from '../utils/app-context'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
+import { getLocalImageData } from '../utils/local-image-api'
 
 const templateEngine = new TemplateEngine(templates)
 
@@ -10,42 +11,82 @@ const templateEngine = new TemplateEngine(templates)
 export const Preview = memo(function Preview() {
   const { state, dispatch } = useApp()
   const previewRef = useRef<HTMLDivElement>(null)
+  const [processedContent, setProcessedContent] = useState('')
+  const [localImageCache, setLocalImageCache] = useState<Map<string, string>>(new Map())
   
-  // 还原图片占位符为真实图片数据的函数
-  const restoreImagePlaceholders = useCallback((content: string) => {
-    if (!content.includes('🖼️')) {
-      return content
+  // 处理本地图片的异步函数
+  useEffect(() => {
+    const processLocalImages = async () => {
+      if (!state.editor.content) {
+        setProcessedContent('')
+        return
+      }
+      
+      let content = state.editor.content
+      
+      // 先处理图片占位符
+      if (content.includes('🖼️')) {
+        const { imageMap } = state.assets
+        content = content.replace(
+          /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
+          (match, alt, imageId) => {
+            const actualImageData = imageMap[imageId]
+            if (actualImageData) {
+              return actualImageData
+            } else {
+              console.warn(`图片映射未找到: ${imageId}`)
+              return `![${alt}](图片加载失败: ${imageId})`
+            }
+          }
+        )
+      }
+      
+      // 处理本地图片
+      const localImageRegex = /!\[([^\]]*)\]\(\/local-image\/([^)]+)\)/g
+      const matches = Array.from(content.matchAll(localImageRegex))
+      
+      if (matches.length > 0) {
+        const cache = new Map(localImageCache)
+        
+        for (const match of matches) {
+          const [fullMatch, alt, imageId] = match
+          const imageUrl = `/local-image/${imageId}`
+          
+          if (!cache.has(imageUrl)) {
+            try {
+              const imageData = await getLocalImageData(imageUrl)
+              if (imageData) {
+                cache.set(imageUrl, imageData)
+              }
+            } catch (error) {
+              console.error('加载本地图片失败:', imageUrl, error)
+            }
+          }
+          
+          const cachedData = cache.get(imageUrl)
+          if (cachedData) {
+            content = content.replace(fullMatch, `![${alt}](${cachedData})`)
+          }
+        }
+        
+        setLocalImageCache(cache)
+      }
+      
+      setProcessedContent(content)
     }
     
-    let restoredContent = content
-    const { imageMap } = state.assets
-    
-    // 还原所有图片占位符
-    restoredContent = restoredContent.replace(
-      /!\[([^\]]*)\]\(🖼️ (img_\d+)\)/g,
-      (match, alt, imageId) => {
-        const actualImageData = imageMap[imageId]
-        if (actualImageData) {
-          return actualImageData
-        } else {
-          console.warn(`图片映射未找到: ${imageId}`)
-          return `![${alt}](图片加载失败: ${imageId})`
-        }
-      }
-    )
-    
-    return restoredContent
-  }, [state.assets.imageMap])
+    processLocalImages()
+  }, [state.editor.content, state.assets.imageMap])
 
   // 生成预览HTML
   const previewData = useMemo(() => {
-    if (!state.templates.current || !state.editor.content) {
+    if (!state.templates.current || !processedContent) {
       return { previewHTML: '', copyHTML: '' }
     }
     
     try {
-      // 还原图片占位符为真实图片数据
-      const contentWithImages = restoreImagePlaceholders(state.editor.content)
+      // 使用已处理的内容（包含本地图片数据）
+      const contentWithImages = processedContent
       
       // 合并模板变量和品牌资源
       const combinedVariables = {
@@ -233,7 +274,7 @@ export const Preview = memo(function Preview() {
         copyHTML: '<div style="padding: 20px; color: red;">预览生成失败，请检查内容格式</div>'
       }
     }
-  }, [state.editor.content, state.templates.current, state.templates.variables, state.assets.imageMap, restoreImagePlaceholders])
+  }, [processedContent, state.templates.current, state.templates.variables, state.assets.fixedAssets])
   
   // 优化事件处理器，使用 useCallback 保持引用稳定
   const handleDeviceModeChange = useCallback((mode: 'mobile' | 'desktop') => {

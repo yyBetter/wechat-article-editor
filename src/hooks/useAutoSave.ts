@@ -1,7 +1,8 @@
-// 自动保存Hook
+// 自动保存Hook - 支持本地存储和版本控制
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { useAuth } from '../utils/auth-context'
 import { saveCurrentContent, Document } from '../utils/document-api'
+import { getStorageConfig } from '../utils/storage-adapter'
 
 interface AutoSaveOptions {
   delay?: number // 延迟时间(毫秒)，默认3000ms
@@ -90,6 +91,23 @@ export function useAutoSave(
 
       // 更新状态和引用
       currentDocumentIdRef.current = document.id
+      
+      // 如果是本地或混合模式，创建自动版本记录
+      const config = getStorageConfig()
+      if (config.mode === 'local' || config.mode === 'hybrid') {
+        try {
+          const { createAutoSaveVersion } = await import('../utils/local-version-api')
+          await createAutoSaveVersion(document.id, {
+            title: document.title,
+            content: document.content,
+            templateId: document.templateId,
+            templateVariables: document.templateVariables
+          })
+        } catch (versionError) {
+          console.warn('创建自动版本记录失败:', versionError)
+          // 不影响主要的保存流程
+        }
+      }
       setAutoSaveState(prev => ({
         ...prev,
         isSaving: false,
@@ -162,6 +180,23 @@ export function useAutoSave(
 
       // 更新状态和引用
       currentDocumentIdRef.current = document.id
+      
+      // 如果是本地或混合模式，创建手动版本记录
+      const config = getStorageConfig()
+      if (config.mode === 'local' || config.mode === 'hybrid') {
+        try {
+          const { createAutoSaveVersion } = await import('../utils/local-version-api')
+          await createAutoSaveVersion(document.id, {
+            title: document.title,
+            content: document.content,
+            templateId: document.templateId,
+            templateVariables: document.templateVariables
+          })
+        } catch (versionError) {
+          console.warn('创建版本记录失败:', versionError)
+          // 不影响主要的保存流程
+        }
+      }
       setAutoSaveState(prev => ({
         ...prev,
         isSaving: false,

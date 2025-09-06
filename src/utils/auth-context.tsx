@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
 import { User, storeToken, clearStoredToken, verifyToken, isAuthenticated } from './auth-api'
+import { getStorageAdapter, resetStorageAdapter } from './storage-adapter'
 
 // 认证状态类型
 export interface AuthState {
@@ -87,7 +88,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 interface AuthContextType {
   state: AuthState
   dispatch: React.Dispatch<AuthAction>
-  login: (user: User, token: string) => void
+  login: (user: User, token: string) => Promise<void>
   logout: () => void
   updateUser: (user: User) => void
   clearError: () => void
@@ -107,14 +108,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const result = await verifyToken()
           if (result.valid && result.user) {
+            // 存储用户信息到localStorage (LocalStorageAdapter需要)
+            localStorage.setItem('current_user', JSON.stringify(result.user))
+            
             dispatch({ type: 'AUTH_SUCCESS', payload: result.user })
+            
+            // 初始化存储适配器
+            try {
+              console.log('Token验证成功，正在初始化存储适配器...')
+              await getStorageAdapter()
+              console.log('存储适配器初始化成功')
+            } catch (storageError) {
+              console.error('存储适配器初始化失败:', storageError)
+            }
           } else {
             // Token无效，清除存储
             clearStoredToken()
+            localStorage.removeItem('current_user')
             dispatch({ type: 'AUTH_FAILURE', payload: '登录已过期，请重新登录' })
           }
         } catch (error) {
           clearStoredToken()
+          localStorage.removeItem('current_user')
           dispatch({ type: 'AUTH_FAILURE', payload: '验证登录状态失败' })
         }
       } else {
@@ -127,14 +142,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
   
   // 登录方法
-  const login = (user: User, token: string) => {
+  const login = async (user: User, token: string) => {
     storeToken(token)
+    
+    // 存储用户信息到localStorage (LocalStorageAdapter需要)
+    localStorage.setItem('current_user', JSON.stringify(user))
+    
     dispatch({ type: 'AUTH_SUCCESS', payload: user })
+    
+    // 用户登录后初始化本地存储适配器
+    try {
+      console.log('用户登录成功，正在初始化存储适配器...')
+      resetStorageAdapter() // 重置适配器以使用新的用户ID
+      await getStorageAdapter()
+      console.log('存储适配器初始化成功')
+    } catch (error) {
+      console.error('存储适配器初始化失败:', error)
+    }
   }
   
   // 登出方法
   const logout = () => {
     clearStoredToken()
+    localStorage.removeItem('current_user')
     dispatch({ type: 'LOGOUT' })
   }
   

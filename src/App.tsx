@@ -44,11 +44,11 @@ function AppContent() {
   }
 
   // 处理认证成功
-  const handleAuthSuccess = (user: any, token: string) => {
+  const handleAuthSuccess = async (user: any, token: string) => {
     console.log('用户登录成功:', user)
     
     // 重要：调用AuthContext的login方法更新认证状态
-    login(user, token)
+    await login(user, token)
     
     // 同步用户的品牌设置到现有的AppState
     if (user.brandSettings) {
