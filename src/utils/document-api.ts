@@ -1,7 +1,7 @@
 // 文档管理API工具函数
 import { getStoredToken } from './auth-api'
 
-const API_BASE_URL = 'http://localhost:3002/api'
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002') + '/api'
 
 // 文档接口类型定义
 export interface Document {

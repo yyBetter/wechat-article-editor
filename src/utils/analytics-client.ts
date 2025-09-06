@@ -37,7 +37,7 @@ class AnalyticsClient {
 
   constructor() {
     this.sessionId = this.generateSessionId()
-    this.baseUrl = 'http://localhost:3002' // 临时固定URL避免构建错误
+    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'
     
     // 页面加载时记录session开始
     this.trackEvent(ClientAnalyticsEvent.SESSION_START)

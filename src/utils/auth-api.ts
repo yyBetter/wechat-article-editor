@@ -1,7 +1,7 @@
 // 认证API工具函数
 // 与后端API通信的统一接口
 
-const API_BASE_URL = 'http://localhost:3002/api'
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002') + '/api'
 
 export interface User {
   id: string

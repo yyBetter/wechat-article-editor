@@ -33,7 +33,10 @@
       "Bash(./create-deploy-package.sh:*)",
       "Bash(scp:*)",
       "Bash(ssh-keygen:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(ping:*)",
+      "Bash(./deploy-preflight.sh:*)",
+      "Bash(VITE_API_BASE_URL=http://114.55.117.20 npm run build)"
     ],
     "deny": [],
     "ask": []
