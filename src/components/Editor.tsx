@@ -9,6 +9,8 @@ import { templates } from '../templates'
 import { notification } from '../utils/notification'
 import { uploadImage, getImageUrl } from '../utils/image-api'
 import { SpellChecker } from './SpellChecker'
+import { OutlinePanel } from './OutlinePanel'
+import { OutlineNode } from '../utils/outline-parser'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -48,6 +50,13 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     const saved = localStorage.getItem('spell_check_enabled')
     return saved !== null ? saved === 'true' : false  // 默认关闭
   })
+  
+  // 大纲面板状态
+  const [outlineCollapsed, setOutlineCollapsed] = useState(() => {
+    const saved = localStorage.getItem('outline_collapsed')
+    return saved !== null ? saved === 'true' : false  // 默认展开
+  })
+  const [cursorPosition, setCursorPosition] = useState(0)
 
   // 自动保存功能
   const autoSave = useAutoSave(
@@ -106,12 +115,36 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     localStorage.setItem('spell_check_enabled', String(spellCheckEnabled))
   }, [spellCheckEnabled])
   
+  // 保存大纲面板偏好
+  useEffect(() => {
+    localStorage.setItem('outline_collapsed', String(outlineCollapsed))
+  }, [outlineCollapsed])
+  
+  // 监听光标位置变化
+  const handleSelectionChange = useCallback(() => {
+    if (textareaRef.current) {
+      setCursorPosition(textareaRef.current.selectionStart)
+    }
+  }, [])
+  
   // 处理错别字点击（跳转到错误位置）
   const handleSpellErrorClick = useCallback((error: any) => {
     if (textareaRef.current) {
       textareaRef.current.focus()
       textareaRef.current.setSelectionRange(error.position, error.position + error.length)
       textareaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [])
+  
+  // 处理大纲节点点击（跳转到对应标题）
+  const handleOutlineNodeClick = useCallback((node: OutlineNode) => {
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+      // 跳转到标题位置
+      textareaRef.current.setSelectionRange(node.position, node.position)
+      // 滚动到可视区域
+      textareaRef.current.scrollTop = node.line * 20 // 粗略估算
+      setCursorPosition(node.position)
     }
   }, [])
 
@@ -737,19 +770,32 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     <div className="editor-container">
       {ToolbarComponent}
       
-      {/* 编辑器 */}
-      <div 
-        className={`editor-wrapper ${isDragging ? 'dragging' : ''}`}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
+      <div className="editor-main-content">
+        {/* 大纲面板 */}
+        <OutlinePanel
+          content={displayContent}
+          cursorPosition={cursorPosition}
+          onNodeClick={handleOutlineNodeClick}
+          isCollapsed={outlineCollapsed}
+          onToggleCollapse={() => setOutlineCollapsed(!outlineCollapsed)}
+        />
+        
+        {/* 编辑器 */}
+        <div 
+          className={`editor-wrapper ${isDragging ? 'dragging' : ''}`}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
         <textarea
           ref={textareaRef}
           value={displayContent}
           onChange={handleContentChange}
           onPaste={handlePaste}
+          onSelect={handleSelectionChange}
+          onKeyUp={handleSelectionChange}
+          onClick={handleSelectionChange}
           placeholder="在此输入你的文章内容... 📝 支持 Ctrl+V 粘贴截图、拖拽图片文件"
           className="editor-textarea"
           spellCheck={false}
@@ -789,6 +835,7 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
         
         {/* 状态栏 */}
         {StatusComponent}
+        </div>
       </div>
       
       {/* 错别字检查 */}
