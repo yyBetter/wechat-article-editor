@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../utils/auth-context'
 import { useApp } from '../utils/app-context'
-import { AuthModal } from '../components/auth/AuthModal'
+import { LocalAuthModal } from '../components/auth/LocalAuthModal'
 import { UserMenu } from '../components/auth/UserMenu'
 import { getDocuments, deleteDocument, Document } from '../utils/document-api'
 import { notification } from '../utils/notification'
@@ -142,14 +142,22 @@ export function Articles() {
   }
 
   // 处理认证成功
-  const handleAuthSuccess = (user: any, token: string) => {
-    login(user, token)
+  const handleAuthSuccess = async (user: any) => {
+    console.log('用户登录成功（本地模式）:', user)
+    
+    // 存储用户信息到localStorage（重要！）
+    localStorage.setItem('current_user', JSON.stringify(user))
+    
+    // 调用 AuthContext 的 login 方法，会自动初始化存储适配器
+    login(user, 'local-token')
+    
     if (user.brandSettings) {
       dispatch({
         type: 'UPDATE_FIXED_ASSETS',
         payload: user.brandSettings
       })
     }
+    
     setAuthModalOpen(false)
   }
 
@@ -291,7 +299,7 @@ export function Articles() {
           </div>
         </main>
 
-        <AuthModal 
+        <LocalAuthModal 
           isOpen={authModalOpen}
           onClose={() => setAuthModalOpen(false)}
           onAuthSuccess={handleAuthSuccess}
@@ -492,8 +500,8 @@ export function Articles() {
         </div>
       </main>
 
-      {/* 认证弹窗 */}
-      <AuthModal 
+      {/* 本地认证弹窗 */}
+      <LocalAuthModal 
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}

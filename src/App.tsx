@@ -8,7 +8,7 @@ import { TemplateSelector } from './components/TemplateSelector'
 import { PublishGuide } from './components/PublishGuide'
 import { PublishFlow } from './components/PublishFlow'
 import { Settings } from './components/Settings'
-import { AuthModal } from './components/auth/AuthModal'
+import { LocalAuthModal } from './components/auth/LocalAuthModal'
 import { UserMenu } from './components/auth/UserMenu'
 import './App.css'
 import './styles/sidebar.css'
@@ -43,12 +43,15 @@ function AppContent() {
     })
   }
 
-  // 处理认证成功
-  const handleAuthSuccess = async (user: any, token: string) => {
-    console.log('用户登录成功:', user)
+  // 处理认证成功（本地登录）
+  const handleAuthSuccess = async (user: any) => {
+    console.log('用户登录成功（本地模式）:', user)
     
-    // 重要：调用AuthContext的login方法更新认证状态
-    await login(user, token)
+    // 存储用户信息到localStorage（重要！）
+    localStorage.setItem('current_user', JSON.stringify(user))
+    
+    // 调用 AuthContext 的 login 方法，会自动初始化存储适配器
+    login(user, 'local-token')
     
     // 同步用户的品牌设置到现有的AppState
     if (user.brandSettings) {
@@ -204,8 +207,8 @@ function AppContent() {
         </div>
       </footer>
 
-      {/* 认证弹窗 */}
-      <AuthModal 
+      {/* 本地认证弹窗 */}
+      <LocalAuthModal 
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}

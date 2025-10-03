@@ -4,10 +4,11 @@ import '../styles/dashboard.css'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../utils/auth-context'
 import { useApp } from '../utils/app-context'
-import { AuthModal } from '../components/auth/AuthModal'
+import { LocalAuthModal } from '../components/auth/LocalAuthModal'
 import { UserMenu } from '../components/auth/UserMenu'
 import { getDocuments } from '../utils/document-api'
 import { notification } from '../utils/notification'
+import { StorageStatusMonitor } from '../components/StorageStatusMonitor'
 
 // 字数统计函数 - 与服务端保持一致
 function countWords(content: string): number {
@@ -98,17 +99,25 @@ export function Dashboard() {
     }
   }
 
-  // 处理认证成功
-  const handleAuthSuccess = (user: any, token: string) => {
-    console.log('用户登录成功:', user)
-    login(user, token)
+  // 处理认证成功（本地登录，无token）
+  const handleAuthSuccess = async (user: any) => {
+    console.log('用户登录成功（本地模式）:', user)
     
+    // 存储用户信息到localStorage（重要！LocalStorageAdapter需要）
+    localStorage.setItem('current_user', JSON.stringify(user))
+    
+    // 调用 AuthContext 的 login 方法（使用空token表示本地登录）
+    // 这会正确更新 authState.isAuthenticated = true
+    login(user, 'local-token')
+    
+    // 同步品牌设置到 AppContext
     if (user.brandSettings) {
       dispatch({
         type: 'UPDATE_FIXED_ASSETS',
         payload: user.brandSettings
       })
     }
+    
     setAuthModalOpen(false)
   }
 
@@ -316,12 +325,15 @@ export function Dashboard() {
         </div>
       </main>
 
-      {/* 认证弹窗 */}
-      <AuthModal 
+      {/* 本地认证弹窗 */}
+      <LocalAuthModal 
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
       />
+
+      {/* 存储状态监控 */}
+      <StorageStatusMonitor />
     </div>
   )
 }

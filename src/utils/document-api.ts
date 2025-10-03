@@ -114,12 +114,14 @@ export async function getDocuments(params: DocumentListParams = {}): Promise<Doc
       const localAPI = await getLocalDocumentAPI()
       return await localAPI.getDocuments(params)
     } catch (error) {
-      console.error('本地文档列表获取失败，降级到服务器模式:', error)
+      console.error('本地文档列表获取失败:', error)
       // 如果本地获取失败且是混合模式，降级到服务器
       if (config.mode === 'hybrid') {
+        console.log('尝试降级到服务器模式...')
         // 继续执行服务器逻辑
       } else {
-        throw error
+        // 纯本地模式，给出更友好的错误提示
+        throw new Error('本地存储访问失败。请检查浏览器权限或刷新页面重试。')
       }
     }
   }

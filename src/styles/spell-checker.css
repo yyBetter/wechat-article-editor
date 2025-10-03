@@ -1,0 +1,320 @@
+/* 错别字检查样式 */
+
+/* 错别字标记（波浪下划线） */
+.spell-error {
+  position: relative;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: #ff6b6b;
+  text-decoration-thickness: 2px;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.spell-error:hover {
+  background-color: rgba(255, 107, 107, 0.1);
+  text-decoration-color: #ff5252;
+}
+
+/* 错别字提示框 */
+.spell-error::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  padding: 6px 12px;
+  background-color: #2c3e50;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.spell-error::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-2px);
+  border: 6px solid transparent;
+  border-top-color: #2c3e50;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.spell-error:hover::after,
+.spell-error:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 错别字统计面板 */
+.spell-check-panel {
+  position: fixed;
+  bottom: 110px;  /* 提高位置，避免与存储状态重叠 */
+  right: 20px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideInUp 0.3s ease;
+  z-index: 100;
+}
+
+.spell-check-panel.has-errors {
+  border-color: #ff6b6b;
+}
+
+.spell-check-panel .icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spell-check-panel .icon.success {
+  color: #4caf50;
+}
+
+.spell-check-panel .icon.error {
+  color: #ff6b6b;
+}
+
+.spell-check-panel .text {
+  font-weight: 500;
+}
+
+.spell-check-panel .count {
+  color: #ff6b6b;
+  font-weight: 600;
+}
+
+.spell-check-panel .button {
+  background: none;
+  border: none;
+  color: #2196f3;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.spell-check-panel .button:hover {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+/* 错别字列表（可展开） */
+.spell-errors-list {
+  position: fixed;
+  bottom: 160px;  /* 在统计面板上方 */
+  right: 20px;
+  max-width: 400px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  animation: slideInUp 0.3s ease;
+  z-index: 101;
+}
+
+.spell-errors-list-header {
+  position: sticky;
+  top: 0;
+  background: #f5f5f5;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spell-errors-list-header .close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.spell-errors-list-header .close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.spell-error-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.spell-error-item:hover {
+  background: rgba(33, 150, 243, 0.05);
+}
+
+.spell-error-item:last-child {
+  border-bottom: none;
+}
+
+.spell-error-item-word {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.spell-error-item-word .wrong {
+  color: #ff6b6b;
+  font-weight: 600;
+  text-decoration: line-through;
+}
+
+.spell-error-item-word .arrow {
+  color: #999;
+}
+
+.spell-error-item-word .correct {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.spell-error-item-context {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 开关按钮 */
+.spell-check-toggle {
+  position: fixed;
+  bottom: 110px;  /* 与统计面板同一高度，但仅在关闭时显示 */
+  right: 20px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  z-index: 99;
+}
+
+.spell-check-toggle:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #2196f3;
+}
+
+.spell-check-toggle.enabled {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #2196f3;
+}
+
+.spell-check-toggle .toggle-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: background 0.2s;
+}
+
+.spell-check-toggle.enabled .toggle-icon {
+  background: #2196f3;
+}
+
+/* 动画 */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .spell-check-panel,
+  .spell-errors-list,
+  .spell-check-toggle {
+    right: 10px;
+  }
+  
+  .spell-errors-list {
+    max-width: calc(100vw - 40px);
+  }
+}
+
+/* 深色模式支持 */
+.dark .spell-check-panel,
+.dark .spell-errors-list,
+.dark .spell-check-toggle {
+  background: #2c2c2c;
+  border-color: #444;
+  color: #ddd;
+}
+
+.dark .spell-errors-list-header {
+  background: #333;
+  border-color: #444;
+  color: #ddd;
+}
+
+.dark .spell-error-item {
+  border-color: #444;
+}
+
+.dark .spell-error-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .spell-check-toggle:hover {
+  border-color: #2196f3;
+}
+
+.dark .spell-error::after {
+  background-color: #1e1e1e;
+}
+
+.dark .spell-error::before {
+  border-top-color: #1e1e1e;
+}
+

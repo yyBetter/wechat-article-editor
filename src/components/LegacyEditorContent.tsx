@@ -9,10 +9,11 @@ import { TemplateSelector } from './TemplateSelector'
 import { PublishGuide } from './PublishGuide'
 import { PublishFlow } from './PublishFlow'
 import { GlobalSettings } from './GlobalSettings'
-import { AuthModal } from './auth/AuthModal'
+import { LocalAuthModal } from './auth/LocalAuthModal'
 import { UserMenu } from './auth/UserMenu'
 import { getDocument, saveCurrentContent } from '../utils/document-api'
 import { notification } from '../utils/notification'
+import { StorageStatusMonitor } from './StorageStatusMonitor'
 import '../App.css'
 import '../styles/sidebar.css'
 import '../styles/publish.css'
@@ -188,12 +189,15 @@ export function LegacyEditorContent() {
     })
   }
 
-  // 处理认证成功
-  const handleAuthSuccess = (user: any, token: string) => {
-    console.log('用户登录成功:', user)
+  // 处理认证成功（本地登录）
+  const handleAuthSuccess = async (user: any) => {
+    console.log('用户登录成功（本地模式）:', user)
     
-    // 重要：调用AuthContext的login方法更新认证状态
-    login(user, token)
+    // 存储用户信息到localStorage（重要！）
+    localStorage.setItem('current_user', JSON.stringify(user))
+    
+    // 调用 AuthContext 的 login 方法，会自动初始化存储适配器
+    login(user, 'local-token')
     
     // 同步用户的品牌设置到现有的AppState
     if (user.brandSettings) {
@@ -358,12 +362,15 @@ export function LegacyEditorContent() {
         </div>
       </footer>
 
-      {/* 认证弹窗 */}
-      <AuthModal 
+      {/* 本地认证弹窗 */}
+      <LocalAuthModal 
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
       />
+
+      {/* 存储状态监控 */}
+      <StorageStatusMonitor />
     </div>
   )
 }

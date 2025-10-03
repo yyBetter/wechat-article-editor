@@ -3,10 +3,12 @@ import React, { useCallback, useEffect, useRef, useState, useMemo, memo } from '
 import { useApp } from '../utils/app-context'
 import { useAuth } from '../utils/auth-context'
 import { useAutoSave } from '../hooks/useAutoSave'
+import { useSpellCheck } from '../hooks/useSpellCheck'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
 import { notification } from '../utils/notification'
 import { uploadImage, getImageUrl } from '../utils/image-api'
+import { SpellChecker } from './SpellChecker'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -41,6 +43,11 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [spellCheckEnabled, setSpellCheckEnabled] = useState(() => {
+    // 从 localStorage 读取用户偏好
+    const saved = localStorage.getItem('spell_check_enabled')
+    return saved !== null ? saved === 'true' : false  // 默认关闭
+  })
 
   // 自动保存功能
   const autoSave = useAutoSave(
@@ -86,6 +93,27 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   
   // 优化防抖延迟，减少用户输入延迟感知
   const debouncedDisplayContent = useDebounce(displayContent, 100)
+  
+  // 错别字检查（独立防抖，2秒延迟，不影响编辑）
+  const spellCheck = useSpellCheck(displayContent, {
+    enabled: spellCheckEnabled,
+    debounceMs: 2000,  // 2秒延迟，用户停止输入后才检查
+    maxResults: 50
+  })
+  
+  // 保存错别字检查偏好
+  useEffect(() => {
+    localStorage.setItem('spell_check_enabled', String(spellCheckEnabled))
+  }, [spellCheckEnabled])
+  
+  // 处理错别字点击（跳转到错误位置）
+  const handleSpellErrorClick = useCallback((error: any) => {
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+      textareaRef.current.setSelectionRange(error.position, error.position + error.length)
+      textareaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [])
 
   // 手动保存功能
   const handleManualSave = useCallback(async () => {
@@ -762,6 +790,15 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
         {/* 状态栏 */}
         {StatusComponent}
       </div>
+      
+      {/* 错别字检查 */}
+      <SpellChecker
+        errors={spellCheck.errors}
+        isChecking={spellCheck.isChecking}
+        enabled={spellCheckEnabled}
+        onToggle={() => setSpellCheckEnabled(!spellCheckEnabled)}
+        onErrorClick={handleSpellErrorClick}
+      />
     </div>
   )
 })

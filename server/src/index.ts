@@ -113,8 +113,8 @@ app.use('/api/uploads', express.static(path.join(__dirname, '../uploads'), {
   }
 }))
 
-app.use(express.json({ limit: '10mb' })) // 支持较大的文档内容
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: '50mb' })) // 支持较大的文档内容和图片
+app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
 // 全局速率限制
 app.use(rateLimitMiddleware)
