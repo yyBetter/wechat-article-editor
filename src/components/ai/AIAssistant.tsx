@@ -18,6 +18,8 @@ export function AIAssistant() {
   const [summary, setSummary] = useState<string>('')
   const [outline, setOutline] = useState<string>('')
   const [polishedText, setPolishedText] = useState<{ original: string; polished: string } | null>(null)
+  const [polishStyle, setPolishStyle] = useState<'professional' | 'casual' | 'concise' | 'vivid'>('professional')
+  const [selectedText, setSelectedText] = useState<string>('')
 
   const content = state.editor.content
 
@@ -162,19 +164,34 @@ export function AIAssistant() {
   }
 
   // 润色选中文本
-  const handlePolish = async () => {
+  const handlePolish = async (style?: 'professional' | 'casual' | 'concise' | 'vivid') => {
     const selection = window.getSelection()?.toString()
     if (!selection) {
-      alert('请先选中要润色的文本')
+      alert('💡 请先在编辑器中选中要润色的文字')
       return
     }
 
     clearAllResults() // 清空之前的结果
+    setSelectedText(selection)
+    const styleToUse = style || polishStyle
+    setPolishStyle(styleToUse)
     setCurrentTask('文本润色')
     setShowResults(true)
-    const polished = await polishText(selection, 'professional')
+    const polished = await polishText(selection, styleToUse)
     if (polished && polished !== selection) {
       setPolishedText({ original: selection, polished })
+    }
+    setCurrentTask('')
+  }
+
+  // 重新润色（使用不同风格）
+  const handleRepolish = async (style: 'professional' | 'casual' | 'concise' | 'vivid') => {
+    if (!selectedText) return
+    setPolishStyle(style)
+    setCurrentTask('文本润色')
+    const polished = await polishText(selectedText, style)
+    if (polished && polished !== selectedText) {
+      setPolishedText({ original: selectedText, polished })
     }
     setCurrentTask('')
   }
@@ -268,7 +285,7 @@ export function AIAssistant() {
         <button
           type="button"
           className={`ai-action-btn ${loading ? 'loading' : ''}`}
-          onClick={handlePolish}
+          onClick={() => handlePolish()}
           disabled={loading || !content}
           title="先选中文本，然后点击润色"
         >
@@ -276,6 +293,51 @@ export function AIAssistant() {
           <span className="btn-text">润色文字</span>
         </button>
       </div>
+
+      {/* 润色风格快捷选择（仅在有内容时显示） */}
+      {content && (
+        <div className="polish-styles">
+          <div className="styles-label">润色风格：</div>
+          <div className="styles-buttons">
+            <button
+              type="button"
+              className="style-btn"
+              onClick={() => handlePolish('professional')}
+              disabled={loading}
+              title="更正式、严谨的表达"
+            >
+              🎯 专业
+            </button>
+            <button
+              type="button"
+              className="style-btn"
+              onClick={() => handlePolish('casual')}
+              disabled={loading}
+              title="更口语化、亲切的表达"
+            >
+              😊 轻松
+            </button>
+            <button
+              type="button"
+              className="style-btn"
+              onClick={() => handlePolish('concise')}
+              disabled={loading}
+              title="删除冗余，精简表达"
+            >
+              ✂️ 简洁
+            </button>
+            <button
+              type="button"
+              className="style-btn"
+              onClick={() => handlePolish('vivid')}
+              disabled={loading}
+              title="增加细节，使用比喻等修辞"
+            >
+              ✨ 生动
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 加载状态 */}
       {loading && currentTask && (
@@ -390,36 +452,82 @@ export function AIAssistant() {
           {/* 润色结果 */}
           {polishedText && (
             <div className="result-section">
-              <h4>🎨 文本对比</h4>
+              <div className="result-header">
+                <h4>🎨 文本对比</h4>
+                <div className="current-style">
+                  当前风格: <span className="style-badge">{
+                    polishStyle === 'professional' ? '🎯 专业' :
+                    polishStyle === 'casual' ? '😊 轻松' :
+                    polishStyle === 'concise' ? '✂️ 简洁' :
+                    '✨ 生动'
+                  }</span>
+                </div>
+              </div>
               <div className="polish-comparison">
-                <div className="compare-item">
-                  <div className="compare-label">原文：</div>
+                <div className="compare-side">
+                  <div className="compare-header">
+                    <span className="compare-icon">📄</span>
+                    <span className="compare-title">原文</span>
+                  </div>
                   <div className="compare-text original">{polishedText.original}</div>
                 </div>
-                <div className="compare-arrow">→</div>
-                <div className="compare-item">
-                  <div className="compare-label">润色后：</div>
+                
+                <div className="compare-divider">
+                  <div className="divider-line"></div>
+                  <div className="divider-arrow">→</div>
+                  <div className="divider-line"></div>
+                </div>
+                
+                <div className="compare-side">
+                  <div className="compare-header">
+                    <span className="compare-icon">✨</span>
+                    <span className="compare-title">润色后</span>
+                  </div>
                   <div className="compare-text polished">{polishedText.polished}</div>
                 </div>
-                <div className="action-buttons">
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => {
-                      setShowResults(false)
-                      clearAllResults()
-                    }}
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="button"
-                    className="use-btn"
-                    onClick={handleUsePolished}
-                  >
-                    应用润色
-                  </button>
+              </div>
+              
+              {/* 换个风格试试 */}
+              <div className="repolish-section">
+                <div className="repolish-label">不满意？换个风格试试：</div>
+                <div className="repolish-buttons">
+                  {(['professional', 'casual', 'concise', 'vivid'] as const).map((style) => (
+                    style !== polishStyle && (
+                      <button
+                        key={style}
+                        type="button"
+                        className="repolish-btn"
+                        onClick={() => handleRepolish(style)}
+                        disabled={loading}
+                      >
+                        {style === 'professional' && '🎯 专业'}
+                        {style === 'casual' && '😊 轻松'}
+                        {style === 'concise' && '✂️ 简洁'}
+                        {style === 'vivid' && '✨ 生动'}
+                      </button>
+                    )
+                  ))}
                 </div>
+              </div>
+              
+              <div className="action-buttons">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => {
+                    setShowResults(false)
+                    clearAllResults()
+                  }}
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="use-btn"
+                  onClick={handleUsePolished}
+                >
+                  ✅ 应用润色
+                </button>
               </div>
             </div>
           )}
@@ -726,45 +834,218 @@ export function AIAssistant() {
           font-family: inherit;
         }
 
-        .polish-comparison {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
+        .polish-styles {
+          margin-top: 12px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
         }
 
-        .compare-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .styles-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #666;
+          margin-bottom: 8px;
         }
 
-        .compare-label {
+        .styles-buttons {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 6px;
+        }
+
+        .style-btn {
+          padding: 8px 6px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 6px;
           font-size: 11px;
+          font-weight: 600;
+          color: #666;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .style-btn:hover:not(:disabled) {
+          border-color: #667eea;
+          color: #667eea;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+        }
+
+        .style-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .result-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+
+        .result-header h4 {
+          margin: 0;
+        }
+
+        .current-style {
+          font-size: 12px;
+          color: #666;
+        }
+
+        .style-badge {
+          display: inline-block;
+          padding: 4px 10px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 11px;
+        }
+
+        .polish-comparison {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+
+        .compare-side {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .compare-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
           font-weight: 600;
           color: #666;
         }
 
+        .compare-icon {
+          font-size: 16px;
+        }
+
+        .compare-title {
+          font-size: 12px;
+        }
+
         .compare-text {
-          padding: 10px;
-          border-radius: 4px;
+          flex: 1;
+          padding: 12px;
+          border-radius: 8px;
           font-size: 13px;
-          line-height: 1.6;
+          line-height: 1.8;
+          min-height: 80px;
         }
 
         .compare-text.original {
-          background: #fef3c7;
-          border: 1px solid #fcd34d;
+          background: #fff7ed;
+          border: 2px solid #fed7aa;
+          color: #92400e;
         }
 
         .compare-text.polished {
-          background: #d1fae5;
-          border: 1px solid #6ee7b7;
+          background: #ecfdf5;
+          border: 2px solid #6ee7b7;
+          color: #065f46;
         }
 
-        .compare-arrow {
-          text-align: center;
+        .compare-divider {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+
+        .divider-line {
+          width: 2px;
+          flex: 1;
+          background: linear-gradient(180deg, transparent, #667eea, transparent);
+        }
+
+        .divider-arrow {
           font-size: 20px;
           color: #667eea;
+          font-weight: bold;
+        }
+
+        .repolish-section {
+          margin-bottom: 16px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border: 1px dashed #d1d5db;
+        }
+
+        .repolish-label {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 8px;
+          font-weight: 500;
+        }
+
+        .repolish-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .repolish-btn {
+          flex: 1;
+          padding: 8px 12px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #666;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .repolish-btn:hover:not(:disabled) {
+          border-color: #667eea;
+          background: #f5f3ff;
+          color: #667eea;
+          transform: translateY(-1px);
+        }
+
+        .repolish-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+          .polish-comparison {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto;
+          }
+
+          .compare-divider {
+            flex-direction: row;
+            height: auto;
+          }
+
+          .divider-line {
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+          }
+
+          .divider-arrow {
+            transform: rotate(90deg);
+          }
+
+          .styles-buttons {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
 
         .close-results-btn {
