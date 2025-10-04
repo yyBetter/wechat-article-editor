@@ -7,6 +7,8 @@ import React, { useState } from 'react'
 import { useApp } from '../../utils/app-context'
 import { useAI } from '../../hooks/useAI'
 import { TitleSuggestion } from '../../services/ai/ai-service'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 export function AIAssistant() {
   const { state, dispatch } = useApp()
