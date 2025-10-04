@@ -1,0 +1,328 @@
+/**
+ * AI 功能 React Hook
+ * 提供便捷的 AI 功能调用接口
+ */
+
+import { useState, useCallback } from 'react'
+import { AIService, TitleSuggestion, OutlineResult, KeywordResult, ContentStrategy } from '../services/ai/ai-service'
+import { notification } from '../utils/notification'
+
+interface UseAIOptions {
+  apiKey?: string
+  onSuccess?: (message: string) => void
+  onError?: (error: string) => void
+}
+
+export function useAI(options: UseAIOptions = {}) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // 创建 AI 服务实例
+  const createService = useCallback(() => {
+    const apiKey = options.apiKey || import.meta.env.VITE_DEEPSEEK_API_KEY
+    if (!apiKey) {
+      throw new Error('DeepSeek API Key 未配置')
+    }
+    return new AIService(apiKey)
+  }, [options.apiKey])
+
+  // 错误处理
+  const handleError = useCallback((err: unknown, defaultMessage: string) => {
+    const message = err instanceof Error ? err.message : defaultMessage
+    setError(message)
+    if (options.onError) {
+      options.onError(message)
+    } else {
+      notification.error(message)
+    }
+  }, [options])
+
+  // 成功处理
+  const handleSuccess = useCallback((message: string) => {
+    setError(null)
+    if (options.onSuccess) {
+      options.onSuccess(message)
+    } else {
+      notification.success(message)
+    }
+  }, [options])
+
+  /**
+   * 生成标题
+   */
+  const generateTitles = useCallback(async (content: string): Promise<TitleSuggestion[]> => {
+    if (!content || content.trim().length < 50) {
+      notification.warning('内容太短，请至少输入50个字')
+      return []
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const titles = await ai.generateTitles(content)
+      handleSuccess('标题生成成功！')
+      return titles
+    } catch (err) {
+      handleError(err, '标题生成失败')
+      return []
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 生成摘要
+   */
+  const generateSummary = useCallback(async (
+    content: string,
+    length: number = 100
+  ): Promise<string> => {
+    if (!content || content.trim().length < 100) {
+      notification.warning('内容太短，请至少输入100个字')
+      return ''
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const summary = await ai.generateSummary(content, length)
+      handleSuccess('摘要生成成功！')
+      return summary
+    } catch (err) {
+      handleError(err, '摘要生成失败')
+      return ''
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 生成大纲
+   */
+  const generateOutline = useCallback(async (
+    topic: string,
+    type: 'tutorial' | 'opinion' | 'story' = 'tutorial'
+  ): Promise<OutlineResult | null> => {
+    if (!topic || topic.trim().length < 5) {
+      notification.warning('请输入主题（至少5个字）')
+      return null
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const outline = await ai.generateOutline(topic, type)
+      handleSuccess('大纲生成成功！')
+      return outline
+    } catch (err) {
+      handleError(err, '大纲生成失败')
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 改进可读性
+   */
+  const improveReadability = useCallback(async (
+    text: string,
+    issues: string[]
+  ): Promise<string> => {
+    if (!text || text.trim().length < 20) {
+      notification.warning('文本太短，请至少输入20个字')
+      return text
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const improved = await ai.improveReadability(text, issues)
+      handleSuccess('文本改进成功！')
+      return improved
+    } catch (err) {
+      handleError(err, '文本改进失败')
+      return text
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 生成开头
+   */
+  const generateOpening = useCallback(async (
+    title: string,
+    outline: string,
+    style: 'story' | 'data' | 'question' | 'scene' = 'story'
+  ): Promise<string[]> => {
+    if (!title || !outline) {
+      notification.warning('请提供标题和大纲')
+      return []
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const openings = await ai.generateOpening(title, outline, style)
+      handleSuccess('开头生成成功！')
+      return openings
+    } catch (err) {
+      handleError(err, '开头生成失败')
+      return []
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 生成结尾
+   */
+  const generateEnding = useCallback(async (
+    content: string,
+    cta: boolean = true
+  ): Promise<string[]> => {
+    if (!content || content.trim().length < 100) {
+      notification.warning('内容太短，请至少输入100个字')
+      return []
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const endings = await ai.generateEnding(content, cta)
+      handleSuccess('结尾生成成功！')
+      return endings
+    } catch (err) {
+      handleError(err, '结尾生成失败')
+      return []
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 润色文本
+   */
+  const polishText = useCallback(async (
+    text: string,
+    style: 'professional' | 'casual' | 'concise' | 'vivid' = 'professional'
+  ): Promise<string> => {
+    if (!text || text.trim().length < 10) {
+      notification.warning('文本太短，请至少输入10个字')
+      return text
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const polished = await ai.polishText(text, style)
+      handleSuccess('文本润色成功！')
+      return polished
+    } catch (err) {
+      handleError(err, '文本润色失败')
+      return text
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 提取关键词
+   */
+  const extractKeywords = useCallback(async (
+    content: string
+  ): Promise<KeywordResult | null> => {
+    if (!content || content.trim().length < 50) {
+      notification.warning('内容太短，请至少输入50个字')
+      return null
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const keywords = await ai.extractKeywords(content)
+      handleSuccess('关键词提取成功！')
+      return keywords
+    } catch (err) {
+      handleError(err, '关键词提取失败')
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 分析内容策略
+   */
+  const analyzeContentStrategy = useCallback(async (
+    articles: Array<{ title: string; views: number; likes: number; date: string }>
+  ): Promise<ContentStrategy | null> => {
+    if (!articles || articles.length < 3) {
+      notification.warning('至少需要3篇历史文章才能分析')
+      return null
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ai = createService()
+      const strategy = await ai.analyzeContentStrategy(articles)
+      handleSuccess('策略分析完成！')
+      return strategy
+    } catch (err) {
+      handleError(err, '策略分析失败')
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }, [createService, handleError, handleSuccess])
+
+  /**
+   * 估算成本
+   */
+  const estimateCost = useCallback((inputText: string, outputLength: number): number => {
+    try {
+      const ai = createService()
+      return ai.estimateCost(inputText, outputLength)
+    } catch {
+      return 0
+    }
+  }, [createService])
+
+  return {
+    // 状态
+    loading,
+    error,
+
+    // 功能方法
+    generateTitles,
+    generateSummary,
+    generateOutline,
+    improveReadability,
+    generateOpening,
+    generateEnding,
+    polishText,
+    extractKeywords,
+    analyzeContentStrategy,
+    estimateCost
+  }
+}
+
