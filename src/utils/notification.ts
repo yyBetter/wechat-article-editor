@@ -26,7 +26,7 @@ export class NotificationManager {
     this.container = document.createElement('div')
     this.container.style.cssText = `
       position: fixed;
-      top: 20px;
+      top: 80px;
       right: 20px;
       z-index: 10000;
       pointer-events: none;
@@ -38,7 +38,7 @@ export class NotificationManager {
   show(message: string, options: NotificationOptions = {}): string {
     const {
       type = 'info',
-      duration = 4000,
+      duration = 2000,
       title,
       details
     } = options

@@ -7,6 +7,7 @@ export const imageTextTemplate: Template = {
   description: '适合图片展示、产品推荐、美食分享等',
   thumbnail: '/assets/thumbnails/image-text.png',
   category: 'image-text',
+  brandColors: ['#ff6b6b', '#4ecdc4', '#45b7d1'],  // 预设配色：活力橙红
   
   styles: {
     // 容器样式

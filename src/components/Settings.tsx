@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { StorageSettings } from './StorageSettings'
 import { DataBackup } from './DataBackup'
+import { TemplateCustomizer } from './TemplateCustomizer'
 import '../styles/settings.css'
 
 interface SettingsProps {
@@ -8,7 +9,7 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = () => {
-  const [activeTab, setActiveTab] = useState<'general' | 'storage' | 'backup'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'brand' | 'storage' | 'backup'>('general')
   
   return (
     <div className="settings">
@@ -20,6 +21,12 @@ export const Settings: React.FC<SettingsProps> = () => {
             onClick={() => setActiveTab('general')}
           >
             🔧 常规设置
+          </button>
+          <button
+            className={`settings-tab ${activeTab === 'brand' ? 'active' : ''}`}
+            onClick={() => setActiveTab('brand')}
+          >
+            🎨 品牌配色
           </button>
           <button
             className={`settings-tab ${activeTab === 'storage' ? 'active' : ''}`}
@@ -70,6 +77,16 @@ export const Settings: React.FC<SettingsProps> = () => {
                 <input type="checkbox" defaultChecked />
               </label>
             </div>
+          </div>
+        )}
+        
+        {activeTab === 'brand' && (
+          <div className="brand-settings-container">
+            <h4>品牌配色设置</h4>
+            <p className="settings-description">
+              自定义全局品牌主色调，将应用到所有模板中。更改后会覆盖模板默认配色。
+            </p>
+            <TemplateCustomizer />
           </div>
         )}
         

@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../utils/auth-context'
+import { GlobalSettingsModal } from '../GlobalSettingsModal'
+import { StorageStats } from '../StorageStats'
 
 interface UserMenuProps {
   onOpenAuthModal: () => void
@@ -11,6 +13,7 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
   const { state, logout } = useAuth()
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
+  const [showGlobalSettings, setShowGlobalSettings] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // 点击外部关闭菜单
@@ -98,9 +101,28 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
               }}
               type="button"
             >
-              <span className="menu-icon">⚙️</span>
+              <span className="menu-icon">👤</span>
               个人设置
             </button>
+            
+            <button 
+              className="menu-item"
+              onClick={() => {
+                setIsOpen(false)
+                setShowGlobalSettings(true)
+              }}
+              type="button"
+            >
+              <span className="menu-icon">⚙️</span>
+              全局设置
+            </button>
+            
+            <div className="menu-divider"></div>
+            
+            {/* 存储统计信息 */}
+            <div className="menu-section">
+              <StorageStats />
+            </div>
             
             <div className="menu-divider"></div>
             
@@ -115,6 +137,12 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
           </div>
         </div>
       )}
+
+      {/* 全局设置模态框 */}
+      <GlobalSettingsModal 
+        isOpen={showGlobalSettings}
+        onClose={() => setShowGlobalSettings(false)}
+      />
 
       <style>{`
         .user-menu {
@@ -230,6 +258,10 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
 
         .menu-items {
           padding: 8px 0;
+        }
+
+        .menu-section {
+          padding: 8px 12px;
         }
 
         .menu-item {

@@ -9,7 +9,7 @@
 .settings-header {
   margin-bottom: 24px;
   border-bottom: 2px solid #f0f0f0;
-  pb: 16px;
+  padding-bottom: 16px;
 }
 
 .settings-header h3 {
@@ -132,6 +132,175 @@
   display: none;
 }
 
+/* 全局设置容器样式 */
+.settings-container {
+  max-width: 100%;
+}
+
+.section-title {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 设置区块样式 */
+.settings-section {
+  margin-bottom: 32px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-subtitle {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-desc {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* 用户信息样式 */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #6b7280;
+  min-width: 80px;
+}
+
+.info-value {
+  color: #333;
+  font-weight: 400;
+}
+
+/* 应用偏好设置样式 */
+.preference-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preference-item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.preference-item:hover {
+  border-color: #1e6fff;
+  box-shadow: 0 2px 8px rgba(30, 111, 255, 0.1);
+}
+
+/* 隐藏原生 checkbox，使用自定义样式 */
+.preference-item input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* 自定义 checkbox 视觉效果 */
+.preference-item::before {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  transition: all 0.2s;
+  margin-top: 2px;
+}
+
+.preference-item:has(input[type="checkbox"]:checked)::before {
+  background: #1e6fff;
+  border-color: #1e6fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E");
+  background-size: 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 内容区域 */
+.preference-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.preference-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.5;
+}
+
+.preference-desc {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* 品牌配色设置容器 */
+.brand-settings-container {
+  max-width: 100%;
+}
+
+.brand-settings-container h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.settings-description {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .settings {
@@ -154,5 +323,53 @@
   
   .setting-item input[type="checkbox"] {
     align-self: flex-end;
+  }
+
+  .settings-section {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .preference-item {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .preference-item::before {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+  }
+
+  .preference-label {
+    font-size: 13px;
+  }
+
+  .preference-desc {
+    font-size: 12px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .info-label {
+    min-width: auto;
+    font-size: 12px;
+  }
+
+  .info-value {
+    font-size: 13px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .settings-subtitle {
+    font-size: 15px;
   }
 }

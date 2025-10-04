@@ -64,7 +64,7 @@ const initialState: AppState = {
   
   ui: {
     sidebarOpen: true,
-    activePanel: 'templates',
+    activePanel: 'guide',  // 默认打开发布指南
     showPreview: true,
     theme: 'light',
     fontSize: 'medium',

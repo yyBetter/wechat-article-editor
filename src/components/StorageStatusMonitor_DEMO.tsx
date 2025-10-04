@@ -1,9 +1,7 @@
-// 存储状态监控组件 - 简化版（只支持本地存储）
+// 存储状态监控组件 - DEMO 版本（简化为只支持本地存储）
 import React, { useState, useEffect } from 'react'
 import { checkStorageQuota } from '../utils/local-storage-utils'
-import { getStorageAdapter } from '../utils/storage-adapter'
 import { notification } from '../utils/notification'
-import { useAuth } from '../utils/auth-context'
 
 interface StorageStatus {
   quotaUsage: number  // 存储使用百分比
@@ -14,7 +12,6 @@ interface StorageStatus {
 }
 
 export function StorageStatusMonitor() {
-  const { state: authState } = useAuth()
   const [status, setStatus] = useState<StorageStatus>({
     quotaUsage: 0,
     quotaAvailable: 0,
@@ -26,19 +23,15 @@ export function StorageStatusMonitor() {
 
   // 检查本地存储状态
   useEffect(() => {
-    // 只有在认证后才开始统计
-    if (!authState.isAuthenticated) {
-      return
-    }
-
     const checkStatus = async () => {
       try {
         // 查询存储配额
         const quota = await checkStorageQuota()
         
-        // 查询本地文档和图片数量
-        const docCount = await countDocuments()
-        const imgCount = await countImages()
+        // 查询本地文档数量
+        const db = await openDB()
+        const docCount = await countDocuments(db)
+        const imgCount = await countImages(db)
         
         setStatus({
           quotaUsage: quota.percentage,
@@ -56,112 +49,55 @@ export function StorageStatusMonitor() {
       }
     }
 
-    // 延迟500ms，确保 storage adapter 已初始化
-    const timeout = setTimeout(() => {
-      checkStatus()
-    }, 500)
+    checkStatus()
     
     // 每30秒刷新一次
     const interval = setInterval(checkStatus, 30000)
     
-    return () => {
-      clearTimeout(timeout)
-      clearInterval(interval)
-    }
-  }, [authState.isAuthenticated])
+    return () => clearInterval(interval)
+  }, [])
 
-  // 获取数据库实例
-  const getDB = async (): Promise<IDBDatabase | null> => {
-    try {
-      const adapter = await getStorageAdapter()
-      
-      // 确保 adapter 已初始化
-      if (!adapter.isAvailable()) {
-        console.log('存储适配器尚未就绪，等待初始化...')
-        return null
-      }
-      
-      // 检查是否是本地存储适配器
-      if (adapter.constructor.name === 'LocalStorageAdapter') {
-        const db = (adapter as any).getDB()
-        return db
-      } else if (adapter.constructor.name === 'HybridStorageAdapter') {
-        const localAdapter = (adapter as any).getCurrentAdapter()
-        if (localAdapter && localAdapter.isAvailable()) {
-          return localAdapter.getDB()
-        }
-      }
-      
-      return null
-    } catch (error) {
-      // 初始化错误是正常的，静默处理
-      return null
-    }
+  // 打开 IndexedDB
+  const openDB = async (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('wechat-editor-local', 1)
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
   }
 
   // 统计文档数量
-  const countDocuments = async (): Promise<number> => {
-    try {
-      const db = await getDB()
-      if (!db) return 0
-      
-      return new Promise((resolve, reject) => {
-        try {
-          const transaction = db.transaction(['documents'], 'readonly')
-          const store = transaction.objectStore('documents')
-          const request = store.count()
-          request.onsuccess = () => resolve(request.result)
-          request.onerror = () => reject(request.error)
-        } catch (error) {
-          console.error('统计文档失败:', error)
-          resolve(0)
-        }
-      })
-    } catch (error) {
-      console.error('统计文档失败:', error)
-      return 0
-    }
+  const countDocuments = async (db: IDBDatabase): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['documents'], 'readonly')
+      const store = transaction.objectStore('documents')
+      const request = store.count()
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
   }
 
   // 统计图片数量
-  const countImages = async (): Promise<number> => {
-    try {
-      const db = await getDB()
-      if (!db) return 0
-      
-      return new Promise((resolve, reject) => {
-        try {
-          const transaction = db.transaction(['images'], 'readonly')
-          const store = transaction.objectStore('images')
-          const request = store.count()
-          request.onsuccess = () => resolve(request.result)
-          request.onerror = () => reject(request.error)
-        } catch (error) {
-          console.error('统计图片失败:', error)
-          resolve(0)
-        }
-      })
-    } catch (error) {
-      console.error('统计图片失败:', error)
-      return 0
-    }
+  const countImages = async (db: IDBDatabase): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['images'], 'readonly')
+      const store = transaction.objectStore('images')
+      const request = store.count()
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
   }
 
   // 清理缓存
   const clearCache = async () => {
-    if (!confirm('确定要清理所有本地缓存吗？\n\n⚠️ 注意：这将删除所有本地文档和图片！\n\n建议先导出重要数据。')) {
+    if (!confirm('确定要清理所有本地缓存吗？\n\n注意：这将删除所有本地文档和图片！')) {
       return
     }
 
     try {
-      const db = await getDB()
-      if (!db) {
-        notification.error('无法访问本地数据库')
-        return
-      }
-      
       // 清理 IndexedDB
-      const transaction = db.transaction(['documents', 'images', 'versions'], 'readwrite')
+      const db = await openDB()
+      const transaction = db.transaction(['documents', 'images'], 'readwrite')
       
       await Promise.all([
         new Promise((resolve, reject) => {
@@ -171,11 +107,6 @@ export function StorageStatusMonitor() {
         }),
         new Promise((resolve, reject) => {
           const request = transaction.objectStore('images').clear()
-          request.onsuccess = () => resolve(true)
-          request.onerror = () => reject(request.error)
-        }),
-        new Promise((resolve, reject) => {
-          const request = transaction.objectStore('versions').clear()
           request.onsuccess = () => resolve(true)
           request.onerror = () => reject(request.error)
         })
@@ -203,11 +134,6 @@ export function StorageStatusMonitor() {
     if (status.quotaUsage > 90) return '#ff9800'  // 橙色警告
     if (status.quotaUsage > 70) return '#ffeb3b'  // 黄色提示
     return '#4caf50'  // 绿色正常
-  }
-
-  // 未认证时不显示
-  if (!authState.isAuthenticated) {
-    return null
   }
 
   if (!showDetails) {
@@ -468,3 +394,4 @@ export function StorageStatusMonitor() {
     </div>
   )
 }
+

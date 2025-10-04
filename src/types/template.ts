@@ -7,6 +7,9 @@ export interface Template {
   thumbnail: string
   category: 'document' | 'image-text' | 'custom'
   
+  // 品牌配色方案（每个模板的预设配色）
+  brandColors?: [string, string, string]
+  
   // 样式配置
   styles: {
     container: TemplateContainerStyle

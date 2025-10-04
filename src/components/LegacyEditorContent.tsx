@@ -5,15 +5,12 @@ import { useApp } from '../utils/app-context'
 import { useAuth } from '../utils/auth-context'
 import { Editor } from './Editor'
 import { Preview } from './Preview'
-import { TemplateSelector } from './TemplateSelector'
-import { PublishGuide } from './PublishGuide'
-import { PublishFlow } from './PublishFlow'
-import { GlobalSettings } from './GlobalSettings'
+import { PublishModal } from './PublishModal'
 import { LocalAuthModal } from './auth/LocalAuthModal'
 import { UserMenu } from './auth/UserMenu'
 import { getDocument, saveCurrentContent } from '../utils/document-api'
 import { notification } from '../utils/notification'
-import { StorageStatusMonitor } from './StorageStatusMonitor'
+import { DonationButton } from './DonationButton'
 import '../App.css'
 import '../styles/sidebar.css'
 import '../styles/publish.css'
@@ -25,6 +22,7 @@ export function LegacyEditorContent() {
   const { state, dispatch } = useApp()
   const { state: authState, login } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [previousUserId, setPreviousUserId] = useState<string | null>(authState.user?.id || null)
   const [isSavingBeforeLogout, setIsSavingBeforeLogout] = useState(false)
@@ -91,7 +89,8 @@ export function LegacyEditorContent() {
       // 未认证状态
       setCurrentDocumentId(null)
     }
-  }, [documentId, authState.isAuthenticated, dispatch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentId, authState.isAuthenticated])
 
   // 处理账号切换：自动保存并跳转首页
   const handleAccountSwitch = async () => {
@@ -236,14 +235,6 @@ export function LegacyEditorContent() {
         </div>
         
         <div className="header-right">
-          <div className="template-info">
-            {state.templates.current && (
-              <span className="current-template">
-                当前模板: {state.templates.current.name}
-              </span>
-            )}
-          </div>
-          
           <div className="header-actions">
             <button 
               type="button"
@@ -252,6 +243,16 @@ export function LegacyEditorContent() {
               title={state.ui.showPreview ? '隐藏预览' : '显示预览'}
             >
               {state.ui.showPreview ? '📱 隐藏预览' : '👁️ 显示预览'}
+            </button>
+            
+            <button 
+              type="button"
+              className="header-btn publish-btn"
+              onClick={() => setPublishModalOpen(true)}
+              disabled={!state.editor.content || !state.templates.variables.title}
+              title={!state.editor.content || !state.templates.variables.title ? '请先编辑内容和填写标题' : '发布到微信公众号'}
+            >
+              📤 发布到微信
             </button>
             
             <button 
@@ -271,68 +272,6 @@ export function LegacyEditorContent() {
       
       {/* 主要内容区域 */}
       <div className="app-main">
-        {/* 左侧边栏 */}
-        {state.ui.sidebarOpen && (
-          <aside className="app-sidebar">
-            {/* 简化的侧边栏导航 */}
-            <nav className="sidebar-nav">
-              <button
-                type="button"
-                className={`nav-tab ${state.ui.activePanel === 'templates' ? 'active' : ''}`}
-                onClick={() => switchPanel('templates')}
-                title="模板选择"
-              >
-                🎨 模板
-              </button>
-              <button
-                type="button"
-                className={`nav-tab ${['guide', 'settings'].includes(state.ui.activePanel) ? 'active' : ''}`}
-                onClick={() => switchPanel('guide')}
-                title="发布指南和设置"
-              >
-                ⚙️ 更多
-              </button>
-            </nav>
-            
-            {/* 侧边栏内容 */}
-            <div className="sidebar-content">
-              {/* 模板选择 */}
-              {state.ui.activePanel === 'templates' && (
-                <div className="content-group">
-                  <div className="sub-content">
-                    <TemplateSelector />
-                  </div>
-                </div>
-              )}
-              
-              {/* 更多组合 - 发布和设置 */}
-              {['guide', 'settings'].includes(state.ui.activePanel) && (
-                <div className="content-group">
-                  <div className="sub-nav">
-                    <button
-                      className={`sub-nav-btn ${state.ui.activePanel === 'guide' ? 'active' : ''}`}
-                      onClick={() => switchPanel('guide')}
-                    >
-                      📖 发布指南
-                    </button>
-                    <button
-                      className={`sub-nav-btn ${state.ui.activePanel === 'settings' ? 'active' : ''}`}
-                      onClick={() => switchPanel('settings')}
-                    >
-                      🔧 全局设置
-                    </button>
-                  </div>
-                  
-                  <div className="sub-content">
-                    {state.ui.activePanel === 'guide' && <PublishFlow />}
-                    {state.ui.activePanel === 'settings' && <GlobalSettings />}
-                  </div>
-                </div>
-              )}
-            </div>
-          </aside>
-        )}
-        
         {/* 编辑器区域 */}
         <div className="editor-section">
           <Editor currentDocumentId={currentDocumentId} />
@@ -369,8 +308,20 @@ export function LegacyEditorContent() {
         onAuthSuccess={handleAuthSuccess}
       />
 
+      {/* 发布模态框 */}
+      <PublishModal
+        isOpen={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        currentDocument={{
+          id: currentDocumentId || undefined,
+          title: state.templates.variables.title || '',
+          content: state.editor.content,
+          author: state.templates.variables.author || 'Shawn'
+        }}
+      />
+
       {/* 存储状态监控 */}
-      <StorageStatusMonitor />
+      <DonationButton />
     </div>
   )
 }

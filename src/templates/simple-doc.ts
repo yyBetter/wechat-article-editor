@@ -5,6 +5,7 @@ export const simpleDocTemplate: Template = {
   id: 'simple-doc',
   name: '简约文档',
   description: '适合文字内容、资讯、技术文档等',
+  brandColors: ['#1e6fff', '#333333', '#666666'],  // 预设配色：专业蓝
   usage: `
 ## 模板使用说明
 

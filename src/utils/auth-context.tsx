@@ -100,20 +100,43 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState)
   
-  // 初始化时验证token
+  // 初始化时验证token或自动登录
   useEffect(() => {
     const checkAuthStatus = async () => {
+      // 优先检查本地存储的用户信息（本地模式）
+      const storedUser = localStorage.getItem('current_user')
+      
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser)
+          console.log('🔄 检测到本地用户信息，自动登录:', user.email)
+          
+          dispatch({ type: 'AUTH_SUCCESS', payload: user })
+          
+          // 初始化存储适配器
+          try {
+            await getStorageAdapter()
+            console.log('✅ 存储适配器初始化成功')
+          } catch (storageError) {
+            console.error('❌ 存储适配器初始化失败:', storageError)
+          }
+          
+          return // 自动登录成功，退出
+        } catch (error) {
+          console.error('❌ 解析用户信息失败:', error)
+          localStorage.removeItem('current_user')
+        }
+      }
+      
+      // 如果本地没有用户信息，再检查 token（服务器模式）
       if (isAuthenticated()) {
         dispatch({ type: 'AUTH_START' })
         try {
           const result = await verifyToken()
           if (result.valid && result.user) {
-            // 存储用户信息到localStorage (LocalStorageAdapter需要)
             localStorage.setItem('current_user', JSON.stringify(result.user))
-            
             dispatch({ type: 'AUTH_SUCCESS', payload: result.user })
             
-            // 初始化存储适配器
             try {
               console.log('Token验证成功，正在初始化存储适配器...')
               await getStorageAdapter()
@@ -122,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               console.error('存储适配器初始化失败:', storageError)
             }
           } else {
-            // Token无效，清除存储
             clearStoredToken()
             localStorage.removeItem('current_user')
             dispatch({ type: 'AUTH_FAILURE', payload: '登录已过期，请重新登录' })
@@ -133,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           dispatch({ type: 'AUTH_FAILURE', payload: '验证登录状态失败' })
         }
       } else {
-        // 没有token，直接设置为未认证状态
+        // 没有任何登录信息
         dispatch({ type: 'AUTH_FAILURE', payload: '' })
       }
     }

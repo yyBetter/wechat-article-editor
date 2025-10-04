@@ -11,8 +11,10 @@ interface LocalAuthModalProps {
 
 export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModalProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login')
-  const [email, setEmail] = useState('')
-  const [username, setUsername] = useState('')
+  // 本地开发环境预填账号（仅在开发模式下）
+  const isDev = import.meta.env.DEV
+  const [email, setEmail] = useState(isDev ? 'shawn@local.com' : '')
+  const [username, setUsername] = useState(isDev ? 'Shawn' : '')
   const [loading, setLoading] = useState(false)
 
   if (!isOpen) return null
@@ -112,9 +114,10 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
                 boxSizing: 'border-box'
               }}
               disabled={loading}
+              autoFocus
             />
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#999' }}>
-              💡 邮箱仅用于本地账号识别，不会上传到服务器
+            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: isDev ? '#10b981' : '#999' }}>
+              {isDev ? '🚀 开发模式：已预填测试账号' : '💡 邮箱仅用于本地账号识别，不会上传到服务器'}
             </p>
           </div>
 

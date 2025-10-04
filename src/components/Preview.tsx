@@ -4,6 +4,7 @@ import { useApp } from '../utils/app-context'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
 import { getLocalImageData } from '../utils/local-image-api'
+import { PreviewToolbar } from './PreviewToolbar'
 
 const templateEngine = new TemplateEngine(templates)
 
@@ -387,6 +388,9 @@ export const Preview = memo(function Preview() {
   
   return (
     <div className="preview-container">
+      {/* 样式配置工具栏 - 模板和配色 */}
+      <PreviewToolbar />
+      
       {/* 预览工具栏 */}
       <div className="preview-toolbar">
         <div className="toolbar-left">
@@ -412,9 +416,7 @@ export const Preview = memo(function Preview() {
           <div className="preview-stats">
             <span className="stat-item">{state.templates.current?.name}</span>
             <span className="stat-divider">·</span>
-            <span className="stat-item">{state.editor.content.length} 字符</span>
-            <span className="stat-divider">·</span>
-            <span className="stat-item">{Math.max(1, Math.ceil(state.editor.content.length / 400))} 分钟</span>
+            <span className="stat-item">{Math.max(1, Math.ceil(state.editor.content.length / 400))} 分钟阅读</span>
           </div>
         </div>
         

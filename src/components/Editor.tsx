@@ -766,6 +766,23 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     autoSave.currentDocumentId
   ])
   
+  // 更新文档信息
+  const updateDocumentInfo = useCallback((key: string, value: string) => {
+    dispatch({ 
+      type: 'UPDATE_TEMPLATE_VARIABLES', 
+      payload: { [key]: value } 
+    })
+  }, [dispatch])
+  
+  // 获取默认日期
+  const getDefaultDate = () => {
+    return new Date().toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric'
+    })
+  }
+  
   return (
     <div className="editor-container">
       {ToolbarComponent}
@@ -788,6 +805,58 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
+        {/* 文档信息栏 */}
+        <div className="document-info-bar">
+          <div className="doc-info-row">
+            <label className="doc-info-label">标题</label>
+            <input
+              type="text"
+              className="doc-info-input title-input"
+              value={state.templates.variables.title || ''}
+              onChange={(e) => updateDocumentInfo('title', e.target.value)}
+              placeholder="未命名文档"
+            />
+          </div>
+          <div className="doc-info-row compact">
+            <div className="doc-info-field">
+              <label className="doc-info-label">作者</label>
+              <input
+                type="text"
+                className="doc-info-input"
+                value={state.templates.variables.author || ''}
+                onChange={(e) => updateDocumentInfo('author', e.target.value)}
+                placeholder="输入作者名（可选）"
+              />
+            </div>
+            <div className="doc-info-field">
+              <label className="doc-info-label">日期</label>
+              <input
+                type="text"
+                className="doc-info-input"
+                value={state.templates.variables.date || getDefaultDate()}
+                onChange={(e) => updateDocumentInfo('date', e.target.value)}
+                placeholder="2025年8月30日"
+              />
+            </div>
+          </div>
+          
+          {/* 精简模板指示器（预览关闭时显示） */}
+          {!state.ui.showPreview && (
+            <div className="template-indicator-compact">
+              <span className="indicator-label">当前模板：</span>
+              <span className="indicator-value">{state.templates.current?.name || '简约文档'}</span>
+              <button 
+                className="indicator-action"
+                onClick={() => dispatch({ type: 'SET_UI_STATE', payload: { showPreview: true } })}
+                type="button"
+                title="打开预览区切换模板"
+              >
+                切换
+              </button>
+            </div>
+          )}
+        </div>
+        
         <textarea
           ref={textareaRef}
           value={displayContent}
