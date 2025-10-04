@@ -20,6 +20,11 @@ export function AIAssistant() {
   const [polishedText, setPolishedText] = useState<{ original: string; polished: string } | null>(null)
   const [polishStyle, setPolishStyle] = useState<'professional' | 'casual' | 'concise' | 'vivid'>('professional')
   const [selectedText, setSelectedText] = useState<string>('')
+  const [showModal, setShowModal] = useState(false)
+  const [modalContent, setModalContent] = useState<{
+    type: 'outline' | 'polish' | 'summary'
+    data: any
+  } | null>(null)
 
   const content = state.editor.content
 
@@ -115,7 +120,6 @@ export function AIAssistant() {
 
     clearAllResults() // 清空之前的结果
     setCurrentTask('大纲生成')
-    setShowResults(true)
     const outlineResult = await generateOutline(topic, 'tutorial')
     if (outlineResult) {
       // 将大纲转换为 Markdown 格式
@@ -131,6 +135,9 @@ export function AIAssistant() {
         }
       })
       setOutline(markdownOutline)
+      // 使用模态框展示
+      setModalContent({ type: 'outline', data: markdownOutline })
+      setShowModal(true)
     }
     setCurrentTask('')
   }
@@ -176,10 +183,13 @@ export function AIAssistant() {
     const styleToUse = style || polishStyle
     setPolishStyle(styleToUse)
     setCurrentTask('文本润色')
-    setShowResults(true)
     const polished = await polishText(selection, styleToUse)
     if (polished && polished !== selection) {
+      const data = { original: selection, polished, style: styleToUse }
       setPolishedText({ original: selection, polished })
+      // 使用模态框展示
+      setModalContent({ type: 'polish', data })
+      setShowModal(true)
     }
     setCurrentTask('')
   }
@@ -191,7 +201,10 @@ export function AIAssistant() {
     setCurrentTask('文本润色')
     const polished = await polishText(selectedText, style)
     if (polished && polished !== selectedText) {
+      const data = { original: selectedText, polished, style }
       setPolishedText({ original: selectedText, polished })
+      // 更新模态框内容
+      setModalContent({ type: 'polish', data })
     }
     setCurrentTask('')
   }
@@ -358,6 +371,139 @@ export function AIAssistant() {
         <div className="ai-loading">
           <div className="loading-spinner"></div>
           <p>正在{currentTask}中...</p>
+        </div>
+      )}
+
+      {/* 全屏模态框 */}
+      {showModal && modalContent && (
+        <div className="ai-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="ai-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                {modalContent.type === 'outline' && '📋 文章大纲预览'}
+                {modalContent.type === 'polish' && '🎨 文本对比'}
+              </h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+            </div>
+
+            {modalContent.type === 'outline' && (
+              <div className="modal-body">
+                <div className="modal-comparison">
+                  <div className="modal-compare-side">
+                    <div className="modal-compare-header">
+                      <span className="modal-compare-icon">📄</span>
+                      <span className="modal-compare-title">当前内容</span>
+                    </div>
+                    <div className="modal-compare-text original">
+                      {content || '（编辑器为空，将直接替换）'}
+                    </div>
+                  </div>
+                  
+                  <div className="modal-compare-divider">
+                    <div className="modal-divider-line"></div>
+                    <div className="modal-divider-arrow">→</div>
+                    <div className="modal-divider-line"></div>
+                  </div>
+                  
+                  <div className="modal-compare-side">
+                    <div className="modal-compare-header">
+                      <span className="modal-compare-icon">📋</span>
+                      <span className="modal-compare-title">生成的大纲</span>
+                    </div>
+                    <div className="modal-compare-text polished" style={{ whiteSpace: 'pre-wrap' }}>
+                      {modalContent.data}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="modal-actions">
+                  <button className="modal-btn cancel" onClick={() => setShowModal(false)}>
+                    取消
+                  </button>
+                  <button className="modal-btn primary" onClick={() => {
+                    handleUseOutline()
+                    setShowModal(false)
+                  }}>
+                    {content ? '✅ 替换为此大纲' : '✅ 使用此大纲'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {modalContent.type === 'polish' && (
+              <div className="modal-body">
+                <div className="modal-style-badge">
+                  当前风格: <span className="badge-text">
+                    {modalContent.data.style === 'professional' && '🎯 专业'}
+                    {modalContent.data.style === 'casual' && '😊 轻松'}
+                    {modalContent.data.style === 'concise' && '✂️ 简洁'}
+                    {modalContent.data.style === 'vivid' && '✨ 生动'}
+                  </span>
+                </div>
+                
+                <div className="modal-comparison">
+                  <div className="modal-compare-side">
+                    <div className="modal-compare-header">
+                      <span className="modal-compare-icon">📄</span>
+                      <span className="modal-compare-title">原文</span>
+                    </div>
+                    <div className="modal-compare-text original">
+                      {modalContent.data.original}
+                    </div>
+                  </div>
+                  
+                  <div className="modal-compare-divider">
+                    <div className="modal-divider-line"></div>
+                    <div className="modal-divider-arrow">→</div>
+                    <div className="modal-divider-line"></div>
+                  </div>
+                  
+                  <div className="modal-compare-side">
+                    <div className="modal-compare-header">
+                      <span className="modal-compare-icon">✨</span>
+                      <span className="modal-compare-title">润色后</span>
+                    </div>
+                    <div className="modal-compare-text polished">
+                      {modalContent.data.polished}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="repolish-section-modal">
+                  <div className="repolish-label">不满意？换个风格试试：</div>
+                  <div className="repolish-buttons-modal">
+                    {(['professional', 'casual', 'concise', 'vivid'] as const).map((style) => (
+                      style !== modalContent.data.style && (
+                        <button
+                          key={style}
+                          className="repolish-btn-modal"
+                          onClick={() => handleRepolish(style)}
+                          disabled={loading}
+                        >
+                          {style === 'professional' && '🎯 专业'}
+                          {style === 'casual' && '😊 轻松'}
+                          {style === 'concise' && '✂️ 简洁'}
+                          {style === 'vivid' && '✨ 生动'}
+                        </button>
+                      )
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="modal-actions">
+                  <button className="modal-btn cancel" onClick={() => setShowModal(false)}>
+                    取消
+                  </button>
+                  <button className="modal-btn primary" onClick={() => {
+                    handleUsePolished()
+                    setShowModal(false)
+                  }}>
+                    ✅ 应用润色
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1203,6 +1349,300 @@ export function AIAssistant() {
 
         .close-results-btn:hover {
           background: #f8f9fa;
+        }
+
+        /* 全屏模态框 */
+        .ai-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          padding: 20px;
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        .ai-modal-content {
+          background: white;
+          border-radius: 16px;
+          width: 100%;
+          max-width: 1200px;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+          from {
+            transform: translateY(30px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 24px;
+          border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header h3 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .modal-close {
+          width: 36px;
+          height: 36px;
+          border: none;
+          background: #f0f0f0;
+          border-radius: 8px;
+          font-size: 20px;
+          color: #666;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-close:hover {
+          background: #e5e7eb;
+          color: #333;
+        }
+
+        .modal-body {
+          flex: 1;
+          padding: 24px;
+          overflow-y: auto;
+        }
+
+        .modal-style-badge {
+          text-align: center;
+          margin-bottom: 20px;
+          font-size: 14px;
+          color: #666;
+        }
+
+        .modal-style-badge .badge-text {
+          display: inline-block;
+          padding: 6px 16px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 14px;
+          margin-left: 8px;
+        }
+
+        .modal-comparison {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+
+        .modal-compare-side {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .modal-compare-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #666;
+        }
+
+        .modal-compare-icon {
+          font-size: 20px;
+        }
+
+        .modal-compare-title {
+          font-size: 14px;
+        }
+
+        .modal-compare-text {
+          flex: 1;
+          padding: 20px;
+          border-radius: 12px;
+          font-size: 14px;
+          line-height: 1.8;
+          min-height: 400px;
+          max-height: 50vh;
+          overflow-y: auto;
+        }
+
+        .modal-compare-text.original {
+          background: #fff7ed;
+          border: 2px solid #fed7aa;
+          color: #92400e;
+        }
+
+        .modal-compare-text.polished {
+          background: #ecfdf5;
+          border: 2px solid #6ee7b7;
+          color: #065f46;
+        }
+
+        .modal-compare-divider {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-width: 40px;
+        }
+
+        .modal-divider-line {
+          width: 3px;
+          flex: 1;
+          background: linear-gradient(180deg, transparent, #667eea, transparent);
+        }
+
+        .modal-divider-arrow {
+          font-size: 28px;
+          color: #667eea;
+          font-weight: bold;
+        }
+
+        .repolish-section-modal {
+          margin-bottom: 24px;
+          padding: 16px;
+          background: #f8f9fa;
+          border-radius: 12px;
+          border: 2px dashed #d1d5db;
+        }
+
+        .repolish-label {
+          font-size: 13px;
+          color: #666;
+          margin-bottom: 12px;
+          font-weight: 500;
+          text-align: center;
+        }
+
+        .repolish-buttons-modal {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+        }
+
+        .repolish-btn-modal {
+          padding: 10px 20px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #666;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .repolish-btn-modal:hover:not(:disabled) {
+          border-color: #667eea;
+          background: #f5f3ff;
+          color: #667eea;
+          transform: translateY(-2px);
+        }
+
+        .repolish-btn-modal:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          padding-top: 20px;
+          border-top: 2px solid #f0f0f0;
+        }
+
+        .modal-btn {
+          padding: 12px 32px;
+          border-radius: 8px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: none;
+        }
+
+        .modal-btn.cancel {
+          background: #f0f0f0;
+          color: #666;
+        }
+
+        .modal-btn.cancel:hover {
+          background: #e5e7eb;
+        }
+
+        .modal-btn.primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .modal-btn.primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+          .modal-comparison {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto;
+          }
+
+          .modal-compare-divider {
+            flex-direction: row;
+            min-width: auto;
+            height: 40px;
+          }
+
+          .modal-divider-line {
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+          }
+
+          .modal-divider-arrow {
+            transform: rotate(90deg);
+          }
+
+          .modal-compare-text {
+            min-height: 200px;
+          }
         }
       `}</style>
     </div>
