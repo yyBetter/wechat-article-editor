@@ -7,9 +7,14 @@
 - `CLAUDE.md` - AI 助手使用说明
 - `TROUBLESHOOTING.md` - 问题排查指南
 - `LOCAL_ONLY_MODE.md` - 本地模式说明
+- `index.html` - **Vite 应用入口文件（必需，不可删除）**
 - `package.json` - 项目依赖配置
 - `vite.config.ts` - Vite 构建配置
 - `tsconfig.json` - TypeScript 配置
+
+**⚠️ 重要说明**：
+- 根目录的 `index.html` 是 Vite 的应用入口点，**必须保留**
+- `public/index.html` 是公共资源，用途不同，两者都需要保留
 
 ### 源代码 (`src/`)
 ```
