@@ -16,12 +16,23 @@ export function AIAssistant() {
   const [currentTask, setCurrentTask] = useState<string>('')
   const [titles, setTitles] = useState<TitleSuggestion[]>([])
   const [summary, setSummary] = useState<string>('')
+  const [outline, setOutline] = useState<string>('')
+  const [polishedText, setPolishedText] = useState<{ original: string; polished: string } | null>(null)
 
   const content = state.editor.content
+
+  // 清空所有结果
+  const clearAllResults = () => {
+    setTitles([])
+    setSummary('')
+    setOutline('')
+    setPolishedText(null)
+  }
 
   // 生成标题
   const handleGenerateTitles = async () => {
     if (!content) return
+    clearAllResults() // 清空之前的结果
     setCurrentTask('标题生成')
     setShowResults(true)
     const results = await generateTitles(content)
@@ -58,6 +69,7 @@ export function AIAssistant() {
   // 生成摘要
   const handleGenerateSummary = async () => {
     if (!content) return
+    clearAllResults() // 清空之前的结果
     setCurrentTask('摘要生成')
     setShowResults(true)
     const result = await generateSummary(content, 100)
@@ -65,17 +77,48 @@ export function AIAssistant() {
     setCurrentTask('')
   }
 
+  // 使用摘要（插入到编辑器开头）
+  const handleUseSummary = () => {
+    const newContent = `> ${summary}\n\n${content}`
+    dispatch({
+      type: 'UPDATE_EDITOR_CONTENT',
+      payload: newContent
+    })
+    // 显示成功提示
+    const notification = document.createElement('div')
+    notification.textContent = '✅ 摘要已插入到文章开头'
+    notification.style.cssText = `
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `
+    document.body.appendChild(notification)
+    setTimeout(() => notification.remove(), 2000)
+    setShowResults(false)
+    clearAllResults()
+  }
+
   // 生成大纲
   const handleGenerateOutline = async () => {
     const topic = prompt('请输入文章主题：')
     if (!topic) return
 
+    clearAllResults() // 清空之前的结果
     setCurrentTask('大纲生成')
-    const outline = await generateOutline(topic, 'tutorial')
-    if (outline) {
+    setShowResults(true)
+    const outlineResult = await generateOutline(topic, 'tutorial')
+    if (outlineResult) {
       // 将大纲转换为 Markdown 格式
       let markdownOutline = `# ${topic}\n\n`
-      outline.outline.forEach((node, i) => {
+      outlineResult.outline.forEach((node, i) => {
         markdownOutline += `## ${i + 1}. ${node.title}\n\n`
         markdownOutline += `${node.description}\n\n`
         if (node.children) {
@@ -85,32 +128,37 @@ export function AIAssistant() {
           })
         }
       })
-      
-      // 插入到编辑器
-      dispatch({
-        type: 'UPDATE_EDITOR_CONTENT',
-        payload: markdownOutline
-      })
-      // 显示成功提示
-      const notification = document.createElement('div')
-      notification.textContent = '✅ 大纲已插入编辑器'
-      notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #10b981;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-size: 14px;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      `
-      document.body.appendChild(notification)
-      setTimeout(() => notification.remove(), 2000)
+      setOutline(markdownOutline)
     }
     setCurrentTask('')
+  }
+
+  // 使用大纲
+  const handleUseOutline = () => {
+    dispatch({
+      type: 'UPDATE_EDITOR_CONTENT',
+      payload: outline
+    })
+    // 显示成功提示
+    const notification = document.createElement('div')
+    notification.textContent = '✅ 大纲已应用到编辑器'
+    notification.style.cssText = `
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `
+    document.body.appendChild(notification)
+    setTimeout(() => notification.remove(), 2000)
+    setShowResults(false)
+    clearAllResults()
   }
 
   // 润色选中文本
@@ -121,35 +169,44 @@ export function AIAssistant() {
       return
     }
 
+    clearAllResults() // 清空之前的结果
     setCurrentTask('文本润色')
+    setShowResults(true)
     const polished = await polishText(selection, 'professional')
     if (polished && polished !== selection) {
-      // 替换选中的文本
-      const newContent = content.replace(selection, polished)
-      dispatch({
-        type: 'UPDATE_EDITOR_CONTENT',
-        payload: newContent
-      })
-      // 显示成功提示
-      const notification = document.createElement('div')
-      notification.textContent = '✅ 文本已润色'
-      notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #10b981;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-size: 14px;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      `
-      document.body.appendChild(notification)
-      setTimeout(() => notification.remove(), 2000)
+      setPolishedText({ original: selection, polished })
     }
     setCurrentTask('')
+  }
+
+  // 使用润色后的文本
+  const handleUsePolished = () => {
+    if (!polishedText) return
+    const newContent = content.replace(polishedText.original, polishedText.polished)
+    dispatch({
+      type: 'UPDATE_EDITOR_CONTENT',
+      payload: newContent
+    })
+    // 显示成功提示
+    const notification = document.createElement('div')
+    notification.textContent = '✅ 润色后的文本已应用'
+    notification.style.cssText = `
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `
+    document.body.appendChild(notification)
+    setTimeout(() => notification.remove(), 2000)
+    setShowResults(false)
+    clearAllResults()
   }
 
   return (
@@ -262,13 +319,107 @@ export function AIAssistant() {
               <h4>📝 文章摘要</h4>
               <div className="summary-box">
                 <p>{summary}</p>
-                <button
-                  type="button"
-                  className="copy-btn"
-                  onClick={() => navigator.clipboard.writeText(summary)}
-                >
-                  复制
-                </button>
+                <div className="action-buttons">
+                  <button
+                    type="button"
+                    className="copy-btn"
+                    onClick={() => {
+                      navigator.clipboard.writeText(summary)
+                      const notification = document.createElement('div')
+                      notification.textContent = '✅ 已复制到剪贴板'
+                      notification.style.cssText = `
+                        position: fixed;
+                        top: 80px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: #10b981;
+                        color: white;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        z-index: 10000;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                      `
+                      document.body.appendChild(notification)
+                      setTimeout(() => notification.remove(), 2000)
+                    }}
+                  >
+                    复制
+                  </button>
+                  <button
+                    type="button"
+                    className="use-btn"
+                    onClick={handleUseSummary}
+                  >
+                    插入到文章开头
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 大纲结果 */}
+          {outline && (
+            <div className="result-section">
+              <h4>📋 文章大纲</h4>
+              <div className="outline-box">
+                <pre className="outline-preview">{outline}</pre>
+                <div className="action-buttons">
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => {
+                      setShowResults(false)
+                      clearAllResults()
+                    }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="button"
+                    className="use-btn"
+                    onClick={handleUseOutline}
+                  >
+                    替换编辑器内容
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 润色结果 */}
+          {polishedText && (
+            <div className="result-section">
+              <h4>🎨 文本对比</h4>
+              <div className="polish-comparison">
+                <div className="compare-item">
+                  <div className="compare-label">原文：</div>
+                  <div className="compare-text original">{polishedText.original}</div>
+                </div>
+                <div className="compare-arrow">→</div>
+                <div className="compare-item">
+                  <div className="compare-label">润色后：</div>
+                  <div className="compare-text polished">{polishedText.polished}</div>
+                </div>
+                <div className="action-buttons">
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => {
+                      setShowResults(false)
+                      clearAllResults()
+                    }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="button"
+                    className="use-btn"
+                    onClick={handleUsePolished}
+                  >
+                    应用润色
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -278,8 +429,7 @@ export function AIAssistant() {
             className="close-results-btn"
             onClick={() => {
               setShowResults(false)
-              setTitles([])
-              setSummary('')
+              clearAllResults()
             }}
           >
             关闭
@@ -510,32 +660,111 @@ export function AIAssistant() {
           transform: translateY(0);
         }
 
-        .summary-box {
+        .summary-box, .outline-box, .polish-comparison {
           padding: 12px;
           background: #f8f9fa;
           border-radius: 6px;
-          position: relative;
         }
 
         .summary-box p {
-          margin: 0 0 8px 0;
+          margin: 0 0 12px 0;
           font-size: 13px;
           color: #333;
           line-height: 1.6;
         }
 
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-end;
+        }
+
         .copy-btn {
-          padding: 4px 12px;
+          padding: 6px 16px;
           background: #10b981;
           color: white;
           border: none;
-          border-radius: 4px;
+          border-radius: 6px;
           font-size: 12px;
+          font-weight: 600;
           cursor: pointer;
+          transition: all 0.2s;
         }
 
         .copy-btn:hover {
+          transform: translateY(-1px);
           background: #059669;
+        }
+
+        .cancel-btn {
+          padding: 6px 16px;
+          background: #e5e7eb;
+          color: #666;
+          border: none;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .cancel-btn:hover {
+          background: #d1d5db;
+        }
+
+        .outline-preview {
+          margin: 0 0 12px 0;
+          padding: 12px;
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 4px;
+          font-size: 12px;
+          line-height: 1.6;
+          max-height: 300px;
+          overflow-y: auto;
+          white-space: pre-wrap;
+          font-family: inherit;
+        }
+
+        .polish-comparison {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .compare-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .compare-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: #666;
+        }
+
+        .compare-text {
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 13px;
+          line-height: 1.6;
+        }
+
+        .compare-text.original {
+          background: #fef3c7;
+          border: 1px solid #fcd34d;
+        }
+
+        .compare-text.polished {
+          background: #d1fae5;
+          border: 1px solid #6ee7b7;
+        }
+
+        .compare-arrow {
+          text-align: center;
+          font-size: 20px;
+          color: #667eea;
         }
 
         .close-results-btn {
