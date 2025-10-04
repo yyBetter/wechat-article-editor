@@ -392,44 +392,55 @@ export function AIAssistant() {
           {/* 摘要结果 */}
           {summary && (
             <div className="result-section">
-              <h4>📝 文章摘要</h4>
-              <div className="summary-box">
-                <p>{summary}</p>
-                <div className="action-buttons">
-                  <button
-                    type="button"
-                    className="copy-btn"
-                    onClick={() => {
-                      navigator.clipboard.writeText(summary)
-                      const notification = document.createElement('div')
-                      notification.textContent = '✅ 已复制到剪贴板'
-                      notification.style.cssText = `
-                        position: fixed;
-                        top: 80px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        background: #10b981;
-                        color: white;
-                        padding: 12px 24px;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        z-index: 10000;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                      `
-                      document.body.appendChild(notification)
-                      setTimeout(() => notification.remove(), 2000)
-                    }}
-                  >
-                    复制
-                  </button>
-                  <button
-                    type="button"
-                    className="use-btn"
-                    onClick={handleUseSummary}
-                  >
-                    插入到文章开头
-                  </button>
+              <div className="result-header">
+                <h4>📝 文章摘要</h4>
+                <div className="current-style">
+                  <span className="style-badge">AI 生成</span>
                 </div>
+              </div>
+              <div className="summary-display">
+                <div className="summary-content">
+                  <div className="summary-icon">💡</div>
+                  <p className="summary-text">{summary}</p>
+                </div>
+                <div className="summary-hint">
+                  💡 摘要会以引用格式插入到文章开头
+                </div>
+              </div>
+              <div className="action-buttons">
+                <button
+                  type="button"
+                  className="copy-btn"
+                  onClick={() => {
+                    navigator.clipboard.writeText(summary)
+                    const notification = document.createElement('div')
+                    notification.textContent = '✅ 已复制到剪贴板'
+                    notification.style.cssText = `
+                      position: fixed;
+                      top: 80px;
+                      left: 50%;
+                      transform: translateX(-50%);
+                      background: #10b981;
+                      color: white;
+                      padding: 12px 24px;
+                      border-radius: 8px;
+                      font-size: 14px;
+                      z-index: 10000;
+                      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    `
+                    document.body.appendChild(notification)
+                    setTimeout(() => notification.remove(), 2000)
+                  }}
+                >
+                  📋 复制
+                </button>
+                <button
+                  type="button"
+                  className="use-btn"
+                  onClick={handleUseSummary}
+                >
+                  ✅ 插入到开头
+                </button>
               </div>
             </div>
           )}
@@ -437,28 +448,58 @@ export function AIAssistant() {
           {/* 大纲结果 */}
           {outline && (
             <div className="result-section">
-              <h4>📋 文章大纲</h4>
-              <div className="outline-box">
-                <pre className="outline-preview">{outline}</pre>
-                <div className="action-buttons">
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => {
-                      setShowResults(false)
-                      clearAllResults()
-                    }}
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="button"
-                    className="use-btn"
-                    onClick={handleUseOutline}
-                  >
-                    替换编辑器内容
-                  </button>
+              <div className="result-header">
+                <h4>📋 文章大纲预览</h4>
+                <div className="current-style">
+                  <span className="style-badge">AI 生成</span>
                 </div>
+              </div>
+              <div className="polish-comparison">
+                <div className="compare-side">
+                  <div className="compare-header">
+                    <span className="compare-icon">📄</span>
+                    <span className="compare-title">当前内容</span>
+                  </div>
+                  <div className="compare-text original">
+                    {content || '（编辑器为空，将直接替换）'}
+                  </div>
+                </div>
+                
+                <div className="compare-divider">
+                  <div className="divider-line"></div>
+                  <div className="divider-arrow">→</div>
+                  <div className="divider-line"></div>
+                </div>
+                
+                <div className="compare-side">
+                  <div className="compare-header">
+                    <span className="compare-icon">📋</span>
+                    <span className="compare-title">生成的大纲</span>
+                  </div>
+                  <div className="compare-text polished" style={{ whiteSpace: 'pre-wrap' }}>
+                    {outline}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="action-buttons">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => {
+                    setShowResults(false)
+                    clearAllResults()
+                  }}
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="use-btn"
+                  onClick={handleUseOutline}
+                >
+                  {content ? '✅ 替换为此大纲' : '✅ 使用此大纲'}
+                </button>
               </div>
             </div>
           )}
@@ -872,17 +913,49 @@ export function AIAssistant() {
           transform: translateY(0);
         }
 
-        .summary-box, .outline-box, .polish-comparison {
+        .polish-comparison {
           padding: 12px;
           background: #f8f9fa;
           border-radius: 6px;
         }
 
-        .summary-box p {
-          margin: 0 0 12px 0;
-          font-size: 13px;
-          color: #333;
-          line-height: 1.6;
+        /* 摘要显示 */
+        .summary-display {
+          padding: 16px;
+          background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+          border: 2px solid #6ee7b7;
+          border-radius: 12px;
+          margin-bottom: 16px;
+        }
+
+        .summary-content {
+          display: flex;
+          gap: 12px;
+          align-items: flex-start;
+          margin-bottom: 12px;
+        }
+
+        .summary-icon {
+          font-size: 24px;
+          flex-shrink: 0;
+        }
+
+        .summary-text {
+          flex: 1;
+          margin: 0;
+          font-size: 14px;
+          color: #065f46;
+          line-height: 1.8;
+          font-weight: 500;
+        }
+
+        .summary-hint {
+          font-size: 11px;
+          color: #059669;
+          text-align: center;
+          padding: 8px;
+          background: rgba(255, 255, 255, 0.5);
+          border-radius: 6px;
         }
 
         .action-buttons {
@@ -924,19 +997,6 @@ export function AIAssistant() {
           background: #d1d5db;
         }
 
-        .outline-preview {
-          margin: 0 0 12px 0;
-          padding: 12px;
-          background: white;
-          border: 1px solid #e0e0e0;
-          border-radius: 4px;
-          font-size: 12px;
-          line-height: 1.6;
-          max-height: 300px;
-          overflow-y: auto;
-          white-space: pre-wrap;
-          font-family: inherit;
-        }
 
 
         .result-header {
@@ -1001,7 +1061,9 @@ export function AIAssistant() {
           border-radius: 8px;
           font-size: 13px;
           line-height: 1.8;
-          min-height: 80px;
+          min-height: 120px;
+          max-height: 400px;
+          overflow-y: auto;
         }
 
         .compare-text.original {
@@ -1014,6 +1076,25 @@ export function AIAssistant() {
           background: #ecfdf5;
           border: 2px solid #6ee7b7;
           color: #065f46;
+        }
+
+        /* 自定义滚动条 */
+        .compare-text::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .compare-text::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 4px;
+        }
+
+        .compare-text::-webkit-scrollbar-thumb {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 4px;
+        }
+
+        .compare-text::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 0, 0, 0.3);
         }
 
         .compare-divider {
