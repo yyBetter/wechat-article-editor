@@ -11,6 +11,7 @@ import { UserMenu } from './auth/UserMenu'
 import { getDocument, saveCurrentContent } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import { DonationButton } from './DonationButton'
+import { AIAssistant } from './ai/AIAssistant'
 import '../App.css'
 import '../styles/sidebar.css'
 import '../styles/publish.css'
@@ -272,6 +273,15 @@ export function LegacyEditorContent() {
       
       {/* 主要内容区域 */}
       <div className="app-main">
+        {/* 左侧 AI 助手面板 */}
+        {state.ui.sidebarOpen && (
+          <aside className="app-sidebar">
+            <div className="sidebar-content">
+              <AIAssistant />
+            </div>
+          </aside>
+        )}
+
         {/* 编辑器区域 */}
         <div className="editor-section">
           <Editor currentDocumentId={currentDocumentId} />
