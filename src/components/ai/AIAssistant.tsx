@@ -230,114 +230,128 @@ export function AIAssistant() {
     <div className="ai-assistant">
       <div className="ai-header">
         <h3>🤖 AI 写作助手</h3>
-        <p className="ai-desc">使用 AI 提升写作效率</p>
+        <p className="ai-desc">按写作流程为你提供智能辅助</p>
       </div>
 
-      {!content && (
-        <div className="ai-hint">
-          <p>💡 请先在编辑器中输入内容</p>
-          <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-            至少需要50个字才能使用AI功能
-          </p>
+      {/* 阶段1：构思阶段 */}
+      <div className="workflow-section">
+        <div className="section-header">
+          <span className="section-icon">💡</span>
+          <span className="section-title">构思阶段</span>
         </div>
-      )}
-
-      <div className="ai-actions">
+        <div className="section-desc">还没开始写？先从这里开始</div>
         <button
           type="button"
-          className={`ai-action-btn ${loading ? 'loading' : ''}`}
-          onClick={handleGenerateTitles}
-          disabled={loading || !content || content.length < 50}
-          title={!content || content.length < 50 ? '请先输入至少50个字' : '根据内容生成5个吸引眼球的标题'}
-        >
-          <span className="btn-icon">✨</span>
-          <span className="btn-text">生成标题</span>
-          {!content || content.length < 50 ? (
-            <span className="btn-badge">需要50字+</span>
-          ) : null}
-        </button>
-
-        <button
-          type="button"
-          className={`ai-action-btn ${loading ? 'loading' : ''}`}
-          onClick={handleGenerateSummary}
-          disabled={loading || !content || content.length < 100}
-          title={!content || content.length < 100 ? '请先输入至少100个字' : '提取核心内容生成摘要'}
-        >
-          <span className="btn-icon">📝</span>
-          <span className="btn-text">生成摘要</span>
-          {!content || content.length < 100 ? (
-            <span className="btn-badge">需要100字+</span>
-          ) : null}
-        </button>
-
-        <button
-          type="button"
-          className={`ai-action-btn ${loading ? 'loading' : ''}`}
+          className={`workflow-btn ${loading ? 'loading' : ''}`}
           onClick={handleGenerateOutline}
           disabled={loading}
-          title="根据主题生成文章大纲"
         >
           <span className="btn-icon">📋</span>
-          <span className="btn-text">生成大纲</span>
-        </button>
-
-        <button
-          type="button"
-          className={`ai-action-btn ${loading ? 'loading' : ''}`}
-          onClick={() => handlePolish()}
-          disabled={loading || !content}
-          title="先选中文本，然后点击润色"
-        >
-          <span className="btn-icon">🎨</span>
-          <span className="btn-text">润色文字</span>
+          <div className="btn-content">
+            <div className="btn-title">生成文章大纲</div>
+            <div className="btn-desc">输入主题，AI帮你搭建框架</div>
+          </div>
         </button>
       </div>
 
-      {/* 润色风格快捷选择（仅在有内容时显示） */}
-      {content && (
-        <div className="polish-styles">
-          <div className="styles-label">润色风格：</div>
-          <div className="styles-buttons">
-            <button
-              type="button"
-              className="style-btn"
-              onClick={() => handlePolish('professional')}
-              disabled={loading}
-              title="更正式、严谨的表达"
-            >
-              🎯 专业
-            </button>
-            <button
-              type="button"
-              className="style-btn"
-              onClick={() => handlePolish('casual')}
-              disabled={loading}
-              title="更口语化、亲切的表达"
-            >
-              😊 轻松
-            </button>
-            <button
-              type="button"
-              className="style-btn"
-              onClick={() => handlePolish('concise')}
-              disabled={loading}
-              title="删除冗余，精简表达"
-            >
-              ✂️ 简洁
-            </button>
-            <button
-              type="button"
-              className="style-btn"
-              onClick={() => handlePolish('vivid')}
-              disabled={loading}
-              title="增加细节，使用比喻等修辞"
-            >
-              ✨ 生动
-            </button>
-          </div>
+      {/* 阶段2：写作阶段 */}
+      <div className="workflow-section">
+        <div className="section-header">
+          <span className="section-icon">✍️</span>
+          <span className="section-title">写作阶段</span>
         </div>
-      )}
+        <div className="section-desc">选中文字，选择风格润色</div>
+        <div className="polish-grid">
+          <button
+            type="button"
+            className={`polish-style-btn ${loading ? 'loading' : ''}`}
+            onClick={() => handlePolish('professional')}
+            disabled={loading || !content}
+          >
+            <span className="style-icon">🎯</span>
+            <div className="style-info">
+              <div className="style-name">专业正式</div>
+              <div className="style-hint">商务、学术</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            className={`polish-style-btn ${loading ? 'loading' : ''}`}
+            onClick={() => handlePolish('casual')}
+            disabled={loading || !content}
+          >
+            <span className="style-icon">😊</span>
+            <div className="style-info">
+              <div className="style-name">轻松亲切</div>
+              <div className="style-hint">朋友圈、日常</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            className={`polish-style-btn ${loading ? 'loading' : ''}`}
+            onClick={() => handlePolish('concise')}
+            disabled={loading || !content}
+          >
+            <span className="style-icon">✂️</span>
+            <div className="style-info">
+              <div className="style-name">简洁精炼</div>
+              <div className="style-hint">新闻、快讯</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            className={`polish-style-btn ${loading ? 'loading' : ''}`}
+            onClick={() => handlePolish('vivid')}
+            disabled={loading || !content}
+          >
+            <span className="style-icon">✨</span>
+            <div className="style-info">
+              <div className="style-name">生动形象</div>
+              <div className="style-hint">故事、散文</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* 阶段3：完善阶段 */}
+      <div className="workflow-section">
+        <div className="section-header">
+          <span className="section-icon">✨</span>
+          <span className="section-title">完善阶段</span>
+        </div>
+        <div className="section-desc">
+          文章写完了？添加标题和摘要
+          {(!content || content.length < 50) && (
+            <span className="requirement-badge">需要50字+</span>
+          )}
+        </div>
+        <div className="finalize-buttons">
+          <button
+            type="button"
+            className={`workflow-btn ${loading ? 'loading' : ''}`}
+            onClick={handleGenerateTitles}
+            disabled={loading || !content || content.length < 50}
+          >
+            <span className="btn-icon">🎯</span>
+            <div className="btn-content">
+              <div className="btn-title">生成标题</div>
+              <div className="btn-desc">5个吸引眼球的选择</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            className={`workflow-btn ${loading ? 'loading' : ''}`}
+            onClick={handleGenerateSummary}
+            disabled={loading || !content || content.length < 100}
+          >
+            <span className="btn-icon">📝</span>
+            <div className="btn-content">
+              <div className="btn-title">生成摘要</div>
+              <div className="btn-desc">提炼核心内容</div>
+            </div>
+          </button>
+        </div>
+      </div>
 
       {/* 加载状态 */}
       {loading && currentTask && (
@@ -555,89 +569,104 @@ export function AIAssistant() {
         }
 
         .ai-header {
-          margin-bottom: 16px;
-          padding-bottom: 12px;
-          border-bottom: 2px solid #f0f0f0;
+          margin-bottom: 20px;
+          text-align: center;
         }
 
         .ai-header h3 {
-          margin: 0 0 4px 0;
-          font-size: 16px;
+          margin: 0 0 6px 0;
+          font-size: 18px;
           font-weight: 600;
           color: #333;
         }
 
         .ai-desc {
           margin: 0;
-          font-size: 12px;
+          font-size: 13px;
           color: #999;
         }
 
-        .ai-hint {
-          margin-bottom: 12px;
-          padding: 12px;
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-          border-radius: 6px;
-          text-align: center;
+        /* 工作流阶段 */
+        .workflow-section {
+          margin-bottom: 20px;
+          padding: 16px;
+          background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+          border-radius: 12px;
+          border: 2px solid #f0f0f0;
         }
 
-        .ai-hint p {
-          margin: 0;
-          font-size: 13px;
-          color: #92400e;
-        }
-
-        .ai-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-
-        .ai-action-btn {
-          position: relative;
+        .section-header {
           display: flex;
-          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          gap: 4px;
-          padding: 12px 8px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          border-radius: 8px;
+          gap: 8px;
+          margin-bottom: 6px;
+        }
+
+        .section-icon {
+          font-size: 20px;
+        }
+
+        .section-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .section-desc {
           font-size: 12px;
+          color: #999;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .requirement-badge {
+          display: inline-block;
+          padding: 2px 6px;
+          background: #fef3c7;
+          border: 1px solid #fcd34d;
+          color: #92400e;
+          font-size: 10px;
+          border-radius: 4px;
+          font-weight: 600;
+        }
+
+        /* 通用按钮样式 */
+        .workflow-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
           cursor: pointer;
-          transition: all 0.3s;
-          min-height: 70px;
+          transition: all 0.2s;
+          position: relative;
         }
 
-        .ai-action-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        .workflow-btn:hover:not(:disabled) {
+          border-color: #667eea;
+          background: #f5f3ff;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
-        .ai-action-btn:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .ai-action-btn:disabled {
-          opacity: 0.4;
+        .workflow-btn:disabled {
+          opacity: 0.5;
           cursor: not-allowed;
-          transform: none !important;
         }
 
-        .ai-action-btn.loading {
-          pointer-events: none;
-        }
-
-        .ai-action-btn.loading::after {
+        .workflow-btn.loading::after {
           content: '';
           position: absolute;
+          right: 12px;
           width: 16px;
           height: 16px;
-          border: 2px solid rgba(255,255,255,0.3);
-          border-top-color: white;
+          border: 2px solid #e5e7eb;
+          border-top-color: #667eea;
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
         }
@@ -646,25 +675,100 @@ export function AIAssistant() {
           to { transform: rotate(360deg); }
         }
 
-        .btn-icon {
+        .workflow-btn .btn-icon {
           font-size: 24px;
+          flex-shrink: 0;
         }
 
-        .btn-text {
-          font-size: 13px;
-          font-weight: 500;
+        .btn-content {
+          flex: 1;
+          text-align: left;
         }
 
-        .btn-badge {
-          position: absolute;
-          top: 4px;
-          right: 4px;
-          background: rgba(255, 255, 255, 0.3);
-          color: white;
-          font-size: 9px;
-          padding: 2px 4px;
-          border-radius: 4px;
+        .btn-title {
+          font-size: 14px;
           font-weight: 600;
+          color: #333;
+          margin-bottom: 2px;
+        }
+
+        .btn-desc {
+          font-size: 11px;
+          color: #999;
+        }
+
+        /* 润色风格网格 */
+        .polish-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        .polish-style-btn {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          position: relative;
+        }
+
+        .polish-style-btn:hover:not(:disabled) {
+          border-color: #667eea;
+          background: #f5f3ff;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .polish-style-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .polish-style-btn.loading::after {
+          content: '';
+          position: absolute;
+          right: 8px;
+          top: 8px;
+          width: 14px;
+          height: 14px;
+          border: 2px solid #e5e7eb;
+          border-top-color: #667eea;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        .style-icon {
+          font-size: 24px;
+          flex-shrink: 0;
+        }
+
+        .style-info {
+          flex: 1;
+          text-align: left;
+        }
+
+        .style-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 2px;
+        }
+
+        .style-hint {
+          font-size: 10px;
+          color: #999;
+        }
+
+        /* 完善阶段按钮 */
+        .finalize-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
         }
 
         .ai-loading {
@@ -834,50 +938,6 @@ export function AIAssistant() {
           font-family: inherit;
         }
 
-        .polish-styles {
-          margin-top: 12px;
-          padding: 12px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          border: 1px solid #e5e7eb;
-        }
-
-        .styles-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: #666;
-          margin-bottom: 8px;
-        }
-
-        .styles-buttons {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 6px;
-        }
-
-        .style-btn {
-          padding: 8px 6px;
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #666;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .style-btn:hover:not(:disabled) {
-          border-color: #667eea;
-          color: #667eea;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
-        }
-
-        .style-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
 
         .result-header {
           display: flex;
