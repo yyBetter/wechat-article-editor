@@ -80,3 +80,17 @@ coverage/
 
 # TernJS port file
 .tern-port.claude/
+
+# Deployment packages
+*.tar.gz
+*.zip
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# Test files (keep in tests/ directory)
+*-test.js
+*-test.ts
+test-*.html
