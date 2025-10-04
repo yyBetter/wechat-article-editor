@@ -75,7 +75,8 @@ export class AIService {
     })
 
     try {
-      const result = JSON.parse(response)
+      const cleanedResponse = this.cleanJSONResponse(response)
+      const result = JSON.parse(cleanedResponse)
       return result.titles
     } catch (error) {
       console.error('解析标题结果失败:', error)
@@ -116,7 +117,9 @@ export class AIService {
     })
 
     try {
-      return JSON.parse(response)
+      // 清理可能的 markdown 代码块标记
+      const cleanedResponse = this.cleanJSONResponse(response)
+      return JSON.parse(cleanedResponse)
     } catch (error) {
       console.error('解析大纲失败:', error)
       throw new Error('大纲生成失败，请重试')
@@ -157,7 +160,8 @@ export class AIService {
     })
 
     try {
-      const result = JSON.parse(response)
+      const cleanedResponse = this.cleanJSONResponse(response)
+      const result = JSON.parse(cleanedResponse)
       return result.openings
     } catch (error) {
       console.error('解析开头失败:', error)
@@ -179,7 +183,8 @@ export class AIService {
     })
 
     try {
-      const result = JSON.parse(response)
+      const cleanedResponse = this.cleanJSONResponse(response)
+      const result = JSON.parse(cleanedResponse)
       return result.endings
     } catch (error) {
       console.error('解析结尾失败:', error)
@@ -220,7 +225,8 @@ export class AIService {
     })
 
     try {
-      return JSON.parse(response)
+      const cleanedResponse = this.cleanJSONResponse(response)
+      return JSON.parse(cleanedResponse)
     } catch (error) {
       console.error('解析关键词失败:', error)
       throw new Error('关键词提取失败，请重试')
@@ -243,7 +249,8 @@ export class AIService {
     })
 
     try {
-      return JSON.parse(response)
+      const cleanedResponse = this.cleanJSONResponse(response)
+      return JSON.parse(cleanedResponse)
     } catch (error) {
       console.error('解析策略分析失败:', error)
       throw new Error('策略分析失败，请重试')
@@ -258,6 +265,23 @@ export class AIService {
     onChunk: (text: string) => void
   ): Promise<void> {
     await this.client.streamChat(messages, onChunk)
+  }
+
+  /**
+   * 清理 JSON 响应（移除 markdown 代码块标记）
+   */
+  private cleanJSONResponse(response: string): string {
+    // 移除可能的 markdown 代码块标记
+    let cleaned = response.trim()
+    
+    // 移除开头的 ```json 或 ```
+    cleaned = cleaned.replace(/^```json\s*/i, '')
+    cleaned = cleaned.replace(/^```\s*/, '')
+    
+    // 移除结尾的 ```
+    cleaned = cleaned.replace(/\s*```$/, '')
+    
+    return cleaned.trim()
   }
 
   /**
