@@ -28,6 +28,23 @@ export function AIAssistant() {
 
   const content = state.editor.content
 
+  // 配置 marked 选项
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+  })
+
+  // 渲染 Markdown 为 HTML
+  const renderMarkdown = (markdown: string): string => {
+    try {
+      const html = marked(markdown) as string
+      return DOMPurify.sanitize(html)
+    } catch (error) {
+      console.error('Markdown 渲染失败:', error)
+      return markdown
+    }
+  }
+
   // 清空所有结果
   const clearAllResults = () => {
     setTitles([])
@@ -394,9 +411,12 @@ export function AIAssistant() {
                       <span className="modal-compare-icon">📄</span>
                       <span className="modal-compare-title">当前内容</span>
                     </div>
-                    <div className="modal-compare-text original">
-                      {content || '（编辑器为空，将直接替换）'}
-                    </div>
+                    <div 
+                      className="modal-compare-text original markdown-body"
+                      dangerouslySetInnerHTML={{ 
+                        __html: content ? renderMarkdown(content) : '<p style="color: #999; font-style: italic;">（编辑器为空，将直接替换）</p>' 
+                      }}
+                    />
                   </div>
                   
                   <div className="modal-compare-divider">
@@ -410,9 +430,10 @@ export function AIAssistant() {
                       <span className="modal-compare-icon">📋</span>
                       <span className="modal-compare-title">生成的大纲</span>
                     </div>
-                    <div className="modal-compare-text polished" style={{ whiteSpace: 'pre-wrap' }}>
-                      {modalContent.data}
-                    </div>
+                    <div 
+                      className="modal-compare-text polished markdown-body"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(modalContent.data) }}
+                    />
                   </div>
                 </div>
                 
@@ -447,9 +468,10 @@ export function AIAssistant() {
                       <span className="modal-compare-icon">📄</span>
                       <span className="modal-compare-title">原文</span>
                     </div>
-                    <div className="modal-compare-text original">
-                      {modalContent.data.original}
-                    </div>
+                    <div 
+                      className="modal-compare-text original markdown-body"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(modalContent.data.original) }}
+                    />
                   </div>
                   
                   <div className="modal-compare-divider">
@@ -463,9 +485,10 @@ export function AIAssistant() {
                       <span className="modal-compare-icon">✨</span>
                       <span className="modal-compare-title">润色后</span>
                     </div>
-                    <div className="modal-compare-text polished">
-                      {modalContent.data.polished}
-                    </div>
+                    <div 
+                      className="modal-compare-text polished markdown-body"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(modalContent.data.polished) }}
+                    />
                   </div>
                 </div>
                 
@@ -1510,6 +1533,131 @@ export function AIAssistant() {
           background: #ecfdf5;
           border: 2px solid #6ee7b7;
           color: #065f46;
+        }
+
+        /* Markdown 渲染样式 */
+        .markdown-body h1 {
+          font-size: 24px;
+          font-weight: bold;
+          margin: 16px 0 12px 0;
+          line-height: 1.3;
+          border-bottom: 2px solid currentColor;
+          padding-bottom: 8px;
+        }
+
+        .markdown-body h2 {
+          font-size: 20px;
+          font-weight: bold;
+          margin: 20px 0 10px 0;
+          line-height: 1.4;
+          border-left: 4px solid currentColor;
+          padding-left: 12px;
+        }
+
+        .markdown-body h3 {
+          font-size: 18px;
+          font-weight: 600;
+          margin: 16px 0 8px 0;
+          line-height: 1.4;
+        }
+
+        .markdown-body h4 {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 12px 0 6px 0;
+        }
+
+        .markdown-body p {
+          margin: 12px 0;
+          line-height: 1.8;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+          margin: 12px 0;
+          padding-left: 24px;
+        }
+
+        .markdown-body li {
+          margin: 6px 0;
+          line-height: 1.6;
+        }
+
+        .markdown-body blockquote {
+          margin: 12px 0;
+          padding: 12px 16px;
+          border-left: 4px solid currentColor;
+          background: rgba(0, 0, 0, 0.03);
+          font-style: italic;
+        }
+
+        .markdown-body code {
+          background: rgba(0, 0, 0, 0.08);
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-family: Monaco, Menlo, monospace;
+          font-size: 13px;
+        }
+
+        .markdown-body pre {
+          background: rgba(0, 0, 0, 0.05);
+          padding: 12px;
+          border-radius: 6px;
+          overflow-x: auto;
+          margin: 12px 0;
+        }
+
+        .markdown-body pre code {
+          background: none;
+          padding: 0;
+        }
+
+        .markdown-body strong {
+          font-weight: bold;
+        }
+
+        .markdown-body em {
+          font-style: italic;
+        }
+
+        .markdown-body hr {
+          border: none;
+          height: 2px;
+          background: currentColor;
+          opacity: 0.2;
+          margin: 20px 0;
+        }
+
+        .markdown-body a {
+          color: #1e6fff;
+          text-decoration: underline;
+        }
+
+        .markdown-body img {
+          max-width: 100%;
+          height: auto;
+          margin: 12px 0;
+          border-radius: 4px;
+        }
+
+        /* 自定义滚动条 */
+        .modal-compare-text::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+
+        .modal-compare-text::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 4px;
+        }
+
+        .modal-compare-text::-webkit-scrollbar-thumb {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 4px;
+        }
+
+        .modal-compare-text::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 0, 0, 0.3);
         }
 
         .modal-compare-divider {
