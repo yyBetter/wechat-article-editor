@@ -1,7 +1,8 @@
-// 完全本地化的登录/注册模态框
+// 登录/注册模态框 - 调用后端API
 import React, { useState } from 'react'
-import { localLogin, localRegister, LocalUser } from '../../utils/local-auth'
+import { LocalUser } from '../../utils/local-auth'
 import { notification } from '../../utils/notification'
+import { registerUser, loginUser } from '../../utils/auth-api'
 
 interface LocalAuthModalProps {
   isOpen: boolean
@@ -35,22 +36,32 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
     setLoading(true)
     
     try {
-      let user: LocalUser
+      let result: { user: any; token: string }
       
       if (mode === 'login') {
-        user = localLogin(email)
-        notification.success(`欢迎回来，${user.username}！`)
+        // 调用后端登录API（使用邮箱作为密码进行简化登录）
+        result = await loginUser({ email, password: email })
+        notification.success(`欢迎回来，${result.user.username}！`)
       } else {
-        user = localRegister(email, username)
-        notification.success(`注册成功！欢迎，${user.username}！`)
+        // 调用后端注册API（使用邮箱作为密码进行简化注册）
+        result = await registerUser({ email, password: email, username })
+        notification.success(`注册成功！欢迎，${result.user.username}！`)
       }
       
-      onAuthSuccess(user)
+      // 传递用户信息和真实的JWT token
+      const userWithToken = {
+        ...result.user,
+        token: result.token
+      }
+      
+      onAuthSuccess(userWithToken as LocalUser)
       onClose()
       
       // 清空表单
-      setEmail('')
-      setUsername('')
+      if (!isDev) {
+        setEmail('')
+        setUsername('')
+      }
     } catch (error) {
       notification.error((error as Error).message)
     } finally {

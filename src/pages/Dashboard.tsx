@@ -99,16 +99,17 @@ export function Dashboard() {
     }
   }
 
-  // 处理认证成功（本地登录，无token）
+  // 处理认证成功（后端登录，有真实token）
   const handleAuthSuccess = async (user: any) => {
-    console.log('用户登录成功（本地模式）:', user)
+    console.log('用户登录成功（后端模式）:', user)
     
     // 存储用户信息到localStorage（重要！LocalStorageAdapter需要）
     localStorage.setItem('current_user', JSON.stringify(user))
     
-    // 调用 AuthContext 的 login 方法（使用空token表示本地登录）
+    // 调用 AuthContext 的 login 方法（使用真实的JWT token）
     // 这会正确更新 authState.isAuthenticated = true
-    login(user, 'local-token')
+    const token = user.token || 'local-token' // 使用真实token或降级到local-token
+    login(user, token)
     
     // 同步品牌设置到 AppContext
     if (user.brandSettings) {
