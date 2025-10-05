@@ -56,6 +56,7 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     const saved = localStorage.getItem('outline_collapsed')
     return saved !== null ? saved === 'true' : false  // 默认展开
   })
+  const [spellListExpanded, setSpellListExpanded] = useState(false)
   const [cursorPosition, setCursorPosition] = useState(0)
 
   // 自动保存功能
@@ -730,6 +731,25 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
         <span className="status-item word-count">
           📝 {state.editor.content.length} 字
         </span>
+        
+        {/* 错别字检查状态 */}
+        <span 
+          className={`status-item spell-check-status ${spellCheckEnabled ? 'enabled' : 'disabled'}`}
+          onClick={() => setSpellCheckEnabled(!spellCheckEnabled)}
+          title={spellCheckEnabled ? '点击关闭错别字检查' : '点击开启错别字检查'}
+        >
+          {spellCheckEnabled ? (
+            spellCheck.isChecking ? (
+              <>⏳ 检查中...</>
+            ) : spellCheck.errors.length > 0 ? (
+              <>⚠️ {spellCheck.errors.length} 处错别字</>
+            ) : (
+              <>✓ 无错别字</>
+            )
+          ) : (
+            <>🔍 错别字检查</>
+          )}
+        </span>
       </div>
       
       <div className="status-center">
@@ -781,6 +801,17 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
             📄 {autoSave.currentDocumentId.slice(0, 8)}...
           </span>
         )}
+        
+        {/* 错别字列表按钮 */}
+        {spellCheckEnabled && spellCheck.errors.length > 0 && (
+          <button
+            className="status-btn spell-check-list-btn"
+            onClick={() => setSpellListExpanded(!spellListExpanded)}
+            title="查看错别字列表"
+          >
+            {spellListExpanded ? '收起列表' : '查看列表'}
+          </button>
+        )}
       </div>
     </div>
   ), [
@@ -791,7 +822,11 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     autoSave.isSaving,
     autoSave.hasUnsavedChanges,
     autoSave.lastSaved,
-    autoSave.currentDocumentId
+    autoSave.currentDocumentId,
+    spellCheckEnabled,
+    spellCheck.isChecking,
+    spellCheck.errors.length,
+    spellListExpanded
   ])
   
   // 更新文档信息
@@ -932,17 +967,45 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
         
         {/* 状态栏 */}
         {StatusComponent}
+        
+        {/* 错别字列表（展开时显示） */}
+        {spellCheckEnabled && spellListExpanded && spellCheck.errors.length > 0 && (
+          <div className="spell-errors-list-bottom">
+            <div className="spell-errors-list-header">
+              <span>错别字列表 ({spellCheck.errors.length} 处)</span>
+              <button
+                className="close-btn"
+                onClick={() => setSpellListExpanded(false)}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="spell-errors-items">
+              {spellCheck.errors.map((error, index) => (
+                <div
+                  key={`${error.position}-${index}`}
+                  className="spell-error-item"
+                  onClick={() => handleSpellErrorClick(error)}
+                  title="点击定位"
+                >
+                  <div className="spell-error-item-word">
+                    <span className="wrong">{error.word}</span>
+                    <span className="arrow">→</span>
+                    <span className="correct">{error.correct}</span>
+                  </div>
+                  {error.context && (
+                    <div className="spell-error-item-context">
+                      {error.context}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
       </div>
-      
-      {/* 错别字检查 */}
-      <SpellChecker
-        errors={spellCheck.errors}
-        isChecking={spellCheck.isChecking}
-        enabled={spellCheckEnabled}
-        onToggle={() => setSpellCheckEnabled(!spellCheckEnabled)}
-        onErrorClick={handleSpellErrorClick}
-      />
     </div>
   )
 })

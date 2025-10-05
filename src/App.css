@@ -2416,3 +2416,145 @@ body {
     font-size: 12px;
   }
 }
+
+/* 错别字检查状态 */
+.spell-check-status {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.spell-check-status.disabled {
+  color: #999;
+  opacity: 0.7;
+}
+
+.spell-check-status.disabled:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.spell-check-status.enabled {
+  color: #2196f3;
+  font-weight: 500;
+}
+
+.spell-check-status.enabled:hover {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+/* 状态栏按钮 */
+.status-btn {
+  background: none;
+  border: 1px solid #dee2e6;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #2196f3;
+  transition: all 0.2s;
+}
+
+.status-btn:hover {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: #2196f3;
+}
+
+/* 错别字列表（底部显示） */
+.spell-errors-list-bottom {
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 8px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.spell-errors-list-bottom .spell-errors-list-header {
+  position: sticky;
+  top: 0;
+  background: #f5f5f5;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: 600;
+  font-size: 12px;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1;
+}
+
+.spell-errors-list-bottom .close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.spell-errors-list-bottom .close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.spell-errors-items {
+  padding: 4px 0;
+}
+
+.spell-errors-items .spell-error-item {
+  padding: 8px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.spell-errors-items .spell-error-item:hover {
+  background: rgba(33, 150, 243, 0.05);
+}
+
+.spell-errors-items .spell-error-item:last-child {
+  border-bottom: none;
+}
+
+.spell-error-item-word {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.spell-error-item-word .wrong {
+  color: #ff6b6b;
+  font-weight: 600;
+  text-decoration: line-through;
+}
+
+.spell-error-item-word .arrow {
+  color: #999;
+}
+
+.spell-error-item-word .correct {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.spell-error-item-context {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

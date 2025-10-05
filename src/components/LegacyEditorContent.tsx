@@ -10,7 +10,6 @@ import { LocalAuthModal } from './auth/LocalAuthModal'
 import { UserMenu } from './auth/UserMenu'
 import { getDocument, saveCurrentContent } from '../utils/document-api'
 import { notification } from '../utils/notification'
-import { DonationButton } from './DonationButton'
 import { AIAssistant } from './ai/AIAssistant'
 import '../App.css'
 import '../styles/sidebar.css'
@@ -329,9 +328,6 @@ export function LegacyEditorContent() {
           author: state.templates.variables.author || 'Shawn'
         }}
       />
-
-      {/* 存储状态监控 */}
-      <DonationButton />
     </div>
   )
 }
