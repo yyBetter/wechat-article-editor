@@ -728,6 +728,20 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   const StatusComponent = useMemo(() => (
     <div className="editor-status">
       <div className="status-left">
+        {/* 飞书模式：文档状态指示器 */}
+        <span 
+          className={`status-item document-status ${state.editor.documentStatus.toLowerCase()}`}
+          title={
+            state.editor.documentStatus === 'TEMP' ? '临时状态：内容达到30字后自动保存' :
+            state.editor.documentStatus === 'DRAFT' ? '草稿状态：内容达到30字后自动转为正式文档' :
+            '正式文档：已自动保存'
+          }
+        >
+          {state.editor.documentStatus === 'TEMP' && '✏️ 编辑中'}
+          {state.editor.documentStatus === 'DRAFT' && '📝 草稿'}
+          {state.editor.documentStatus === 'NORMAL' && '✓ 已保存'}
+        </span>
+
         <span className="status-item word-count">
           📝 {state.editor.content.length} 字
         </span>

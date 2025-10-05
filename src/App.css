@@ -483,6 +483,36 @@ body {
   align-items: center;
   gap: 4px;
   font-size: 12px;
+  margin-right: 16px;
+}
+
+/* 飞书模式：文档状态指示器 */
+.document-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.document-status.temp {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.document-status.draft {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.document-status.normal {
+  background: #d4edda;
+  color: #155724;
+}
+
+.document-status:hover {
+  transform: scale(1.05);
 }
 
 .word-count {
