@@ -50,6 +50,7 @@ export function WeChatConfig() {
     return saved || {
       appId: '',
       appSecret: '',
+      accountName: '', // 公众号名称
       isConnected: false,
       accountInfo: null as any
     }
@@ -70,6 +71,11 @@ export function WeChatConfig() {
       alert('请填写完整的AppID和AppSecret')
       return
     }
+    
+    if (!config.accountName || config.accountName.trim() === '') {
+      alert('请填写公众号名称')
+      return
+    }
 
     setIsConnecting(true)
     
@@ -88,7 +94,7 @@ export function WeChatConfig() {
             appSecret: config.appSecret,
             isConnected: true,
             accountInfo: {
-              name: '我的公众号',
+              name: config.accountName.trim(), // 使用用户输入的公众号名称
               originalId: 'gh_' + config.appId.substring(0, 12),
               accountType: '订阅号',
               verified: true,
@@ -165,6 +171,17 @@ export function WeChatConfig() {
 
           <div className="form-group">
             <label className="form-label">
+              公众号名称
+              <input
+                type="text"
+                value={config.accountName}
+                onChange={(e) => setConfig(prev => ({ ...prev, accountName: e.target.value }))}
+                placeholder="例如：Shawn的测试号"
+                className="form-input"
+              />
+            </label>
+            
+            <label className="form-label">
               AppID (应用ID)
               <input
                 type="text"
@@ -190,7 +207,7 @@ export function WeChatConfig() {
           <button
             className="connect-btn"
             onClick={connectWeChat}
-            disabled={isConnecting || !config.appId || !config.appSecret}
+            disabled={isConnecting || !config.appId || !config.appSecret || !config.accountName}
           >
             {isConnecting ? (
               <>
