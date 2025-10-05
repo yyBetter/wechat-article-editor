@@ -295,11 +295,6 @@ body {
   /* 操作工具 - 正常显示 */
 }
 
-.toolbar-group.debug {
-  /* 调试工具 - 灰色弱化 */
-  opacity: 0.6;
-}
-
 /* 工具栏分割线 */
 .toolbar-divider {
   width: 1px;
@@ -309,19 +304,6 @@ body {
 }
 
 /* 调试按钮样式 */
-.toolbar-btn.debug-btn {
-  background: #6c757d;
-  color: white;
-  border: none;
-  opacity: 0.8;
-  font-size: 12px;
-}
-
-.toolbar-btn.debug-btn:hover {
-  background: #5a6268;
-  opacity: 1;
-}
-
 .toolbar-btn {
   padding: 8px 12px;
   background: #f8f9fa;

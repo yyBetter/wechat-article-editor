@@ -619,21 +619,6 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     fileInputRef.current?.click()
   }, [])
   
-  // 清理损坏的base64内容
-  const cleanupBrokenContent = useCallback(() => {
-    // 使用更简单的字符串操作来清理base64内容
-    let cleanContent = state.editor.content
-    
-    // 查找并替换长base64图片
-    const base64ImageRegex = new RegExp('!\\[([^\\]]*)\\]\\(data:image\\/[^;]+;base64,[A-Za-z0-9+/=]{100,}\\)', 'g')
-    cleanContent = cleanContent.replace(base64ImageRegex, '![图片已清理](🖼️ 请重新上传)')
-    
-    dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: cleanContent })
-    notification.info('已清理损坏的图片内容', {
-      details: '请重新上传您的图片'
-    })
-  }, [state.editor.content, dispatch])
-  
   // 重新设计的工具栏组件 - 按使用频率分组
   const ToolbarComponent = useMemo(() => (
     <div className="editor-toolbar">
@@ -735,21 +720,8 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
             </button>
           )}
         </div>
-        
-        {/* 调试工具 - 样式弱化显示 */}
-        <div className="toolbar-divider"></div>
-        <div className="toolbar-group debug">
-          <button 
-            type="button"
-            onClick={cleanupBrokenContent}
-            title="清理损坏的图片内容 (调试工具)"
-            className="toolbar-btn debug-btn"
-          >
-            🧹
-          </button>
-        </div>
     </div>
-  ), [cleanupBrokenContent, authState.isAuthenticated, handleManualSave, isManualSaving])
+  ), [authState.isAuthenticated, handleManualSave, isManualSaving])
   
   // 优化的编辑器状态栏组件 - 保存状态主显示区
   const StatusComponent = useMemo(() => (
