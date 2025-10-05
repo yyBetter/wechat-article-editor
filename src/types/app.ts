@@ -20,6 +20,10 @@ export interface EditorState {
   cursorPosition: number
   isChanged: boolean
   lastSaved: Date | null
+  // 滚动同步相关
+  scrollPercentage: number  // 滚动百分比 (0-1)
+  cursorLinePercentage: number  // 光标所在行的百分比 (0-1)
+  totalLines: number  // 总行数
 }
 
 // 预览状态
@@ -30,6 +34,9 @@ export interface PreviewState {
   deviceMode: 'mobile' | 'desktop'
   scale: number
   scrollPosition: number
+  // 同步控制
+  syncScrollEnabled: boolean  // 是否启用同步滚动
+  lastSyncSource: 'editor' | 'preview' | null  // 最后一次同步的来源
 }
 
 // 模板状态
@@ -130,3 +137,6 @@ export type AppAction =
   | { type: 'SET_UI_STATE'; payload: Partial<UIState> }
   | { type: 'EXPORT_START' }
   | { type: 'EXPORT_COMPLETE'; payload: ExportRecord }
+  | { type: 'UPDATE_EDITOR_SCROLL'; payload: { scrollPercentage: number; cursorLinePercentage: number; totalLines: number } }
+  | { type: 'UPDATE_PREVIEW_SCROLL'; payload: { scrollPosition: number; source: 'editor' | 'preview' } }
+  | { type: 'TOGGLE_SYNC_SCROLL'; payload: boolean }

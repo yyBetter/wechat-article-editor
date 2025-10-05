@@ -12,8 +12,10 @@ const templateEngine = new TemplateEngine(templates)
 export const Preview = memo(function Preview() {
   const { state, dispatch } = useApp()
   const previewRef = useRef<HTMLDivElement>(null)
+  const previewFrameRef = useRef<HTMLDivElement>(null)
   const [processedContent, setProcessedContent] = useState('')
   const [localImageCache, setLocalImageCache] = useState<Map<string, string>>(new Map())
+  const [cursorIndicatorStyle, setCursorIndicatorStyle] = useState<React.CSSProperties>({})
   
   // 处理本地图片的异步函数
   useEffect(() => {
@@ -386,6 +388,46 @@ export const Preview = memo(function Preview() {
     }
   }, [])
   
+  // 同步滚动：从编辑器到预览区
+  useEffect(() => {
+    if (!state.preview.syncScrollEnabled) return
+    if (state.preview.lastSyncSource !== 'editor') return
+    
+    const previewFrame = previewFrameRef.current
+    if (!previewFrame) return
+    
+    const { scrollPercentage } = state.editor
+    const maxScroll = previewFrame.scrollHeight - previewFrame.clientHeight
+    const targetScrollTop = maxScroll * scrollPercentage
+    
+    // 平滑滚动
+    previewFrame.scrollTo({
+      top: targetScrollTop,
+      behavior: 'smooth'
+    })
+  }, [state.editor.scrollPercentage, state.preview.syncScrollEnabled, state.preview.lastSyncSource])
+  
+  // 更新光标位置指示器
+  useEffect(() => {
+    const previewFrame = previewFrameRef.current
+    if (!previewFrame) return
+    
+    const { cursorLinePercentage } = state.editor
+    const previewHeight = previewFrame.clientHeight
+    
+    // 计算指示器位置（60px 高度的指示器，居中对齐光标位置）
+    const indicatorHeight = 60
+    const topPosition = Math.max(0, Math.min(
+      cursorLinePercentage * previewHeight - indicatorHeight / 2,
+      previewHeight - indicatorHeight
+    ))
+    
+    setCursorIndicatorStyle({
+      top: `${topPosition}px`,
+      opacity: cursorLinePercentage >= 0 ? 1 : 0
+    })
+  }, [state.editor.cursorLinePercentage])
+  
   return (
     <div className="preview-container">
       {/* 样式配置工具栏 - 模板和配色 */}
@@ -426,7 +468,17 @@ export const Preview = memo(function Preview() {
       </div>
       
       {/* 预览内容 - 关键：让这个区域可以直接全选复制 */}
-      <div className={`preview-frame ${state.ui.deviceMode}`}>
+      <div 
+        ref={previewFrameRef}
+        className={`preview-frame ${state.ui.deviceMode}`}
+        style={{ position: 'relative' }}
+      >
+        {/* 光标位置指示器 */}
+        <div 
+          className="preview-cursor-indicator"
+          style={cursorIndicatorStyle}
+        />
+        
         <div 
           ref={previewRef}
           className="preview-content selectable"

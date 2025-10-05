@@ -829,6 +829,41 @@ body {
   position: relative;
 }
 
+/* 光标位置指示器 */
+.preview-cursor-indicator {
+  position: absolute;
+  left: 0;
+  width: 3px;
+  height: 60px;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0 2px 2px 0;
+  transition: top 0.15s ease-out, opacity 0.2s ease;
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* 预览区滚动条美化 */
+.preview-frame::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.preview-frame::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.preview-frame::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.preview-frame::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 126, 234, 0.5);
+}
+
 
 /* 模板选择器 */
 .template-selector {

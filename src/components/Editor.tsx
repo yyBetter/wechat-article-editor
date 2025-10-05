@@ -215,6 +215,62 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: newDisplayContent })
   }, [dispatch])
   
+  // 监听编辑器滚动和光标位置，同步到预览区
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    
+    let syncTimeoutId: number | null = null
+    
+    // 计算滚动百分比和光标位置
+    const updateScrollPosition = () => {
+      const { scrollTop, scrollHeight, clientHeight, selectionStart, value } = textarea
+      
+      // 滚动百分比
+      const maxScroll = scrollHeight - clientHeight
+      const scrollPercentage = maxScroll > 0 ? scrollTop / maxScroll : 0
+      
+      // 光标所在行号
+      const beforeCursor = value.substring(0, selectionStart)
+      const currentLine = beforeCursor.split('\n').length
+      const totalLines = Math.max(value.split('\n').length, 1)
+      const cursorLinePercentage = (currentLine - 1) / Math.max(totalLines - 1, 1)
+      
+      // 使用节流更新，避免频繁dispatch
+      if (syncTimeoutId) return
+      
+      syncTimeoutId = setTimeout(() => {
+        dispatch({
+          type: 'UPDATE_EDITOR_SCROLL',
+          payload: {
+            scrollPercentage,
+            cursorLinePercentage,
+            totalLines
+          }
+        })
+        syncTimeoutId = null
+      }, 50) // 50ms 节流
+    }
+    
+    // 监听滚动事件
+    textarea.addEventListener('scroll', updateScrollPosition)
+    // 监听选择变化（光标移动）
+    textarea.addEventListener('select', updateScrollPosition)
+    textarea.addEventListener('click', updateScrollPosition)
+    textarea.addEventListener('keyup', updateScrollPosition)
+    
+    // 初始化
+    updateScrollPosition()
+    
+    return () => {
+      textarea.removeEventListener('scroll', updateScrollPosition)
+      textarea.removeEventListener('select', updateScrollPosition)
+      textarea.removeEventListener('click', updateScrollPosition)
+      textarea.removeEventListener('keyup', updateScrollPosition)
+      if (syncTimeoutId) clearTimeout(syncTimeoutId)
+    }
+  }, [dispatch])
+  
   // 移除防抖更新，改为直接同步（在handleContentChange中）
   
   // 使用显示内容进行预览，确保包含占位符

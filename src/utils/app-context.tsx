@@ -22,7 +22,10 @@ const initialState: AppState = {
     selectedText: '',
     cursorPosition: 0,
     isChanged: false,
-    lastSaved: null
+    lastSaved: null,
+    scrollPercentage: 0,
+    cursorLinePercentage: 0,
+    totalLines: 1
   },
   
   preview: {
@@ -31,7 +34,9 @@ const initialState: AppState = {
     isLoading: false,
     deviceMode: 'mobile',
     scale: 1,
-    scrollPosition: 0
+    scrollPosition: 0,
+    syncScrollEnabled: true,
+    lastSyncSource: null
   },
   
   templates: {
@@ -186,6 +191,40 @@ function appReducer(state: AppState, action: AppAction): AppState {
           isExporting: false,
           lastExported: new Date(),
           exportHistory: [action.payload, ...state.export.exportHistory.slice(0, 9)]
+        }
+      }
+      
+    case 'UPDATE_EDITOR_SCROLL':
+      return {
+        ...state,
+        editor: {
+          ...state.editor,
+          scrollPercentage: action.payload.scrollPercentage,
+          cursorLinePercentage: action.payload.cursorLinePercentage,
+          totalLines: action.payload.totalLines
+        },
+        preview: {
+          ...state.preview,
+          lastSyncSource: 'editor'
+        }
+      }
+      
+    case 'UPDATE_PREVIEW_SCROLL':
+      return {
+        ...state,
+        preview: {
+          ...state.preview,
+          scrollPosition: action.payload.scrollPosition,
+          lastSyncSource: action.payload.source
+        }
+      }
+      
+    case 'TOGGLE_SYNC_SCROLL':
+      return {
+        ...state,
+        preview: {
+          ...state.preview,
+          syncScrollEnabled: action.payload
         }
       }
       
