@@ -1,11 +1,12 @@
-/* 侧边栏样式重新设计 */
+/* 侧边栏样式重新设计 - 优化空间利用 */
 .app-sidebar {
-  width: 320px;
+  width: 280px;
   background: #ffffff;
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   height: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 /* 导航标签 */

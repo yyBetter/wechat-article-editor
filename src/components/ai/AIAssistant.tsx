@@ -785,64 +785,64 @@ export function AIAssistant() {
 
       <style>{`
         .ai-assistant {
-          padding: 16px;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          padding: 12px;
+          background: #ffffff;
           height: 100%;
+          overflow-y: auto;
         }
 
         .ai-header {
-          margin-bottom: 20px;
-          text-align: center;
+          margin-bottom: 16px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #f0f0f0;
         }
 
         .ai-header h3 {
-          margin: 0 0 6px 0;
-          font-size: 18px;
+          margin: 0 0 4px 0;
+          font-size: 16px;
           font-weight: 600;
           color: #333;
         }
 
         .ai-desc {
           margin: 0;
-          font-size: 13px;
+          font-size: 12px;
           color: #999;
         }
 
-        /* 工作流阶段 */
+        /* 工作流阶段 - 紧凑布局 */
         .workflow-section {
-          margin-bottom: 20px;
-          padding: 16px;
-          background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-          border-radius: 12px;
-          border: 2px solid #f0f0f0;
+          margin-bottom: 14px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
         }
 
         .section-header {
           display: flex;
           align-items: center;
-          gap: 8px;
-          margin-bottom: 6px;
+          gap: 6px;
+          margin-bottom: 4px;
         }
 
         .section-icon {
-          font-size: 20px;
+          font-size: 18px;
         }
 
         .section-title {
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 600;
           color: #333;
         }
 
         .section-desc {
-          font-size: 12px;
+          font-size: 11px;
           color: #999;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 4px;
         }
 
         .requirement-badge {
@@ -856,16 +856,16 @@ export function AIAssistant() {
           font-weight: 600;
         }
 
-        /* 通用按钮样式 */
+        /* 通用按钮样式 - 紧凑版 */
         .workflow-btn {
           width: 100%;
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 12px;
+          gap: 10px;
+          padding: 10px;
           background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s;
           position: relative;
@@ -874,8 +874,7 @@ export function AIAssistant() {
         .workflow-btn:hover:not(:disabled) {
           border-color: #667eea;
           background: #f5f3ff;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
         }
 
         .workflow-btn:disabled {
