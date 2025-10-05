@@ -83,8 +83,35 @@ export const Preview = memo(function Preview() {
 
   // 生成预览HTML
   const previewData = useMemo(() => {
-    if (!state.templates.current || !processedContent) {
+    if (!state.templates.current) {
       return { previewHTML: '', copyHTML: '' }
+    }
+    
+    // 飞书模式：空内容时显示占位提示
+    if (!processedContent || processedContent.trim() === '') {
+      const placeholderHTML = `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 60vh;
+          color: #999;
+          text-align: center;
+          padding: 40px;
+        ">
+          <div style="font-size: 48px; margin-bottom: 20px;">✍️</div>
+          <div style="font-size: 18px; font-weight: 500; margin-bottom: 10px; color: #666;">
+            开始你的创作
+          </div>
+          <div style="font-size: 14px; line-height: 1.6; color: #999;">
+            在左侧编辑器输入内容<br/>
+            支持 Markdown 语法<br/>
+            支持拖拽上传图片
+          </div>
+        </div>
+      `
+      return { previewHTML: placeholderHTML, copyHTML: placeholderHTML }
     }
     
     try {

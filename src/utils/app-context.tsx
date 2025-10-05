@@ -6,19 +6,7 @@ import { templates, defaultTemplateVariables } from '../templates'
 // 初始状态
 const initialState: AppState = {
   editor: {
-    content: `# 文章标题
-
-在这里开始你的创作...
-
-## 小标题
-
-你可以使用 **粗体**、*斜体* 等 Markdown 语法来格式化文章。
-
-- 支持列表
-- 支持图片拖拽上传
-- 支持实时预览
-
-> 💡 提示：直接开始编辑，内容会自动保存`,
+    content: '',  // 飞书模式：新文档从空白开始，避免触发自动保存
     selectedText: '',
     cursorPosition: 0,
     isChanged: false,
