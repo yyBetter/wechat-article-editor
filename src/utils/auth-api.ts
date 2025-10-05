@@ -65,6 +65,11 @@ function createHeaders(): Record<string, string> {
   return headers
 }
 
+// 导出获取认证头的函数（用于其他模块）
+export function getAuthHeaders(): Record<string, string> {
+  return createHeaders()
+}
+
 // 通用API请求函数
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`

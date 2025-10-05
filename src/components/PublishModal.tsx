@@ -1,8 +1,10 @@
 // 发布模态框组件 - 顶部工具栏发布功能的核心组件
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useApp } from '../utils/app-context'
 import { PublishStatus } from './PublishStatus'
 import { isWeChatAuthorized, getWeChatAccountInfo } from './WeChatConfig'
+import { publishToWeChat, imageUrlToBase64 } from '../utils/wechat-api'
+import { notification } from '../utils/notification'
 
 interface PublishModalProps {
   isOpen: boolean
@@ -30,6 +32,8 @@ interface PublishConfig {
   pushToFollowers: boolean
   allowComments: boolean
   declareOriginal: boolean
+  coverImage: string | null
+  showCoverPic: boolean
 }
 
 export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalProps) {
@@ -38,6 +42,7 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
   const [isPublishing, setIsPublishing] = useState(false)
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [accountInfo, setAccountInfo] = useState<any>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
   
   // 发布配置状态
   const [publishConfig, setPublishConfig] = useState<PublishConfig>({
@@ -46,7 +51,9 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
     summary: '',
     pushToFollowers: false,
     allowComments: true,
-    declareOriginal: false
+    declareOriginal: false,
+    coverImage: null,
+    showCoverPic: true
   })
   
   // 发布步骤状态
@@ -90,7 +97,9 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
         summary: extractSummary(currentDocument.content),
         pushToFollowers: false,
         allowComments: true,
-        declareOriginal: false
+        declareOriginal: false,
+        coverImage: null,
+        showCoverPic: true
       })
       // 重置发布步骤
       setPublishSteps(prev => prev.map(step => ({ ...step, status: 'pending' })))
@@ -142,54 +151,139 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
       : cleanContent
   }
 
-  // 模拟发布流程
+  // 处理封面图片上传
+  const handleCoverUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      notification.error('请选择图片文件')
+      return
+    }
+
+    // 验证文件大小（微信要求小于2MB）
+    if (file.size > 2 * 1024 * 1024) {
+      notification.error('封面图片大小不能超过2MB')
+      return
+    }
+
+    // 读取并预览
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string
+      setPublishConfig({ ...publishConfig, coverImage: dataUrl })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // 真实的发布流程
   const handlePublish = async () => {
     // 检查授权
     if (!isAuthorized) {
-      alert('请先在"全局设置"中完成微信公众号授权')
+      notification.error('请先完成微信公众号授权')
       return
     }
     
     if (!publishConfig.title.trim()) {
-      alert('请填写文章标题')
+      notification.error('请填写文章标题')
+      return
+    }
+    
+    if (!currentDocument?.content) {
+      notification.error('文章内容不能为空')
       return
     }
     
     setIsPublishing(true)
     
-    for (let i = 0; i < publishSteps.length; i++) {
-      // 更新当前步骤为处理中
+    try {
+      // Step 1: 内容验证
       setPublishSteps(prev => prev.map((step, index) => 
-        index === i ? { ...step, status: 'processing' } : step
+        index === 0 ? { ...step, status: 'processing' } : step
       ))
       
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500))
-      
-      // 模拟成功/失败
-      const success = Math.random() > 0.1 // 90%成功率
+      // 获取渲染后的HTML内容（从预览区）
+      const previewContent = state.preview.html || currentDocument.content
       
       setPublishSteps(prev => prev.map((step, index) => 
-        index === i ? { 
-          ...step, 
-          status: success ? 'completed' : 'error',
-          error: success ? undefined : '发布失败，请检查网络连接和权限设置'
+        index === 0 ? { ...step, status: 'completed' } : step
+      ))
+      
+      // Step 2: 上传封面（如果有）
+      setPublishSteps(prev => prev.map((step, index) => 
+        index === 1 ? { ...step, status: 'processing' } : step
+      ))
+      
+      let coverImageBuffer: string | undefined
+      if (publishConfig.coverImage) {
+        // 将Data URL转换为base64
+        coverImageBuffer = publishConfig.coverImage.split(',')[1]
+      }
+      
+      setPublishSteps(prev => prev.map((step, index) => 
+        index === 1 ? { ...step, status: 'completed' } : step
+      ))
+      
+      // Step 3 & 4: 创建并发布文章
+      setPublishSteps(prev => prev.map((step, index) => 
+        index === 2 ? { ...step, status: 'processing' } : step
+      ))
+      
+      const result = await publishToWeChat({
+        title: publishConfig.title,
+        author: publishConfig.author,
+        content: previewContent,
+        digest: publishConfig.summary,
+        coverImageBuffer,
+        showCoverPic: publishConfig.showCoverPic ? 1 : 0,
+        needOpenComment: publishConfig.allowComments ? 1 : 0,
+        onlyFansCanComment: 0,
+        pushToFollowers: publishConfig.pushToFollowers
+      })
+      
+      if (!result.success) {
+        throw new Error(result.message || '发布失败')
+      }
+      
+      setPublishSteps(prev => prev.map((step, index) => 
+        index === 2 ? { ...step, status: 'completed' } : 
+        index === 3 ? { ...step, status: 'completed' } : step
+      ))
+      
+      setIsPublishing(false)
+      
+      // 发布成功提示
+      notification.success(
+        publishConfig.pushToFollowers ? '文章已发布并推送给粉丝！' : '文章已添加到草稿箱！',
+        {
+          details: result.data?.mediaId ? `草稿ID: ${result.data.mediaId}` : undefined
+        }
+      )
+      
+      // 延迟关闭模态框
+      setTimeout(() => {
+        onClose()
+      }, 2000)
+      
+    } catch (error) {
+      console.error('发布失败:', error)
+      
+      // 标记失败的步骤
+      setPublishSteps(prev => prev.map(step => 
+        step.status === 'processing' ? {
+          ...step,
+          status: 'error',
+          error: error instanceof Error ? error.message : '发布失败，请重试'
         } : step
       ))
       
-      if (!success) {
-        setIsPublishing(false)
-        return
-      }
+      setIsPublishing(false)
+      
+      notification.error('发布失败', {
+        details: error instanceof Error ? error.message : '请检查网络连接和配置'
+      })
     }
-    
-    setIsPublishing(false)
-    
-    // 发布成功，延迟关闭模态框
-    setTimeout(() => {
-      alert('发布成功！')
-      onClose()
-    }, 1000)
   }
 
   if (!isOpen) return null
@@ -318,6 +412,55 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
                       />
                       <div className="publish-form-hint">
                         {publishConfig.summary.length}/120
+                      </div>
+                    </div>
+                    
+                    {/* 封面图片 */}
+                    <div className="publish-form-group">
+                      <label className="publish-form-label">
+                        封面图片 <span className="optional">（选填，建议尺寸 900x500，小于2MB）</span>
+                      </label>
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverUpload}
+                        style={{ display: 'none' }}
+                      />
+                      <div className="cover-upload-area">
+                        {publishConfig.coverImage ? (
+                          <div className="cover-preview">
+                            <img src={publishConfig.coverImage} alt="封面预览" />
+                            <div className="cover-actions">
+                              <button
+                                type="button"
+                                className="btn-change-cover"
+                                onClick={() => coverInputRef.current?.click()}
+                              >
+                                更换封面
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-remove-cover"
+                                onClick={() => setPublishConfig({ ...publishConfig, coverImage: null })}
+                              >
+                                移除封面
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-upload-cover"
+                            onClick={() => coverInputRef.current?.click()}
+                          >
+                            <span className="upload-icon">📷</span>
+                            <span>点击上传封面图片</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className="publish-form-hint" style={{ marginTop: '8px' }}>
+                        封面将显示在分享卡片和文章顶部
                       </div>
                     </div>
                   </div>
@@ -646,6 +789,88 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
         .publish-checkbox-desc {
           font-size: 13px;
           color: #666;
+        }
+
+        /* 封面上传区域 */
+        .cover-upload-area {
+          margin-top: 8px;
+        }
+
+        .btn-upload-cover {
+          width: 100%;
+          padding: 40px 20px;
+          border: 2px dashed #d1d5db;
+          border-radius: 8px;
+          background: #f9fafb;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .btn-upload-cover:hover {
+          border-color: #1e6fff;
+          background: #f0f7ff;
+        }
+
+        .upload-icon {
+          font-size: 48px;
+        }
+
+        .btn-upload-cover span:last-child {
+          color: #666;
+          font-size: 14px;
+        }
+
+        .cover-preview {
+          position: relative;
+          border: 2px solid #e5e5e5;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .cover-preview img {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        .cover-actions {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(0, 0, 0, 0.7);
+          backdrop-filter: blur(8px);
+          display: flex;
+          gap: 0;
+        }
+
+        .btn-change-cover,
+        .btn-remove-cover {
+          flex: 1;
+          padding: 12px;
+          border: none;
+          background: transparent;
+          color: white;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .btn-change-cover:hover {
+          background: rgba(30, 111, 255, 0.8);
+        }
+
+        .btn-remove-cover:hover {
+          background: rgba(220, 38, 38, 0.8);
+        }
+
+        .btn-change-cover {
+          border-right: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         /* 操作按钮 */

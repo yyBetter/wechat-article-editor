@@ -15,6 +15,7 @@ import authRoutes from './routes/auth'
 import documentRoutes from './routes/documents'
 import uploadRoutes from './routes/uploads'
 import analyticsRoutes from './routes/analytics'
+import wechatRoutes from './routes/wechat'
 import { analyticsMiddleware } from './utils/analytics'
 
 // 加载环境变量
@@ -151,6 +152,9 @@ app.use('/api/auth', authRoutes)
 
 // 文档管理路由
 app.use('/api/documents', documentRoutes)
+
+// 微信公众号发布路由
+app.use('/api/wechat', wechatRoutes)
 
 // 上传管理路由
 app.use('/api/uploads', uploadRoutes)
