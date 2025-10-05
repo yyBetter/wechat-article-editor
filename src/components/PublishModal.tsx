@@ -45,7 +45,7 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
   const [accountInfo, setAccountInfo] = useState<any>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   
-  // 从后端API获取微信配置
+  // 从后端API获取微信配置（实时刷新策略）
   const fetchWeChatConfig = async () => {
     try {
       const token = localStorage.getItem('auth_token')
@@ -55,25 +55,71 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
         return
       }
       
-      const response = await fetch('/api/auth/wechat-config', {
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'
+      
+      // Step 1: 获取数据库中的配置
+      const response = await fetch(baseURL + '/api/auth/wechat-config', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       
       const data = await response.json()
-      if (data.success && data.data.config) {
-        const config = JSON.parse(data.data.config)
-        setAccountInfo(config.accountInfo)
-        setIsAuthorized(config.isConnected)
-      } else {
+      if (!data.success || !data.data.config) {
         // 后端无配置，使用本地缓存
         setAccountInfo(getWeChatAccountInfo())
+        setIsAuthorized(false)
+        return
+      }
+      
+      const config = JSON.parse(data.data.config)
+      setIsAuthorized(config.isConnected)
+      
+      // Step 2: 如果已授权，从微信API获取最新信息（实时更新）
+      if (config.isConnected) {
+        try {
+          const infoResponse = await fetch(baseURL + '/api/wechat/account-info', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          
+          const infoData = await infoResponse.json()
+          
+          if (infoData.success && infoData.data) {
+            // 使用最新的微信API数据
+            setAccountInfo(infoData.data)
+            
+            // 静默更新数据库中的配置（异步，不阻塞UI）
+            fetch(baseURL + '/api/auth/wechat-config', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                appId: config.appId,
+                appSecret: config.appSecret,
+                isConnected: true,
+                accountInfo: infoData.data
+              })
+            }).catch(err => console.error('静默更新配置失败:', err))
+          } else {
+            // 获取失败，使用数据库中的旧数据
+            setAccountInfo(config.accountInfo)
+          }
+        } catch (error) {
+          console.warn('从微信API获取最新信息失败，使用缓存数据:', error)
+          setAccountInfo(config.accountInfo)
+        }
+      } else {
+        setAccountInfo(config.accountInfo)
       }
     } catch (error) {
       console.error('获取微信配置失败:', error)
       // 降级使用本地缓存
       setAccountInfo(getWeChatAccountInfo())
+      setIsAuthorized(false)
     }
   }
   
