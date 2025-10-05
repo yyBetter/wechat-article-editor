@@ -942,7 +942,10 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
           onSelect={handleSelectionChange}
           onKeyUp={handleSelectionChange}
           onClick={handleSelectionChange}
-          placeholder="在此输入你的文章内容... 📝 支持 Ctrl+V 粘贴截图、拖拽图片文件"
+          placeholder="# 在这里开始写作...
+
+支持 Markdown 语法 | 支持拖拽/粘贴图片
+内容达到 30 字后自动保存"
           className="editor-textarea"
           spellCheck={false}
         />
