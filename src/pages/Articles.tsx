@@ -280,10 +280,12 @@ export function Articles() {
       
       if (!matchesSearch) return false
 
-      // 飞书模式：草稿过滤
+      // 飞书模式：草稿过滤（更宽松的判断）
       const wordCount = countWords(doc.content)
       const hasTitle = doc.title && doc.title.trim() !== '' && !doc.title.includes('未命名')
-      const isDraft = wordCount < 30 && !hasTitle
+      
+      // 草稿定义：字数<10 OR (字数<30 AND 无标题)
+      const isDraft = wordCount < 10 || (wordCount < 30 && !hasTitle)
       
       // 如果显示草稿模式，只显示草稿；否则只显示正式文档
       return showDrafts ? isDraft : !isDraft
@@ -310,7 +312,7 @@ export function Articles() {
     })
 
     return filtered
-  }, [documents, searchQuery, sortOption])
+  }, [documents, searchQuery, sortOption, showDrafts])
 
   // 未登录状态
   if (!authState.isAuthenticated) {
