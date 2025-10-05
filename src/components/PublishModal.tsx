@@ -5,6 +5,7 @@ import { PublishStatus } from './PublishStatus'
 import { isWeChatAuthorized, getWeChatAccountInfo } from './WeChatConfig'
 import { publishToWeChat, imageUrlToBase64 } from '../utils/wechat-api'
 import { notification } from '../utils/notification'
+import '../styles/publish-auth-status.css'
 
 interface PublishModalProps {
   isOpen: boolean
@@ -43,6 +44,38 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [accountInfo, setAccountInfo] = useState<any>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
+  
+  // 从后端API获取微信配置
+  const fetchWeChatConfig = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        // 本地模式，从localStorage读取
+        setAccountInfo(getWeChatAccountInfo())
+        return
+      }
+      
+      const response = await fetch('/api/auth/wechat-config', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const data = await response.json()
+      if (data.success && data.data.config) {
+        const config = JSON.parse(data.data.config)
+        setAccountInfo(config.accountInfo)
+        setIsAuthorized(config.isConnected)
+      } else {
+        // 后端无配置，使用本地缓存
+        setAccountInfo(getWeChatAccountInfo())
+      }
+    } catch (error) {
+      console.error('获取微信配置失败:', error)
+      // 降级使用本地缓存
+      setAccountInfo(getWeChatAccountInfo())
+    }
+  }
   
   // 发布配置状态
   const [publishConfig, setPublishConfig] = useState<PublishConfig>({
@@ -84,12 +117,14 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
     }
   ])
 
-  // 当模态框打开时，初始化配置
+  // 当模态框打开时，初始化配置并获取最新的公众号信息
   useEffect(() => {
     if (isOpen && currentDocument) {
-      // 检查授权状态
+      // 从localStorage检查授权状态
       setIsAuthorized(isWeChatAuthorized())
-      setAccountInfo(getWeChatAccountInfo())
+      
+      // 从后端API获取最新的公众号配置
+      fetchWeChatConfig()
       
       setPublishConfig({
         title: currentDocument.title || state.templates.variables.title || '',
@@ -506,26 +541,20 @@ export function PublishModal({ isOpen, onClose, currentDocument }: PublishModalP
                     </label>
                   </div>
 
-                  {/* 授权状态提示 */}
+                  {/* 授权状态提示 - 紧凑样式 */}
                   {isAuthorized ? (
-                    <div className="publish-notice success">
-                      <div className="notice-header">
-                        <span className="notice-icon">✅</span>
-                        <span className="notice-title">已授权</span>
-                      </div>
-                      <div className="notice-content">
-                        已连接到公众号：<strong>{accountInfo?.name || '未知'}</strong>
-                      </div>
+                    <div className="publish-auth-status authorized">
+                      <span className="status-icon">✓</span>
+                      <span className="status-text">
+                        已连接：{accountInfo?.name || '未知公众号'}
+                      </span>
                     </div>
                   ) : (
-                    <div className="publish-notice warning">
-                      <div className="notice-header">
-                        <span className="notice-icon">⚠️</span>
-                        <span className="notice-title">未授权</span>
-                      </div>
-                      <div className="notice-content">
-                        请先在"全局设置"中完成微信公众号授权，才能发布文章
-                      </div>
+                    <div className="publish-auth-status unauthorized">
+                      <span className="status-icon">⚠</span>
+                      <span className="status-text">
+                        未授权，请先在"全局设置"中完成授权
+                      </span>
                     </div>
                   )}
 
