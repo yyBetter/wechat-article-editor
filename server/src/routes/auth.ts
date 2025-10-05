@@ -252,4 +252,74 @@ router.post('/verify', authenticateToken, async (req, res) => {
   }))
 })
 
+// 保存微信公众号配置
+router.put('/wechat-config', authenticateToken, async (req, res) => {
+  try {
+    const { appId, appSecret, isConnected, accountInfo } = req.body
+    const userId = req.user!.id
+
+    if (!appId || !appSecret) {
+      return res.status(400).json(createErrorResponse('请提供AppID和AppSecret'))
+    }
+
+    // 保存配置
+    const wechatConfig = {
+      appId,
+      appSecret,
+      isConnected: !!isConnected,
+      accountInfo: accountInfo || null
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        wechatConfig: JSON.stringify(wechatConfig)
+      },
+      select: {
+        id: true,
+        wechatConfig: true
+      }
+    })
+
+    res.json(createSuccessResponse({
+      config: JSON.parse(updatedUser.wechatConfig)
+    }))
+  } catch (error) {
+    console.error('Save WeChat config error:', error)
+    res.status(500).json(createErrorResponse('保存微信配置失败'))
+  }
+})
+
+// 获取微信公众号配置
+router.get('/wechat-config', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user!.id
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        wechatConfig: true
+      }
+    })
+
+    if (!user) {
+      return res.status(404).json(createErrorResponse('用户不存在'))
+    }
+
+    const config = JSON.parse(user.wechatConfig)
+    
+    // 不返回AppSecret给前端（安全考虑）
+    res.json(createSuccessResponse({
+      config: {
+        appId: config.appId,
+        isConnected: config.isConnected,
+        accountInfo: config.accountInfo
+      }
+    }))
+  } catch (error) {
+    console.error('Get WeChat config error:', error)
+    res.status(500).json(createErrorResponse('获取微信配置失败'))
+  }
+})
+
 export default router

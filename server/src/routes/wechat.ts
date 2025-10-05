@@ -2,40 +2,76 @@
 import express from 'express'
 import axios from 'axios'
 import FormData from 'form-data'
+import { PrismaClient } from '@prisma/client'
 import { authenticateToken } from '../middleware/auth'
 import { logError } from '../utils/logger'
 
 const router = express.Router()
+const prisma = new PrismaClient()
 
-// 微信公众号配置
-const WECHAT_CONFIG = {
-  appId: process.env.WECHAT_APP_ID || '',
-  appSecret: process.env.WECHAT_APP_SECRET || '',
-  baseUrl: 'https://api.weixin.qq.com/cgi-bin'
-}
+// 微信API基础URL
+const WECHAT_BASE_URL = 'https://api.weixin.qq.com/cgi-bin'
 
-// Access Token 缓存
-let accessTokenCache: {
+// Access Token 缓存（按用户ID缓存）
+const accessTokenCache: Map<string, {
   token: string
   expiresAt: number
-} | null = null
+}> = new Map()
+
+/**
+ * 获取用户的微信配置
+ */
+async function getUserWeChatConfig(userId: string): Promise<{
+  appId: string
+  appSecret: string
+} | null> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { wechatConfig: true }
+    })
+
+    if (!user) return null
+
+    const config = JSON.parse(user.wechatConfig)
+    
+    if (!config.appId || !config.appSecret) {
+      return null
+    }
+
+    return {
+      appId: config.appId,
+      appSecret: config.appSecret
+    }
+  } catch (error) {
+    console.error('获取用户微信配置失败:', error)
+    return null
+  }
+}
 
 /**
  * 获取微信 Access Token
  * 会自动缓存token，避免频繁请求
  */
-async function getAccessToken(): Promise<string> {
+async function getAccessToken(userId: string): Promise<string> {
   // 检查缓存是否有效（提前5分钟刷新）
-  if (accessTokenCache && Date.now() < accessTokenCache.expiresAt - 5 * 60 * 1000) {
-    return accessTokenCache.token
+  const cached = accessTokenCache.get(userId)
+  if (cached && Date.now() < cached.expiresAt - 5 * 60 * 1000) {
+    return cached.token
+  }
+
+  // 获取用户配置
+  const config = await getUserWeChatConfig(userId)
+  if (!config) {
+    throw new Error('请先配置微信公众号（AppID和AppSecret）')
   }
 
   try {
-    const response = await axios.get(`${WECHAT_CONFIG.baseUrl}/token`, {
+    const response = await axios.get(`${WECHAT_BASE_URL}/token`, {
       params: {
         grant_type: 'client_credential',
-        appid: WECHAT_CONFIG.appId,
-        secret: WECHAT_CONFIG.appSecret
+        appid: config.appId,
+        secret: config.appSecret
       }
     })
 
@@ -46,16 +82,16 @@ async function getAccessToken(): Promise<string> {
     const token = response.data.access_token
     const expiresIn = response.data.expires_in || 7200
 
-    // 缓存token
-    accessTokenCache = {
+    // 缓存token（按用户ID）
+    accessTokenCache.set(userId, {
       token,
       expiresAt: Date.now() + expiresIn * 1000
-    }
+    })
 
-    console.log('✅ Access Token 获取成功，有效期:', expiresIn, '秒')
+    console.log(`✅ Access Token 获取成功 (用户: ${userId})，有效期: ${expiresIn}秒`)
     return token
   } catch (error) {
-    logError(error as Error, { action: 'getAccessToken' })
+    logError(error as Error, { action: 'getAccessToken', userId })
     throw error
   }
 }
@@ -67,6 +103,7 @@ async function getAccessToken(): Promise<string> {
 router.post('/upload-image', authenticateToken, async (req, res) => {
   try {
     const { imageUrl, imageBuffer, imageType = 'image/jpeg' } = req.body
+    const userId = req.user!.id
 
     if (!imageUrl && !imageBuffer) {
       return res.status(400).json({
@@ -75,7 +112,7 @@ router.post('/upload-image', authenticateToken, async (req, res) => {
       })
     }
 
-    const accessToken = await getAccessToken()
+    const accessToken = await getAccessToken(userId)
 
     // 准备上传
     let imageData: Buffer
@@ -100,7 +137,7 @@ router.post('/upload-image', authenticateToken, async (req, res) => {
 
     // 上传到微信
     const uploadResponse = await axios.post(
-      `${WECHAT_CONFIG.baseUrl}/media/upload?access_token=${accessToken}&type=image`,
+      `${WECHAT_BASE_URL}/media/upload?access_token=${accessToken}&type=image`,
       formData,
       {
         headers: formData.getHeaders()
@@ -135,6 +172,7 @@ router.post('/upload-image', authenticateToken, async (req, res) => {
 router.post('/upload-cover', authenticateToken, async (req, res) => {
   try {
     const { imageUrl, imageBuffer, imageType = 'image/jpeg' } = req.body
+    const userId = req.user!.id
 
     if (!imageUrl && !imageBuffer) {
       return res.status(400).json({
@@ -143,7 +181,7 @@ router.post('/upload-cover', authenticateToken, async (req, res) => {
       })
     }
 
-    const accessToken = await getAccessToken()
+    const accessToken = await getAccessToken(userId)
 
     // 准备上传
     let imageData: Buffer
@@ -166,7 +204,7 @@ router.post('/upload-cover', authenticateToken, async (req, res) => {
 
     // 上传永久图片素材
     const uploadResponse = await axios.post(
-      `${WECHAT_CONFIG.baseUrl}/material/add_material?access_token=${accessToken}&type=image`,
+      `${WECHAT_BASE_URL}/material/add_material?access_token=${accessToken}&type=image`,
       formData,
       {
         headers: formData.getHeaders()
@@ -209,6 +247,7 @@ router.post('/add-draft', authenticateToken, async (req, res) => {
       needOpenComment = 1,
       onlyFansCanComment = 0
     } = req.body
+    const userId = req.user!.id
 
     if (!title || !content) {
       return res.status(400).json({
@@ -217,7 +256,7 @@ router.post('/add-draft', authenticateToken, async (req, res) => {
       })
     }
 
-    const accessToken = await getAccessToken()
+    const accessToken = await getAccessToken(userId)
 
     // 构建图文消息
     const articles = {
@@ -238,7 +277,7 @@ router.post('/add-draft', authenticateToken, async (req, res) => {
 
     // 添加草稿
     const response = await axios.post(
-      `${WECHAT_CONFIG.baseUrl}/draft/add?access_token=${accessToken}`,
+      `${WECHAT_BASE_URL}/draft/add?access_token=${accessToken}`,
       articles
     )
 
@@ -269,6 +308,7 @@ router.post('/add-draft', authenticateToken, async (req, res) => {
 router.post('/publish', authenticateToken, async (req, res) => {
   try {
     const { mediaId } = req.body
+    const userId = req.user!.id
 
     if (!mediaId) {
       return res.status(400).json({
@@ -277,11 +317,11 @@ router.post('/publish', authenticateToken, async (req, res) => {
       })
     }
 
-    const accessToken = await getAccessToken()
+    const accessToken = await getAccessToken(userId)
 
     // 发布草稿
     const response = await axios.post(
-      `${WECHAT_CONFIG.baseUrl}/freepublish/submit?access_token=${accessToken}`,
+      `${WECHAT_BASE_URL}/freepublish/submit?access_token=${accessToken}`,
       {
         media_id: mediaId
       }
@@ -326,6 +366,7 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
       onlyFansCanComment = 0,
       pushToFollowers = false
     } = req.body
+    const userId = req.user!.id
 
     if (!title || !content) {
       return res.status(400).json({
@@ -337,7 +378,7 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
     // Step 1: 上传封面图片（如果有）
     let thumbMediaId = ''
     if (coverImageUrl || coverImageBuffer) {
-      const accessToken = await getAccessToken()
+      const accessToken = await getAccessToken(userId)
       
       let imageData: Buffer
       if (coverImageBuffer) {
@@ -356,7 +397,7 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
       })
 
       const uploadResponse = await axios.post(
-        `${WECHAT_CONFIG.baseUrl}/material/add_material?access_token=${accessToken}&type=image`,
+        `${WECHAT_BASE_URL}/material/add_material?access_token=${accessToken}&type=image`,
         formData,
         {
           headers: formData.getHeaders()
@@ -371,7 +412,7 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
     }
 
     // Step 2: 创建草稿
-    const accessToken = await getAccessToken()
+    const accessToken = await getAccessToken(userId)
     const articles = {
       articles: [
         {
@@ -389,7 +430,7 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
     }
 
     const draftResponse = await axios.post(
-      `${WECHAT_CONFIG.baseUrl}/draft/add?access_token=${accessToken}`,
+      `${WECHAT_BASE_URL}/draft/add?access_token=${accessToken}`,
       articles
     )
 
@@ -402,7 +443,7 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
     // Step 3: 发布文章
     if (pushToFollowers) {
       const publishResponse = await axios.post(
-        `${WECHAT_CONFIG.baseUrl}/freepublish/submit?access_token=${accessToken}`,
+        `${WECHAT_BASE_URL}/freepublish/submit?access_token=${accessToken}`,
         {
           media_id: mediaId
         }
@@ -445,15 +486,25 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
  */
 router.get('/test', authenticateToken, async (req, res) => {
   try {
-    const token = await getAccessToken()
+    const userId = req.user!.id
+    const config = await getUserWeChatConfig(userId)
+    
+    if (!config) {
+      return res.status(400).json({
+        success: false,
+        message: '请先配置微信公众号（AppID和AppSecret）'
+      })
+    }
+    
+    const token = await getAccessToken(userId)
     res.json({
       success: true,
       message: '微信API连接成功',
       data: {
         hasToken: !!token,
         config: {
-          appId: WECHAT_CONFIG.appId ? '已配置' : '未配置',
-          appSecret: WECHAT_CONFIG.appSecret ? '已配置' : '未配置'
+          appId: config.appId ? '已配置' : '未配置',
+          appSecret: config.appSecret ? '已配置' : '未配置'
         }
       }
     })

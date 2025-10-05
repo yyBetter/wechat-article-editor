@@ -24,6 +24,9 @@ model User {
   // 品牌设置 (与现有fixedAssets结构兼容)
   brandSettings String @default("{\"logo\":null,\"qrcode\":null,\"dividers\":[],\"brandColors\":[\"#1e6fff\",\"#333333\",\"#666666\"],\"customCSS\":\"\"}")
   
+  // 微信公众号配置 (每个用户自己的公众号)
+  wechatConfig String @default("{\"appId\":\"\",\"appSecret\":\"\",\"isConnected\":false,\"accountInfo\":null}")
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
