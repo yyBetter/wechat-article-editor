@@ -68,23 +68,10 @@ export function LegacyEditorContent() {
       setCurrentDocumentId(documentId) // 设置当前文档ID
       loadDocument(documentId)
     } else if (!documentId && authState.isAuthenticated) {
-      // 新建文档：清空内容，提供更简洁的起始模板
+      // 飞书模式：新建文档从空白开始
       setCurrentDocumentId(null) // 清空文档ID
-      dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: `# 文章标题
-
-在这里开始你的创作...
-
-## 小标题
-
-你可以使用 **粗体**、*斜体* 等 Markdown 语法来格式化文章。
-
-- 支持列表
-- 支持图片拖拽上传  
-- 支持实时预览
-
-> 💡 提示：内容会自动保存，专心创作即可` })
-      dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
-      console.log('🆕 初始化新建文档模式')
+      dispatch({ type: 'RESET_DOCUMENT' }) // 使用 RESET_DOCUMENT 确保完全重置状态
+      console.log('🆕 初始化新建文档模式（空白）')
     } else {
       // 未认证状态
       setCurrentDocumentId(null)
