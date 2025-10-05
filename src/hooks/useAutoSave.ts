@@ -139,19 +139,33 @@ export function useAutoSave(
       return
     }
 
-    // 检查变化
-    const contentChanged = content !== lastContentRef.current || title !== lastTitleRef.current
-    if (!contentChanged) {
-      return
-    }
-
-    // 飞书模式：检查是否应该创建文档
-    const shouldCreate = shouldCreateDocument(content, title, documentStatus, editStartTime)
-    
-    // 如果是TEMP状态且不满足创建条件，则跳过保存
-    if (documentStatus === 'TEMP' && !shouldCreate) {
-      console.log('📝 内容太少，暂不创建文档（飞书模式）')
-      return
+    // 飞书模式：TEMP状态特殊处理
+    if (documentStatus === 'TEMP') {
+      // 检查是否应该创建文档（使用完整内容判断，不是增量）
+      const shouldCreate = shouldCreateDocument(content, title, documentStatus, editStartTime)
+      
+      if (!shouldCreate) {
+        console.log('📝 内容太少，暂不创建文档（飞书模式）', {
+          contentLength: content.trim().length,
+          hasTitle: title.trim().length > 0,
+          editDuration: editStartTime ? Math.floor((Date.now() - editStartTime.getTime()) / 1000) + 's' : '0s'
+        })
+        // 重要：更新 lastRef，避免重复触发
+        lastContentRef.current = content
+        lastTitleRef.current = title
+        return
+      }
+      
+      console.log('✅ 满足创建条件，开始创建文档', {
+        contentLength: content.trim().length,
+        hasTitle: title.trim().length > 0
+      })
+    } else {
+      // DRAFT 或 NORMAL 状态：检查是否有变化
+      const contentChanged = content !== lastContentRef.current || title !== lastTitleRef.current
+      if (!contentChanged) {
+        return
+      }
     }
 
     try {
