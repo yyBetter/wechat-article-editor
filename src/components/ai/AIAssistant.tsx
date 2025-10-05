@@ -12,7 +12,8 @@ import DOMPurify from 'dompurify'
 
 export function AIAssistant() {
   const { state, dispatch } = useApp()
-  const { loading, generateTitles, generateSummary, generateOutline, polishText } = useAI()
+  const ai = useAI()
+  const { loading, generateTitles, generateSummary, generateOutline, polishText, aiUsage } = ai
   
   const [showResults, setShowResults] = useState(false)
   const [currentTask, setCurrentTask] = useState<string>('')
@@ -263,6 +264,17 @@ export function AIAssistant() {
       <div className="ai-header">
         <h3>🤖 AI 写作助手</h3>
         <p className="ai-desc">按写作流程为你提供智能辅助</p>
+        {aiUsage && (
+          <div className="ai-usage-badge">
+            {aiUsage.isAdmin ? (
+              <span className="usage-unlimited">✨ 无限使用</span>
+            ) : (
+              <span className={`usage-count ${aiUsage.remaining <= 3 ? 'warning' : ''}`}>
+                剩余 {aiUsage.remaining}/{aiUsage.limit} 次
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 阶段1：构思阶段 */}

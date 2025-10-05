@@ -8,6 +8,9 @@ export interface User {
   username: string
   email: string
   avatar?: string
+  isAdmin?: boolean
+  aiUsageCount?: number
+  aiUsageLimit?: number
   preferences: {
     theme: 'light' | 'dark'
     autoSave: boolean
@@ -165,4 +168,52 @@ export async function verifyToken(): Promise<{ valid: boolean; user?: User }> {
 // 检查用户是否已登录
 export function isAuthenticated(): boolean {
   return !!getStoredToken()
+}
+// AI使用次数API
+export async function getAIUsage(): Promise<{
+  used: number
+  limit: number
+  remaining: number
+  canUse: boolean
+  isAdmin: boolean
+}> {
+  const response = await fetch(`${API_BASE_URL}/ai/usage`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  })
+  
+  if (!response.ok) {
+    throw new Error('获取AI使用情况失败')
+  }
+  
+  const result: ApiResponse = await response.json()
+  if (!result.success || !result.data) {
+    throw new Error(result.error || '获取AI使用情况失败')
+  }
+  
+  return result.data
+}
+
+export async function incrementAIUsage(): Promise<{
+  success: boolean
+  used: number
+  remaining: number
+  message?: string
+}> {
+  const response = await fetch(`${API_BASE_URL}/ai/usage/increment`, {
+    method: 'POST',
+    headers: getAuthHeaders()
+  })
+  
+  const result: ApiResponse = await response.json()
+  
+  if (!response.ok) {
+    throw new Error(result.error || 'AI使用次数已达上限')
+  }
+  
+  if (!result.success || !result.data) {
+    throw new Error(result.error || '更新AI使用次数失败')
+  }
+  
+  return result.data
 }

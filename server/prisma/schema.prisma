@@ -18,6 +18,14 @@ model User {
   password  String
   avatar    String?
   
+  // 管理员标识（管理员可以无限使用AI）
+  isAdmin   Boolean  @default(false)
+  
+  // AI使用次数限制
+  aiUsageCount     Int      @default(0)      // 已使用次数
+  aiUsageLimit     Int      @default(10)     // 使用上限（普通用户10次，管理员-1表示无限）
+  aiUsageResetAt   DateTime?                 // 上次重置时间（用于月度重置）
+  
   // 用户偏好设置 (JSON字符串格式，与前端AppState兼容)
   preferences String @default("{\"theme\":\"light\",\"autoSave\":true,\"defaultTemplate\":\"simple-doc\"}")
   

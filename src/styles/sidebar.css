@@ -1071,3 +1071,31 @@
     padding: 16px;
   }
 }
+/* AI使用次数徽章 */
+.ai-usage-badge {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.usage-count {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.usage-count.warning {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.usage-unlimited {
+  display: inline-block;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-weight: 500;
+}
