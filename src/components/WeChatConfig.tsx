@@ -50,7 +50,6 @@ export function WeChatConfig() {
     return saved || {
       appId: '',
       appSecret: '',
-      accountName: '', // 公众号名称
       isConnected: false,
       accountInfo: null as any
     }
@@ -71,35 +70,61 @@ export function WeChatConfig() {
       alert('请填写完整的AppID和AppSecret')
       return
     }
-    
-    if (!config.accountName || config.accountName.trim() === '') {
-      alert('请填写公众号名称')
-      return
-    }
 
     setIsConnecting(true)
     
     try {
-      // 调用后端API保存配置
-      const response = await fetch(
-        (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002') + '/api/auth/wechat-config',
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'
+      const token = localStorage.getItem('auth_token')
+      
+      // Step 1: 先保存基础配置（不含accountInfo）
+      await fetch(
+        baseURL + '/api/auth/wechat-config',
         {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            appId: config.appId,
+            appSecret: config.appSecret,
+            isConnected: false, // 先标记为未连接
+            accountInfo: null
+          })
+        }
+      )
+      
+      // Step 2: 通过微信API获取公众号真实信息
+      const infoResponse = await fetch(
+        baseURL + '/api/wechat/account-info',
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      
+      const infoData = await infoResponse.json()
+      
+      if (!infoData.success) {
+        throw new Error(infoData.message || '获取公众号信息失败')
+      }
+      
+      // Step 3: 使用真实的公众号信息更新配置
+      const response = await fetch(
+        baseURL + '/api/auth/wechat-config',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             appId: config.appId,
             appSecret: config.appSecret,
             isConnected: true,
-            accountInfo: {
-              name: config.accountName.trim(), // 使用用户输入的公众号名称
-              originalId: 'gh_' + config.appId.substring(0, 12),
-              accountType: '订阅号',
-              verified: true,
-              followers: 0
-            }
+            accountInfo: infoData.data // 使用从微信API获取的真实信息
           })
         }
       )
@@ -171,17 +196,6 @@ export function WeChatConfig() {
 
           <div className="form-group">
             <label className="form-label">
-              公众号名称
-              <input
-                type="text"
-                value={config.accountName}
-                onChange={(e) => setConfig(prev => ({ ...prev, accountName: e.target.value }))}
-                placeholder="例如：Shawn的测试号"
-                className="form-input"
-              />
-            </label>
-            
-            <label className="form-label">
               AppID (应用ID)
               <input
                 type="text"
@@ -202,12 +216,16 @@ export function WeChatConfig() {
                 className="form-input"
               />
             </label>
+            
+            <p className="form-hint">
+              💡 提示：连接后将自动从微信获取公众号名称、头像等信息
+            </p>
           </div>
 
           <button
             className="connect-btn"
             onClick={connectWeChat}
-            disabled={isConnecting || !config.appId || !config.appSecret || !config.accountName}
+            disabled={isConnecting || !config.appId || !config.appSecret}
           >
             {isConnecting ? (
               <>
@@ -373,6 +391,17 @@ export function WeChatConfig() {
         outline: none;
         border-color: #1e6fff;
         box-shadow: 0 0 0 3px rgba(30, 111, 255, 0.1);
+      }
+      
+      .form-hint {
+        margin: -8px 0 0 0;
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.5;
+        padding: 8px 12px;
+        background: #f0f9ff;
+        border-left: 3px solid #1e6fff;
+        border-radius: 4px;
       }
 
       .connect-btn {

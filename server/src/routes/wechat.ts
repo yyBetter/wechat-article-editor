@@ -481,6 +481,54 @@ router.post('/publish-article', authenticateToken, async (req, res) => {
 })
 
 /**
+ * 获取公众号基本信息
+ * GET /api/wechat/account-info
+ */
+router.get('/account-info', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user!.id
+    const config = await getUserWeChatConfig(userId)
+    
+    if (!config) {
+      return res.status(400).json({
+        success: false,
+        message: '请先配置微信公众号'
+      })
+    }
+
+    const accessToken = await getAccessToken(userId)
+    
+    // 调用微信API获取公众号基本信息
+    const response = await axios.get(
+      `${WECHAT_BASE_URL}/cgi-bin/account/getaccountbasicinfo?access_token=${accessToken}`
+    )
+    
+    if (response.data.errcode && response.data.errcode !== 0) {
+      throw new Error(`获取公众号信息失败: ${response.data.errmsg}`)
+    }
+    
+    // 返回公众号信息
+    res.json({
+      success: true,
+      data: {
+        name: response.data.nick_name || '未知公众号',
+        originalId: response.data.principal_name || response.data.user_name || '',
+        accountType: response.data.service_type_info?.id === 2 ? '服务号' : '订阅号',
+        verified: response.data.verify_type_info?.id !== -1,
+        avatar: response.data.head_image || '',
+        qrcode: response.data.qrcode_url || ''
+      }
+    })
+  } catch (error) {
+    console.error('获取公众号信息失败:', error)
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : '获取公众号信息失败'
+    })
+  }
+})
+
+/**
  * 测试微信API连接
  * GET /api/wechat/test
  */
