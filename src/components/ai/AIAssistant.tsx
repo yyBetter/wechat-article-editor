@@ -899,7 +899,7 @@ export function AIAssistant() {
         }
 
         .workflow-btn .btn-icon {
-          font-size: 24px;
+          font-size: 20px;
           flex-shrink: 0;
         }
 
@@ -909,15 +909,16 @@ export function AIAssistant() {
         }
 
         .btn-title {
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 600;
           color: #333;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
         }
 
         .btn-desc {
           font-size: 11px;
           color: #999;
+          line-height: 1.3;
         }
 
         /* 润色风格网格 */
@@ -930,11 +931,11 @@ export function AIAssistant() {
         .polish-style-btn {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 12px;
+          gap: 8px;
+          padding: 10px;
           background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s;
           position: relative;
@@ -943,8 +944,7 @@ export function AIAssistant() {
         .polish-style-btn:hover:not(:disabled) {
           border-color: #667eea;
           background: #f5f3ff;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
         }
 
         .polish-style-btn:disabled {
@@ -966,7 +966,7 @@ export function AIAssistant() {
         }
 
         .style-icon {
-          font-size: 24px;
+          font-size: 20px;
           flex-shrink: 0;
         }
 
@@ -985,6 +985,7 @@ export function AIAssistant() {
         .style-hint {
           font-size: 10px;
           color: #999;
+          line-height: 1.2;
         }
 
         /* 完善阶段按钮 */
