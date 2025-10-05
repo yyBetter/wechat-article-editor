@@ -93,24 +93,10 @@ export function GlobalSettings() {
         <div className="support-content">
           <div className="support-stats">
             <div className="support-stat-item">
-              <div className="stat-icon">⭐</div>
-              <div className="stat-info">
-                <div className="stat-title">完全免费</div>
-                <div className="stat-desc">所有功能永久免费使用</div>
-              </div>
-            </div>
-            <div className="support-stat-item">
               <div className="stat-icon">💪</div>
               <div className="stat-info">
                 <div className="stat-title">持续更新</div>
                 <div className="stat-desc">不断优化和新增功能</div>
-              </div>
-            </div>
-            <div className="support-stat-item">
-              <div className="stat-icon">🛠️</div>
-              <div className="stat-info">
-                <div className="stat-title">开源精神</div>
-                <div className="stat-desc">代码开源，欢迎贡献</div>
               </div>
             </div>
           </div>
