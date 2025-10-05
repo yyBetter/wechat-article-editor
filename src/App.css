@@ -2040,6 +2040,14 @@ body {
 /* ========================================
    预览工具栏样式 - 模板和配色
    ======================================== */
+/* 预览工具栏包装器 - 为展开的模板画廊提供相对定位容器 */
+.preview-toolbar-wrapper {
+  position: relative;
+  background: white;
+  border-bottom: 1px solid #e1e4e8;
+  padding: 8px 12px;
+}
+
 .preview-toolbar {
   background: white;
   border-bottom: 1px solid #e5e7eb;

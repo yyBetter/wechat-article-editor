@@ -1,0 +1,344 @@
+/* 模板画廊样式 - 现代化设计 */
+.template-gallery {
+  width: 100%;
+}
+
+/* === 紧凑状态 === */
+.gallery-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.current-template-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+}
+
+.current-template-btn:hover {
+  border-color: #667eea;
+  background: #f6f8ff;
+}
+
+.template-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.template-icon {
+  font-size: 16px;
+}
+
+.template-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.expand-icon {
+  font-size: 10px;
+  color: #999;
+  transition: transform 0.2s;
+}
+
+/* 配色编辑器 - 紧凑版 */
+.color-editor-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-picker-compact {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.color-input-compact {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-preview {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.color-picker-compact:hover .color-preview {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.reset-colors-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e1e4e8;
+  background: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reset-colors-btn:hover {
+  background: #f6f8ff;
+  border-color: #667eea;
+  transform: rotate(180deg);
+}
+
+/* === 展开状态 === */
+.gallery-expanded {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  z-index: 100;
+  max-height: 500px;
+  overflow-y: auto;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.gallery-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-gallery-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-gallery-btn:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+/* 模板网格 */
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* 模板卡片 */
+.template-card {
+  position: relative;
+  padding: 16px;
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 140px;
+}
+
+.template-card:hover {
+  background: #f0f4ff;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.template-card.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.card-icon {
+  font-size: 20px;
+}
+
+.card-name {
+  font-weight: 600;
+  font-size: 14px;
+  flex: 1;
+}
+
+.template-card.active .card-name,
+.template-card.active .card-description {
+  color: white;
+}
+
+.active-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.card-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* 适用场景 */
+.card-scenarios {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scenarios-label {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.scenarios-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.scenario-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  background: #f0f4ff;
+  color: #667eea;
+  font-size: 11px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* 配色预览点 */
+.card-colors {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.template-card.active .color-dot {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 画廊底部 */
+.gallery-footer {
+  padding-top: 12px;
+  border-top: 1px solid #e1e4e8;
+}
+
+.gallery-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .gallery-compact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .color-editor-inline {
+    justify-content: center;
+  }
+}

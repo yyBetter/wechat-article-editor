@@ -4,7 +4,8 @@ import { useApp } from '../utils/app-context'
 import { TemplateEngine } from '../utils/template-engine'
 import { templates } from '../templates'
 import { getLocalImageData } from '../utils/local-image-api'
-import { PreviewToolbar } from './PreviewToolbar'
+import { TemplateGallery } from './TemplateGallery'
+import '../styles/template-gallery.css'
 
 const templateEngine = new TemplateEngine(templates)
 
@@ -457,8 +458,10 @@ export const Preview = memo(function Preview() {
   
   return (
     <div className="preview-container">
-      {/* 样式配置工具栏 - 模板和配色 */}
-      <PreviewToolbar />
+      {/* 模板画廊 - 可展开/收起 */}
+      <div className="preview-toolbar-wrapper">
+        <TemplateGallery />
+      </div>
       
       {/* 预览工具栏 */}
       <div className="preview-toolbar">

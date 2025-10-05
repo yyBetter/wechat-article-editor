@@ -3,7 +3,7 @@
  * 轻量级、纯客户端、不影响编辑性能
  */
 
-import { commonMisspellings, phraseErrors, confusablePairs, ConfusablePair } from './chinese-spell-dict'
+import { commonMisspellings, phraseErrors, confusablePairs, ConfusablePair } from './chinese-spell-dict-clean'
 
 export interface SpellError {
   word: string           // 错误的词
@@ -55,10 +55,13 @@ export function checkSpelling(
     }
   }
 
-  // 2. 检查单字错误
+  // 2. 检查单字错误（优化：更严格的过滤）
   for (const [wrong, correct] of Object.entries(commonMisspellings)) {
     // 跳过正确的词（字典中标记为"正确"的）
     if (wrong === correct) continue
+    
+    // 跳过包含"正确"注释的词
+    if (wrong.length === 0 || correct.length === 0) continue
     
     let index = 0
     while ((index = text.indexOf(wrong, index)) !== -1) {
@@ -66,6 +69,18 @@ export function checkSpelling(
       const alreadyReported = errors.some(
         e => e.position <= index && e.position + e.length > index
       )
+      
+      // 上下文检查：避免误报
+      // 如果前后都是中文字符，需要更谨慎（可能是组词的一部分）
+      const before = text[index - 1]
+      const after = text[index + wrong.length]
+      const isChinese = (char: string) => char && /[\u4e00-\u9fa5]/.test(char)
+      
+      // 如果两侧都是中文，且错误词只有单字，跳过（太容易误报）
+      if (wrong.length === 1 && isChinese(before) && isChinese(after)) {
+        index += wrong.length
+        continue
+      }
       
       if (!alreadyReported) {
         errors.push({

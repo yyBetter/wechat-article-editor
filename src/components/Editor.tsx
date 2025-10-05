@@ -11,6 +11,7 @@ import { uploadImage, getImageUrl } from '../utils/image-api'
 import { SpellChecker } from './SpellChecker'
 import { OutlinePanel } from './OutlinePanel'
 import { OutlineNode } from '../utils/outline-parser'
+import { countWords } from '../utils/word-counter'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -743,7 +744,7 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
         </span>
 
         <span className="status-item word-count">
-          📝 {state.editor.content.length} 字
+          📝 {countWords(state.editor.content)} 字
         </span>
         
         {/* 错别字检查状态 */}
