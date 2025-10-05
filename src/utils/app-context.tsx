@@ -23,6 +23,10 @@ const initialState: AppState = {
     cursorPosition: 0,
     isChanged: false,
     lastSaved: null,
+    // 文档状态管理（飞书模式）
+    documentStatus: 'TEMP' as const,  // 新文档初始为临时状态
+    documentId: null,
+    editStartTime: null,
     scrollPercentage: 0,
     cursorLinePercentage: 0,
     totalLines: 1
@@ -87,7 +91,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
         editor: {
           ...state.editor,
           content: action.payload,
-          isChanged: true
+          isChanged: true,
+          // 首次输入时设置编辑开始时间（飞书模式）
+          editStartTime: state.editor.editStartTime || new Date()
         }
       }
       
@@ -225,6 +231,45 @@ function appReducer(state: AppState, action: AppAction): AppState {
         preview: {
           ...state.preview,
           syncScrollEnabled: action.payload
+        }
+      }
+      
+    case 'SET_DOCUMENT_STATUS':
+      return {
+        ...state,
+        editor: {
+          ...state.editor,
+          documentStatus: action.payload
+        }
+      }
+      
+    case 'SET_DOCUMENT_ID':
+      return {
+        ...state,
+        editor: {
+          ...state.editor,
+          documentId: action.payload
+        }
+      }
+      
+    case 'RESET_DOCUMENT':
+      return {
+        ...state,
+        editor: {
+          ...initialState.editor,
+          content: action.payload?.content || initialState.editor.content,
+          documentStatus: 'TEMP',
+          documentId: null,
+          editStartTime: null
+        },
+        templates: {
+          ...state.templates,
+          variables: {
+            ...state.templates.variables,
+            title: action.payload?.title || '',
+            author: state.templates.variables.author,
+            date: state.templates.variables.date
+          }
         }
       }
       

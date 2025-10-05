@@ -13,6 +13,12 @@ export interface AppState {
   ui: UIState
 }
 
+// 文档状态类型（飞书模式）
+export type DocumentStatus = 
+  | 'TEMP'      // 临时状态（仅前端，未持久化）
+  | 'DRAFT'     // 草稿（已持久化，可能被清理）
+  | 'NORMAL'    // 正常文档（不会被清理）
+
 // 编辑器状态
 export interface EditorState {
   content: string
@@ -20,6 +26,10 @@ export interface EditorState {
   cursorPosition: number
   isChanged: boolean
   lastSaved: Date | null
+  // 文档状态管理
+  documentStatus: DocumentStatus  // 当前文档状态
+  documentId: string | null  // 当前文档ID（临时或永久）
+  editStartTime: Date | null  // 开始编辑时间
   // 滚动同步相关
   scrollPercentage: number  // 滚动百分比 (0-1)
   cursorLinePercentage: number  // 光标所在行的百分比 (0-1)
@@ -140,3 +150,6 @@ export type AppAction =
   | { type: 'UPDATE_EDITOR_SCROLL'; payload: { scrollPercentage: number; cursorLinePercentage: number; totalLines: number } }
   | { type: 'UPDATE_PREVIEW_SCROLL'; payload: { scrollPosition: number; source: 'editor' | 'preview' } }
   | { type: 'TOGGLE_SYNC_SCROLL'; payload: boolean }
+  | { type: 'SET_DOCUMENT_STATUS'; payload: DocumentStatus }
+  | { type: 'SET_DOCUMENT_ID'; payload: string | null }
+  | { type: 'RESET_DOCUMENT'; payload?: { content?: string; title?: string } }

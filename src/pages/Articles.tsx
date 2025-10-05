@@ -118,6 +118,8 @@ export function Articles() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOption, setSortOption] = useState<SortOption>(SORT_OPTIONS[0])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  // 飞书模式：文档状态过滤
+  const [showDrafts, setShowDrafts] = useState(false)
 
   // 加载文档列表
   useEffect(() => {
@@ -238,12 +240,54 @@ export function Articles() {
     }
   }
 
-  // 过滤和排序文档
+  // 飞书模式：清理草稿文档
+  const handleCleanDrafts = async () => {
+    const drafts = documents.filter(doc => {
+      const wordCount = countWords(doc.content)
+      const hasTitle = doc.title && doc.title.trim() !== '' && !doc.title.includes('未命名')
+      const isOld = new Date(doc.updatedAt).getTime() < Date.now() - 24 * 60 * 60 * 1000 // 24小时
+      
+      // 清理条件：24小时未编辑 && (内容<10字 || 无标题)
+      return isOld && (wordCount < 10 || !hasTitle)
+    })
+
+    if (drafts.length === 0) {
+      notification.info('没有需要清理的草稿文档')
+      return
+    }
+
+    if (!window.confirm(`发现 ${drafts.length} 个空草稿文档（24小时未编辑且内容过少），确定要清理吗？`)) {
+      return
+    }
+
+    try {
+      const deletePromises = drafts.map(doc => deleteDocument(doc.id))
+      await Promise.all(deletePromises)
+      notification.success(`已清理 ${drafts.length} 个草稿文档`)
+      loadDocuments()
+    } catch (error) {
+      console.error('清理草稿失败:', error)
+      notification.error('清理草稿失败')
+    }
+  }
+
+  // 过滤和排序文档（飞书模式：支持草稿过滤）
   const filteredAndSortedDocuments = React.useMemo(() => {
-    let filtered = documents.filter(doc => 
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.content.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    let filtered = documents.filter(doc => {
+      // 搜索过滤
+      const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.content.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      if (!matchesSearch) return false
+
+      // 飞书模式：草稿过滤
+      const wordCount = countWords(doc.content)
+      const hasTitle = doc.title && doc.title.trim() !== '' && !doc.title.includes('未命名')
+      const isDraft = wordCount < 30 && !hasTitle
+      
+      // 如果显示草稿模式，只显示草稿；否则只显示正式文档
+      return showDrafts ? isDraft : !isDraft
+    })
 
     filtered.sort((a, b) => {
       const { field, direction } = sortOption
@@ -335,6 +379,22 @@ export function Articles() {
           {/* 工具栏 */}
           <div className="articles-toolbar">
             <div className="toolbar-left">
+              {/* 飞书模式：草稿箱切换 */}
+              <div className="view-tabs">
+                <button
+                  className={`view-tab ${!showDrafts ? 'active' : ''}`}
+                  onClick={() => setShowDrafts(false)}
+                >
+                  📄 正式文档
+                </button>
+                <button
+                  className={`view-tab ${showDrafts ? 'active' : ''}`}
+                  onClick={() => setShowDrafts(true)}
+                >
+                  📝 草稿箱
+                </button>
+              </div>
+
               <div className="search-box">
                 <div className="search-input-wrapper">
                   <span className="search-icon">🔍</span>
@@ -378,6 +438,17 @@ export function Articles() {
             </div>
 
             <div className="toolbar-right">
+              {/* 飞书模式：清理草稿按钮（只在草稿箱显示） */}
+              {showDrafts && (
+                <button 
+                  className="clean-drafts-btn"
+                  onClick={handleCleanDrafts}
+                  title="清理24小时未编辑且内容过少的草稿"
+                >
+                  🗑️ 清理空草稿
+                </button>
+              )}
+              
               {selectedIds.size > 0 && (
                 <div className="batch-actions">
                   <span className="selected-count">已选择 {selectedIds.size} 项</span>

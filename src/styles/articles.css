@@ -113,6 +113,39 @@
   align-items: center;
 }
 
+/* 飞书模式：视图切换标签 */
+.view-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f8f9fa;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.view-tab {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.view-tab:hover {
+  background: rgba(30, 111, 255, 0.1);
+  color: #1e6fff;
+}
+
+.view-tab.active {
+  background: white;
+  color: #1e6fff;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .search-box {
   position: relative;
 }
@@ -183,6 +216,26 @@
 .toolbar-right {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+/* 飞书模式：清理草稿按钮 */
+.clean-drafts-btn {
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #e1e4e8;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.clean-drafts-btn:hover {
+  background: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
 }
 
 .batch-actions {

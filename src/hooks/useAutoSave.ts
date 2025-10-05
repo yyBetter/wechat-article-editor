@@ -1,8 +1,10 @@
-// 自动保存Hook - 支持本地存储和版本控制
+// 自动保存Hook - 飞书模式（延迟创建+智能保存）
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { useAuth } from '../utils/auth-context'
+import { useApp } from '../utils/app-context'
 import { saveCurrentContent, Document } from '../utils/document-api'
 import { getStorageConfig } from '../utils/storage-adapter'
+import type { DocumentStatus } from '../types/app'
 
 interface AutoSaveOptions {
   delay?: number // 延迟时间(毫秒)，默认3000ms
@@ -16,6 +18,78 @@ interface AutoSaveState {
   lastSaved: Date | null
   currentDocumentId: string | null
   hasUnsavedChanges: boolean
+}
+
+// 飞书模式：判断是否应该创建文档
+function shouldCreateDocument(
+  content: string,
+  title: string,
+  documentStatus: DocumentStatus,
+  editStartTime: Date | null
+): boolean {
+  // 如果已经是DRAFT或NORMAL状态，说明已经创建过了
+  if (documentStatus !== 'TEMP') {
+    return false
+  }
+
+  const contentLength = content.trim().length
+  const hasTitle = title.trim().length > 0
+
+  // 条件1: 内容 ≥ 30字 + 标题非空
+  if (contentLength >= 30 && hasTitle) {
+    return true
+  }
+
+  // 条件2: 内容 ≥ 50字（即使标题为空）
+  if (contentLength >= 50) {
+    return true
+  }
+
+  // 条件3: 编辑时长 > 3分钟且有内容
+  if (editStartTime && contentLength > 10) {
+    const editDuration = Date.now() - editStartTime.getTime()
+    if (editDuration > 3 * 60 * 1000) { // 3分钟
+      return true
+    }
+  }
+
+  return false
+}
+
+// 飞书模式：判断是否应该升级文档状态 (DRAFT -> NORMAL)
+function shouldUpgradeToNormal(
+  content: string,
+  title: string,
+  documentStatus: DocumentStatus,
+  editStartTime: Date | null
+): boolean {
+  // 只有DRAFT状态才需要升级
+  if (documentStatus !== 'DRAFT') {
+    return false
+  }
+
+  const contentLength = content.trim().length
+  const hasTitle = title.trim().length > 0
+
+  // 条件1: 内容 ≥ 30字
+  if (contentLength >= 30) {
+    return true
+  }
+
+  // 条件2: 标题非空 + 内容 ≥ 10字
+  if (hasTitle && contentLength >= 10) {
+    return true
+  }
+
+  // 条件3: 编辑时长 > 3分钟
+  if (editStartTime) {
+    const editDuration = Date.now() - editStartTime.getTime()
+    if (editDuration > 3 * 60 * 1000) { // 3分钟
+      return true
+    }
+  }
+
+  return false
 }
 
 export function useAutoSave(
@@ -33,10 +107,13 @@ export function useAutoSave(
   } = options
 
   const { state: authState } = useAuth()
+  const { state, dispatch } = useApp()
+  const { documentStatus, documentId, editStartTime } = state.editor
+
   const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>({
     isSaving: false,
     lastSaved: null,
-    currentDocumentId: null,
+    currentDocumentId: documentId,
     hasUnsavedChanges: false
   })
 
@@ -44,7 +121,6 @@ export function useAutoSave(
   const lastContentRef = useRef<string>('')
   const lastTitleRef = useRef<string>('')
   const savingRef = useRef<boolean>(false)
-  const currentDocumentIdRef = useRef<string | null>(null)
   const onSaveRef = useRef(onSave)
   const onErrorRef = useRef(onError)
 
@@ -57,15 +133,24 @@ export function useAutoSave(
     return content !== lastContentRef.current || title !== lastTitleRef.current
   }, [content, title])
 
-  // 执行保存
+  // 执行保存（飞书模式）
   const performSave = useCallback(async () => {
     if (!authState.isAuthenticated || savingRef.current) {
       return
     }
 
-    // 内联检查变化，避免依赖hasContentChanged函数
+    // 检查变化
     const contentChanged = content !== lastContentRef.current || title !== lastTitleRef.current
     if (!contentChanged) {
+      return
+    }
+
+    // 飞书模式：检查是否应该创建文档
+    const shouldCreate = shouldCreateDocument(content, title, documentStatus, editStartTime)
+    
+    // 如果是TEMP状态且不满足创建条件，则跳过保存
+    if (documentStatus === 'TEMP' && !shouldCreate) {
+      console.log('📝 内容太少，暂不创建文档（飞书模式）')
       return
     }
 
@@ -77,8 +162,8 @@ export function useAutoSave(
         title: title || '未命名文档',
         content: content.substring(0, 100) + '...',
         templateId,
-        templateVariables,
-        documentId: currentDocumentIdRef.current || undefined
+        documentStatus,
+        documentId
       })
 
       const document = await saveCurrentContent({
@@ -86,11 +171,26 @@ export function useAutoSave(
         content,
         templateId,
         templateVariables,
-        documentId: currentDocumentIdRef.current || undefined
+        documentId: documentId || undefined
       })
 
-      // 更新状态和引用
-      currentDocumentIdRef.current = document.id
+      // 更新文档ID和状态
+      if (!documentId) {
+        dispatch({ type: 'SET_DOCUMENT_ID', payload: document.id })
+      }
+
+      // 飞书模式：状态升级逻辑
+      if (documentStatus === 'TEMP') {
+        // TEMP -> DRAFT (首次创建)
+        dispatch({ type: 'SET_DOCUMENT_STATUS', payload: 'DRAFT' })
+        console.log('📄 文档已创建为草稿 (TEMP -> DRAFT)')
+      } else if (documentStatus === 'DRAFT') {
+        // 检查是否应该升级到 NORMAL
+        if (shouldUpgradeToNormal(content, title, documentStatus, editStartTime)) {
+          dispatch({ type: 'SET_DOCUMENT_STATUS', payload: 'NORMAL' })
+          console.log('✅ 文档已升级为正式文档 (DRAFT -> NORMAL)')
+        }
+      }
       
       // 如果是本地或混合模式，创建自动版本记录
       const config = getStorageConfig()
@@ -105,9 +205,9 @@ export function useAutoSave(
           })
         } catch (versionError) {
           console.warn('创建自动版本记录失败:', versionError)
-          // 不影响主要的保存流程
         }
       }
+
       setAutoSaveState(prev => ({
         ...prev,
         isSaving: false,
@@ -135,17 +235,27 @@ export function useAutoSave(
     title,
     content,
     templateId,
-    templateVariables
+    templateVariables,
+    documentStatus,
+    documentId,
+    editStartTime,
+    dispatch
   ])
 
-  // 手动保存
+  // 手动保存（不受限制）
   const save = useCallback(async () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
     }
+
+    // 手动保存时，直接升级到NORMAL状态
+    if (documentStatus === 'TEMP' || documentStatus === 'DRAFT') {
+      dispatch({ type: 'SET_DOCUMENT_STATUS', payload: 'NORMAL' })
+    }
+
     await performSave()
-  }, [performSave])
+  }, [performSave, documentStatus, dispatch])
 
   // 使用指定内容手动保存
   const saveWithContent = useCallback(async (immediateContent: string) => {
@@ -158,30 +268,27 @@ export function useAutoSave(
       timeoutRef.current = null
     }
 
+    // 手动保存时，直接升级到NORMAL状态
+    if (documentStatus === 'TEMP' || documentStatus === 'DRAFT') {
+      dispatch({ type: 'SET_DOCUMENT_STATUS', payload: 'NORMAL' })
+    }
+
     try {
       savingRef.current = true
       setAutoSaveState(prev => ({ ...prev, isSaving: true }))
-
-      console.log('正在保存指定内容:', {
-        title: title || '未命名文档',
-        content: immediateContent.substring(0, 100) + '...',
-        templateId,
-        templateVariables,
-        documentId: currentDocumentIdRef.current || undefined
-      })
 
       const document = await saveCurrentContent({
         title: title || '未命名文档',
         content: immediateContent,
         templateId,
         templateVariables,
-        documentId: currentDocumentIdRef.current || undefined
+        documentId: documentId || undefined
       })
 
-      // 更新状态和引用
-      currentDocumentIdRef.current = document.id
-      
-      // 如果是本地或混合模式，创建手动版本记录
+      if (!documentId) {
+        dispatch({ type: 'SET_DOCUMENT_ID', payload: document.id })
+      }
+
       const config = getStorageConfig()
       if (config.mode === 'local' || config.mode === 'hybrid') {
         try {
@@ -194,9 +301,9 @@ export function useAutoSave(
           })
         } catch (versionError) {
           console.warn('创建版本记录失败:', versionError)
-          // 不影响主要的保存流程
         }
       }
+
       setAutoSaveState(prev => ({
         ...prev,
         isSaving: false,
@@ -205,7 +312,6 @@ export function useAutoSave(
         hasUnsavedChanges: false
       }))
 
-      // 更新引用值 - 使用传入的内容
       lastContentRef.current = immediateContent
       lastTitleRef.current = title
 
@@ -223,24 +329,27 @@ export function useAutoSave(
     authState.isAuthenticated,
     title,
     templateId,
-    templateVariables
+    templateVariables,
+    documentId,
+    documentStatus,
+    dispatch
   ])
 
   // 设置当前文档ID（用于加载已有文档时）
-  const setCurrentDocumentId = useCallback((documentId: string | null) => {
-    currentDocumentIdRef.current = documentId
+  const setCurrentDocumentId = useCallback((docId: string | null, status: DocumentStatus = 'NORMAL') => {
+    dispatch({ type: 'SET_DOCUMENT_ID', payload: docId })
+    dispatch({ type: 'SET_DOCUMENT_STATUS', payload: status })
     setAutoSaveState(prev => ({
       ...prev,
-      currentDocumentId: documentId,
+      currentDocumentId: docId,
       hasUnsavedChanges: false
     }))
     
-    if (documentId) {
-      // 如果设置了文档ID，更新引用值为当前内容
+    if (docId) {
       lastContentRef.current = content
       lastTitleRef.current = title
     }
-  }, []) // 移除content和title依赖，避免无限循环
+  }, [content, title, dispatch])
 
   // 重置自动保存状态（用于新建文档）
   const reset = useCallback(() => {
@@ -249,7 +358,7 @@ export function useAutoSave(
       timeoutRef.current = null
     }
     
-    currentDocumentIdRef.current = null
+    dispatch({ type: 'RESET_DOCUMENT' })
     setAutoSaveState({
       isSaving: false,
       lastSaved: null,
@@ -259,7 +368,7 @@ export function useAutoSave(
     
     lastContentRef.current = ''
     lastTitleRef.current = ''
-  }, [])
+  }, [dispatch])
 
   // 自动保存逻辑
   useEffect(() => {
@@ -267,7 +376,6 @@ export function useAutoSave(
       return
     }
 
-    // 检查内容是否有变化（内联检查避免函数依赖）
     const contentChanged = content !== lastContentRef.current || title !== lastTitleRef.current
     
     if (!contentChanged) {
@@ -282,17 +390,30 @@ export function useAutoSave(
       clearTimeout(timeoutRef.current)
     }
 
+    // 飞书模式：根据文档状态设置不同的延迟
+    let saveDelay = delay
+    if (documentStatus === 'TEMP') {
+      // TEMP状态：延迟10秒（给用户更多思考时间）
+      saveDelay = 10000
+    } else if (documentStatus === 'DRAFT') {
+      // DRAFT状态：延迟5秒
+      saveDelay = 5000
+    } else {
+      // NORMAL状态：延迟3秒（快速保存）
+      saveDelay = delay
+    }
+
     // 设置新的定时器
     timeoutRef.current = setTimeout(() => {
       performSave()
-    }, delay)
+    }, saveDelay) as unknown as number
 
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
     }
-  }, [enabled, authState.isAuthenticated, content, title, templateId, templateVariables, delay])
+  }, [enabled, authState.isAuthenticated, content, title, documentStatus, delay, performSave])
 
   // 组件卸载时清理
   useEffect(() => {
@@ -305,6 +426,7 @@ export function useAutoSave(
 
   return {
     ...autoSaveState,
+    documentStatus,
     save,
     saveWithContent,
     setCurrentDocumentId,
