@@ -50,10 +50,10 @@ echo "✅ 后端文件已复制"
 cp docker-compose.yml $DEPLOY_DIR/
 cp Dockerfile $DEPLOY_DIR/
 cp nginx.conf $DEPLOY_DIR/
-cp aliyun-auto-deploy.sh $DEPLOY_DIR/
-cp deploy-aliyun.md $DEPLOY_DIR/
-cp PRODUCT_LAUNCH_GUIDE.md $DEPLOY_DIR/
-cp PRODUCTION_READINESS_CHECKLIST.md $DEPLOY_DIR/
+cp scripts/aliyun-auto-deploy.sh $DEPLOY_DIR/
+# cp deploy-aliyun.md $DEPLOY_DIR/ 2>/dev/null || echo "⚠️ deploy-aliyun.md未找到"
+# cp PRODUCT_LAUNCH_GUIDE.md $DEPLOY_DIR/ 2>/dev/null || echo "⚠️ PRODUCT_LAUNCH_GUIDE.md未找到"
+# cp PRODUCTION_READINESS_CHECKLIST.md $DEPLOY_DIR/ 2>/dev/null || echo "⚠️ PRODUCTION_READINESS_CHECKLIST.md未找到"
 
 # 创建README
 cat > $DEPLOY_DIR/DEPLOY_README.md << 'EOF'
@@ -99,9 +99,9 @@ cat > $DEPLOY_DIR/DEPLOY_README.md << 'EOF'
 
 EOF
 
-# 复制部署脚本和预检查脚本
-cp deploy-preflight.sh $DEPLOY_DIR/ 2>/dev/null || echo "⚠️  deploy-preflight.sh未找到"
-cp aliyun-auto-deploy.sh $DEPLOY_DIR/ 2>/dev/null || echo "⚠️  aliyun-auto-deploy.sh未找到"
+# 复制部署脚本和预检查脚本  
+# cp deploy-preflight.sh $DEPLOY_DIR/ 2>/dev/null || echo "⚠️  deploy-preflight.sh未找到"
+# aliyun-auto-deploy.sh已在上面复制过了
 
 # 创建服务器端验证脚本
 cat > $DEPLOY_DIR/server-deploy-check.sh << 'EOF'

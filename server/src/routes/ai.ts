@@ -10,7 +10,7 @@ const prisma = new PrismaClient()
 // 获取AI使用情况
 router.get('/usage', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user?.userId
+    const userId = req.user?.id
     if (!userId) {
       return res.status(401).json(createErrorResponse('未授权'))
     }
@@ -50,7 +50,7 @@ router.get('/usage', authenticateToken, async (req, res) => {
 // 增加AI使用次数
 router.post('/usage/increment', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user?.userId
+    const userId = req.user?.id
     if (!userId) {
       return res.status(401).json(createErrorResponse('未授权'))
     }
@@ -116,7 +116,7 @@ router.post('/usage/increment', authenticateToken, async (req, res) => {
 // 重置AI使用次数（仅管理员）
 router.post('/usage/reset/:targetUserId', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user?.userId
+    const userId = req.user?.id
     const { targetUserId } = req.params
 
     if (!userId) {
