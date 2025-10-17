@@ -2,11 +2,17 @@
 import { Template } from '../types/template'
 import { simpleDocTemplate } from './simple-doc'
 import { imageTextTemplate } from './image-text'
+import { techModernTemplate } from './tech-modern'
+import { businessFormalTemplate } from './business-formal'
+import { literaryElegantTemplate } from './literary-elegant'
 
 // 所有可用模板
 export const templates: Template[] = [
   simpleDocTemplate,
-  imageTextTemplate
+  imageTextTemplate,
+  techModernTemplate,
+  businessFormalTemplate,
+  literaryElegantTemplate
 ]
 
 // 根据ID获取模板
@@ -65,6 +71,24 @@ export const templatePresets = {
     icon: '🖼️',
     description: '适合图片展示的内容',
     scenarios: ['产品介绍', '美食分享', '旅游攻略']
+  },
+  'tech-modern': {
+    name: '科技现代',
+    icon: '🚀',
+    description: '适合科技产品和创新项目',
+    scenarios: ['产品发布', '技术分享', 'AI主题']
+  },
+  'business-formal': {
+    name: '商务正式',
+    icon: '💼',
+    description: '适合企业和商业场景',
+    scenarios: ['企业公告', '商业报告', '正式通知']
+  },
+  'literary-elegant': {
+    name: '文艺优雅',
+    icon: '🎨',
+    description: '适合文学和生活分享',
+    scenarios: ['文学创作', '生活随笔', '情感文章']
   }
 }
 

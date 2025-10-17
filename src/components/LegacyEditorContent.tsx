@@ -208,14 +208,15 @@ export function LegacyEditorContent() {
           >
             ← 首页
           </button>
-          <button 
+          {/* 已隐藏：侧边栏切换按钮（AI助手已隐藏） */}
+          {/* <button 
             type="button"
             className="sidebar-toggle"
             onClick={toggleSidebar}
             title={state.ui.sidebarOpen ? '隐藏侧边栏' : '显示侧边栏'}
           >
             ☰
-          </button>
+          </button> */}
           <h1 className="app-title">
             {loading ? '加载中...' : documentId ? `编辑: ${state.templates.variables?.title || '无标题'}` : '公众号排版工具'}
           </h1>
@@ -232,7 +233,8 @@ export function LegacyEditorContent() {
               {state.ui.showPreview ? '📱 隐藏预览' : '👁️ 显示预览'}
             </button>
             
-            <button 
+            {/* 已隐藏：发布到微信按钮 */}
+            {/* <button 
               type="button"
               className="header-btn publish-btn"
               onClick={() => setPublishModalOpen(true)}
@@ -240,7 +242,7 @@ export function LegacyEditorContent() {
               title={!state.editor.content || !state.templates.variables.title ? '请先编辑内容和填写标题' : '发布到微信公众号'}
             >
               📤 发布到微信
-            </button>
+            </button> */}
             
             <button 
               type="button"
@@ -259,14 +261,14 @@ export function LegacyEditorContent() {
       
       {/* 主要内容区域 */}
       <div className="app-main">
-        {/* 左侧 AI 助手面板 */}
-        {state.ui.sidebarOpen && (
+        {/* 已隐藏：左侧 AI 助手面板 */}
+        {/* {state.ui.sidebarOpen && (
           <aside className="app-sidebar">
             <div className="sidebar-content">
               <AIAssistant />
             </div>
           </aside>
-        )}
+        )} */}
 
         {/* 编辑器区域 */}
         <div className="editor-section">

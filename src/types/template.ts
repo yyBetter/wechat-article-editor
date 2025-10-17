@@ -58,7 +58,7 @@ export interface TextStyle {
   margin?: string
   marginBottom?: string
   marginTop?: string
-  textAlign?: 'left' | 'center' | 'right'
+  textAlign?: 'left' | 'center' | 'right' | 'justify'
   textDecoration?: string
   fontStyle?: string
   backgroundColor?: string
@@ -66,7 +66,18 @@ export interface TextStyle {
   borderRadius?: string
   border?: string
   borderLeft?: string
+  borderRight?: string
+  borderTop?: string
+  borderBottom?: string
   paddingLeft?: string
+  paddingRight?: string
+  paddingTop?: string
+  paddingBottom?: string
+  letterSpacing?: string
+  textIndent?: string
+  fontFamily?: string
+  background?: string
+  opacity?: string | number
 }
 
 // 其他元素样式
@@ -92,8 +103,11 @@ export interface ImageStyle {
   maxWidth?: string
   display?: string
   marginBottom: string
+  margin?: string
   borderRadius?: string
   boxShadow?: string
+  border?: string
+  opacity?: string | number
 }
 
 // 分割线样式
@@ -102,6 +116,9 @@ export interface DividerStyle {
   margin: string
   height?: string
   backgroundColor?: string
+  background?: string
+  width?: string
+  opacity?: string | number
 }
 
 // 图文块样式
