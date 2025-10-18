@@ -80,7 +80,8 @@ log_env() {
 
 # ========== 确认部署 ==========
 echo ""
-log_env "准备部署到 ${ENV^^} 环境"
+ENV_UPPER=$(echo "$ENV" | tr '[:lower:]' '[:upper:]')
+log_env "准备部署到 ${ENV_UPPER} 环境"
 echo ""
 echo "📋 部署配置："
 echo "  服务器: ${SERVER_USER}@${SERVER_IP}"
@@ -310,7 +311,8 @@ fi
 # ========== 完成 ==========
 echo ""
 log_success "========================================="
-log_env "🎉 ${ENV^^} 环境部署完成！"
+ENV_UPPER=$(echo "$ENV" | tr '[:lower:]' '[:upper:]')
+log_env "🎉 ${ENV_UPPER} 环境部署完成！"
 log_success "========================================="
 echo ""
 log_info "访问地址: http://${SERVER_IP}"
