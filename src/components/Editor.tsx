@@ -14,6 +14,7 @@ import { OutlineNode } from '../utils/outline-parser'
 import { countWords } from '../utils/word-counter'
 import { smartPasteHandler, SmartPasteHandler } from '../utils/paste-handler'
 import { SmartPasteFeature } from './SmartPasteFeature'
+import { VoiceToArticle } from './ai/VoiceToArticle'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -73,6 +74,9 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     setShowGuide(false)
     localStorage.setItem('smart_paste_guide_seen', 'true')
   }, [])
+  
+  // AI语音转文字模态框
+  const [showVoiceToArticle, setShowVoiceToArticle] = useState(false)
 
   // 自动保存功能
   const autoSave = useAutoSave(
@@ -486,6 +490,37 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     })
   }, [])
 
+  // 处理语音转文字生成的文章
+  const handleVoiceArticleGenerated = useCallback((article: string) => {
+    // 将AI生成的文章插入到编辑器
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const currentContent = state.editor.content
+
+      // 在光标位置插入文章
+      const newContent =
+        currentContent.substring(0, start) +
+        '\n\n' + article + '\n\n' +
+        currentContent.substring(end)
+
+      dispatch({
+        type: 'UPDATE_EDITOR_CONTENT',
+        payload: newContent
+      })
+
+      notification.success('✅ 语音文章已插入编辑器')
+
+      // 恢复光标位置
+      setTimeout(() => {
+        const newPosition = start + article.length + 4
+        textarea.setSelectionRange(newPosition, newPosition)
+        textarea.focus()
+      }, 0)
+    }
+  }, [state.editor.content, dispatch])
+
   // 处理图片文件上传
   const handleImageUpload = useCallback(async (file: File) => {
     try {
@@ -798,6 +833,15 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
             {isUploading ? '⏳' : '🖼️'}
           </button>
           
+          <button 
+            type="button"
+            onClick={() => setShowVoiceToArticle(true)}
+            title="AI语音转文字 (录音变文章)"
+            className="toolbar-btn voice-btn"
+          >
+            🎤
+          </button>
+          
           {/* 手动保存按钮 */}
           {authState.isAuthenticated && (
             <button 
@@ -956,6 +1000,14 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
       
       {/* 首次使用引导 */}
       {showGuide && <SmartPasteFeature variant="guide" onClose={handleCloseGuide} />}
+      
+      {/* AI语音转文字模态框 */}
+      {showVoiceToArticle && (
+        <VoiceToArticle 
+          onArticleGenerated={handleVoiceArticleGenerated}
+          onClose={() => setShowVoiceToArticle(false)}
+        />
+      )}
       
       <div className="editor-main-content">
         {/* 大纲面板 */}
