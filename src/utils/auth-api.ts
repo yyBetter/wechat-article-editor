@@ -1,7 +1,10 @@
 // 认证API工具函数
 // 与后端API通信的统一接口
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002') + '/api'
+// 在生产环境使用相对路径（通过Nginx代理），开发环境直连后端
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+  ? import.meta.env.VITE_API_BASE_URL + '/api'
+  : (import.meta.env.DEV ? 'http://localhost:3002/api' : '/api')
 
 export interface User {
   id: string
