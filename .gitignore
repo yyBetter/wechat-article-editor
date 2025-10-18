@@ -1,61 +1,31 @@
-# 依赖
-node_modules/
-.pnpm-debug.log*
-
-# 环境变量（敏感信息）
-.env.local
-.env.production
-.env.staging.local
-.env.production.local
-
-# 构建输出
-dist/
-build/
-.vite/
-.turbo/
-
-# IDE
-.vscode/*
-!.vscode/extensions.json
-.idea/
-*.swp
-*.swo
-*~
-
-# 系统文件
+node_modules
+dist
 .DS_Store
-Thumbs.db
-
-# 日志
-logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+.vscode
+.idea
 
-# 测试
-coverage/
-*.lcov
-.nyc_output/
+# 环境配置文件（包含敏感信息，不提交）
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.*.local
+
+# 数据库文件
+*.db
+*.db-journal
+
+# 上传文件
+uploads/
+
+# 备份文件
+backups/
+*.tar.gz
+*.backup
 
 # 临时文件
-*.tmp
-*.temp
+tmp/
+temp/
 .cache/
-
-# Prisma
-server/prisma/dev.db
-server/prisma/dev.db-journal
-server/prisma/*.db
-server/prisma/*.db-journal
-
-# 生产数据库备份
-*.sql
-*.dump
-
-# 部署相关
-.vercel/
-.netlify/
-.railway/
