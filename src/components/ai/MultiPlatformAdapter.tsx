@@ -63,6 +63,16 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
   const [isAdapting, setIsAdapting] = useState(false)
   const [currentStep, setCurrentStep] = useState<'select' | 'adapting' | 'result'>('select')
   const [viewMode, setViewMode] = useState<'text' | 'preview'>('preview') // 默认显示样式预览
+  const resultRef = React.useRef<HTMLDivElement>(null)
+
+  // 当适配完成后，自动滚动到结果区域
+  React.useEffect(() => {
+    if (currentStep === 'result' && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [currentStep])
 
   // 切换平台选择
   const togglePlatform = useCallback((platformId: string) => {
@@ -325,7 +335,7 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
 
           {/* 步骤3: 结果展示 */}
           {currentStep === 'result' && (
-            <div className="step-content result">
+            <div className="step-content result" ref={resultRef}>
               <div className="result-header">
                 <div className="result-success">
                   <span className="success-icon">🎉</span>
@@ -361,6 +371,12 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* 平台版本列表标题 */}
+              <div className="versions-section-title">
+                <h3>📱 各平台适配版本</h3>
+                <p>👇 滚动查看各平台的专属版本</p>
               </div>
 
               <div className="platform-versions">
