@@ -15,6 +15,7 @@ import { countWords } from '../utils/word-counter'
 import { smartPasteHandler, SmartPasteHandler } from '../utils/paste-handler'
 import { SmartPasteFeature } from './SmartPasteFeature'
 import { VoiceToArticle } from './ai/VoiceToArticle'
+import { MultiPlatformAdapter } from './ai/MultiPlatformAdapter'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -77,6 +78,9 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   
   // AI语音转文字模态框
   const [showVoiceToArticle, setShowVoiceToArticle] = useState(false)
+  
+  // AI多平台分发模态框
+  const [showMultiPlatform, setShowMultiPlatform] = useState(false)
 
   // 自动保存功能
   const autoSave = useAutoSave(
@@ -842,6 +846,15 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
             🎤
           </button>
           
+          <button 
+            type="button"
+            onClick={() => setShowMultiPlatform(true)}
+            title="AI多平台分发 (一键适配多平台)"
+            className="toolbar-btn platform-btn"
+          >
+            🚀
+          </button>
+          
           {/* 手动保存按钮 */}
           {authState.isAuthenticated && (
             <button 
@@ -1006,6 +1019,15 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
         <VoiceToArticle 
           onArticleGenerated={handleVoiceArticleGenerated}
           onClose={() => setShowVoiceToArticle(false)}
+        />
+      )}
+      
+      {/* AI多平台分发模态框 */}
+      {showMultiPlatform && (
+        <MultiPlatformAdapter
+          originalTitle={state.templates.variables.title || '未命名文档'}
+          originalContent={state.editor.content}
+          onClose={() => setShowMultiPlatform(false)}
         />
       )}
       

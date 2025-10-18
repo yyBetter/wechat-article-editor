@@ -19,6 +19,7 @@ import wechatRoutes from './routes/wechat'
 import aiRoutes from './routes/ai'
 import voiceRoutes from './routes/voice'
 import styleRoutes from './routes/style'
+import platformRoutes from './routes/platform'
 import { analyticsMiddleware } from './utils/analytics'
 
 // 加载环境变量
@@ -183,6 +184,9 @@ app.use('/api/voice', voiceRoutes)
 
 // AI风格分析路由
 app.use('/api/ai', styleRoutes)
+
+// AI多平台适配路由
+app.use('/api/ai', platformRoutes)
 
 // 静态文件服务 - 为上传的图片提供访问路径（带缓存策略）
 app.use('/api/uploads/images', express.static(path.join(__dirname, '../uploads/images'), {
