@@ -124,6 +124,7 @@ router.post('/transcribe', authMiddleware, upload.single('audio'), async (req, r
 router.post('/process-transcript', authMiddleware, async (req, res) => {
   try {
     const { transcript } = req.body
+    const userId = req.user?.id
 
     if (!transcript) {
       return res.status(400).json({ error: '缺少转录文本' })
@@ -131,13 +132,46 @@ router.post('/process-transcript', authMiddleware, async (req, res) => {
 
     console.log('🤖 开始AI文本整理...')
 
+    // 获取用户的风格配置
+    let styleInstruction = ''
+    if (userId) {
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { styleProfile: true }
+        })
+
+        if (user?.styleProfile) {
+          const styleProfile = JSON.parse(user.styleProfile as string)
+          if (styleProfile.analyzed) {
+            styleInstruction = `
+
+【重要】用户的个人写作风格：
+${styleProfile.summary}
+
+请严格按照以下风格特征进行整理：
+- 语气：${styleProfile.profile.tone}
+- 常用词汇：${styleProfile.profile.vocabulary.slice(0, 10).join('、')}
+- 表达习惯：${styleProfile.profile.writingHabits.slice(0, 5).join('；')}
+${styleProfile.profile.emojiUsage.length > 0 ? `- 常用emoji：${styleProfile.profile.emojiUsage.slice(0, 8).join(' ')}` : ''}
+
+整理后的文章必须完全符合用户的风格，让人感觉是用户本人写的！`
+
+            console.log('✨ 已加载用户风格配置')
+          }
+        }
+      } catch (error) {
+        console.log('⚠️ 获取风格配置失败，使用默认风格')
+      }
+    }
+
     // 使用GPT整理文本
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_API_KEY ? 'gpt-4' : 'deepseek-chat',
       messages: [
         {
           role: 'system',
-          content: `你是一个专业的文字编辑和内容整理专家。你的任务是将口语化的语音转录文本整理成规范的书面文章。
+          content: `你是一个专业的文字编辑和内容整理专家。你的任务是将口语化的语音转录文本整理成规范的书面文章。${styleInstruction}
 
 整理要求：
 1. 去除口语化表达（如"那个"、"嗯"、"就是"等填充词）
