@@ -76,3 +76,6 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
     next()
   }
 }
+
+// 别名导出，保持向后兼容
+export const authMiddleware = authenticateToken
