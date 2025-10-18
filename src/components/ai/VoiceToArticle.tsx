@@ -1,6 +1,7 @@
 // AI语音转文字组件
 import React, { useState, useCallback } from 'react'
 import { notification } from '../../utils/notification'
+import { AudioRecorder } from './AudioRecorder'
 import '../../styles/voice-to-article.css'
 
 interface VoiceToArticleProps {
@@ -14,7 +15,10 @@ interface TranscriptionProgress {
   message: string
 }
 
+type InputMode = 'upload' | 'record'
+
 export function VoiceToArticle({ onArticleGenerated, onClose }: VoiceToArticleProps) {
+  const [inputMode, setInputMode] = useState<InputMode>('upload')
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState<TranscriptionProgress>({
@@ -195,6 +199,22 @@ export function VoiceToArticle({ onArticleGenerated, onClose }: VoiceToArticlePr
     }
   }, [audioPreview])
 
+  // 处理录音完成
+  const handleRecordingComplete = useCallback((audioBlob: Blob, duration: number) => {
+    // 将Blob转换为File对象
+    const audioFile = new File([audioBlob], `recording-${Date.now()}.webm`, {
+      type: audioBlob.type
+    })
+    
+    setFile(audioFile)
+    
+    // 创建音频预览
+    const url = URL.createObjectURL(audioBlob)
+    setAudioPreview(url)
+    
+    notification.success(`✅ 录音完成（${Math.floor(duration / 60)}分${duration % 60}秒），可以开始转换`)
+  }, [])
+
   return (
     <div className="voice-to-article-modal">
       <div className="modal-overlay" onClick={onClose}></div>
@@ -208,9 +228,30 @@ export function VoiceToArticle({ onArticleGenerated, onClose }: VoiceToArticlePr
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
 
+        {/* 标签页切换 */}
+        <div className="mode-tabs">
+          <button 
+            className={`mode-tab ${inputMode === 'upload' ? 'active' : ''}`}
+            onClick={() => setInputMode('upload')}
+          >
+            <span className="tab-icon">📁</span>
+            <span className="tab-label">上传文件</span>
+          </button>
+          <button 
+            className={`mode-tab ${inputMode === 'record' ? 'active' : ''}`}
+            onClick={() => setInputMode('record')}
+          >
+            <span className="tab-icon">🎤</span>
+            <span className="tab-label">直接录音</span>
+          </button>
+        </div>
+
         <div className="modal-body">
-          {/* 上传区域 */}
-          {!file && (
+          {/* 上传模式 */}
+          {inputMode === 'upload' && (
+            <>
+              {/* 上传区域 */}
+              {!file && (
             <div 
               className="upload-area"
               onDrop={handleDrop}
@@ -346,15 +387,149 @@ export function VoiceToArticle({ onArticleGenerated, onClose }: VoiceToArticlePr
             </div>
           )}
 
-          {/* 错误状态 */}
-          {progress.stage === 'error' && (
-            <div className="error-state">
-              <div className="error-icon">❌</div>
-              <div className="error-message">{progress.message}</div>
-              <button className="btn-primary" onClick={handleReset}>
-                🔄 重新开始
-              </button>
-            </div>
+              {/* 错误状态 */}
+              {progress.stage === 'error' && (
+                <div className="error-state">
+                  <div className="error-icon">❌</div>
+                  <div className="error-message">{progress.message}</div>
+                  <button className="btn-primary" onClick={handleReset}>
+                    🔄 重新开始
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* 录音模式 */}
+          {inputMode === 'record' && (
+            <>
+              {!file && !isProcessing && progress.stage !== 'complete' && (
+                <AudioRecorder onRecordingComplete={handleRecordingComplete} />
+              )}
+
+              {/* 录音完成，显示文件信息 */}
+              {file && !isProcessing && progress.stage !== 'complete' && (
+                <div className="file-selected">
+                  <div className="file-info">
+                    <span className="file-icon">🎵</span>
+                    <div className="file-details">
+                      <div className="file-name">{file.name}</div>
+                      <div className="file-size">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                  </div>
+
+                  {audioPreview && (
+                    <div className="audio-preview">
+                      <audio controls src={audioPreview} style={{ width: '100%' }} />
+                    </div>
+                  )}
+
+                  <div className="action-buttons">
+                    <button className="btn-secondary" onClick={handleReset}>
+                      🔄 重新录音
+                    </button>
+                    <button className="btn-primary" onClick={handleStartConversion}>
+                      ✨ 开始转换
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 处理进度 */}
+              {isProcessing && (
+                <div className="processing-status">
+                  <div className="progress-indicator">
+                    <div className="progress-circle">
+                      <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" className="progress-bg" />
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          className="progress-bar"
+                          style={{
+                            strokeDasharray: `${progress.progress * 2.827}, 282.7`
+                          }}
+                        />
+                      </svg>
+                      <div className="progress-text">{progress.progress}%</div>
+                    </div>
+                  </div>
+
+                  <div className="progress-message">{progress.message}</div>
+
+                  <div className="progress-steps">
+                    <div className={`step ${progress.progress >= 30 ? 'completed' : 'active'}`}>
+                      <span className="step-icon">📤</span>
+                      <span className="step-label">上传文件</span>
+                    </div>
+                    <div className={`step ${progress.progress >= 60 ? 'completed' : progress.progress >= 30 ? 'active' : ''}`}>
+                      <span className="step-icon">🎤</span>
+                      <span className="step-label">语音识别</span>
+                    </div>
+                    <div className={`step ${progress.progress >= 100 ? 'completed' : progress.progress >= 60 ? 'active' : ''}`}>
+                      <span className="step-icon">🤖</span>
+                      <span className="step-label">智能整理</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 转换完成 */}
+              {progress.stage === 'complete' && (
+                <div className="conversion-result">
+                  <div className="result-header">
+                    <span className="result-icon">🎉</span>
+                    <h3>转换完成！</h3>
+                  </div>
+
+                  {/* 原始语音文本 */}
+                  <div className="result-section">
+                    <div className="section-title">
+                      <span className="title-icon">📝</span>
+                      <span>原始识别文本</span>
+                    </div>
+                    <div className="result-content raw-transcript">
+                      {transcript}
+                    </div>
+                  </div>
+
+                  {/* AI整理后的文章 */}
+                  <div className="result-section">
+                    <div className="section-title">
+                      <span className="title-icon">✨</span>
+                      <span>AI整理后的文章</span>
+                      <span className="badge">推荐使用</span>
+                    </div>
+                    <div className="result-content processed-article">
+                      {processedArticle}
+                    </div>
+                  </div>
+
+                  <div className="result-actions">
+                    <button className="btn-secondary" onClick={handleReset}>
+                      🔄 转换新文件
+                    </button>
+                    <button className="btn-primary" onClick={handleApply}>
+                      ✅ 插入编辑器
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 错误状态 */}
+              {progress.stage === 'error' && (
+                <div className="error-state">
+                  <div className="error-icon">❌</div>
+                  <div className="error-message">{progress.message}</div>
+                  <button className="btn-primary" onClick={handleReset}>
+                    🔄 重新开始
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 

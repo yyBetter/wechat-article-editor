@@ -55,6 +55,49 @@
   border-bottom: 2px solid #f0f0f0;
 }
 
+/* 标签页切换 */
+.mode-tabs {
+  display: flex;
+  border-bottom: 2px solid #f0f0f0;
+  background: #f8f9fa;
+}
+
+.mode-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-tab:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.mode-tab.active {
+  background: white;
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.tab-icon {
+  font-size: 18px;
+}
+
+.tab-label {
+  font-size: 15px;
+}
+
 .header-title {
   display: flex;
   align-items: center;
