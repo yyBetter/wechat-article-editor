@@ -3,7 +3,7 @@
 # ⏰ 等待并自动部署脚本
 # 每5分钟尝试连接一次，成功后自动部署
 
-SERVER_IP="47.55.117.20"
+SERVER_IP="114.55.117.20"
 SERVER_USER="root"
 MAX_ATTEMPTS=12  # 最多尝试12次（60分钟）
 WAIT_TIME=300    # 每次等待5分钟

@@ -30,7 +30,7 @@ fi
 # ========== 环境配置 ==========
 if [ "$ENV" = "staging" ]; then
     # 测试环境配置
-    SERVER_IP="47.55.117.20"  # 可以是同一台服务器
+    SERVER_IP="114.55.117.20"  # 可以是同一台服务器
     SERVER_USER="root"
     SERVER_PATH="/opt/wechat-editor-staging"
     FRONTEND_PATH="/var/www/staging"
@@ -40,7 +40,7 @@ if [ "$ENV" = "staging" ]; then
     COLOR="\033[1;33m"  # 黄色
 elif [ "$ENV" = "production" ]; then
     # 生产环境配置
-    SERVER_IP="47.55.117.20"
+    SERVER_IP="114.55.117.20"
     SERVER_USER="root"
     SERVER_PATH="/opt/wechat-editor"
     FRONTEND_PATH="/var/www/html"

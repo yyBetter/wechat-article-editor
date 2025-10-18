@@ -59,7 +59,7 @@ git commit -m "feat: 新功能"
 
 # 3. 部署到测试环境
 ./deploy-multi-env.sh staging
-# 在 http://47.55.117.20 测试
+# 在 http://114.55.117.20 测试
 
 # 4. 测试通过，部署到生产
 ./deploy-multi-env.sh production
@@ -72,26 +72,26 @@ git commit -m "feat: 新功能"
 
 ### 查看所有环境状态
 ```bash
-ssh root@47.55.117.20 'pm2 status'
+ssh root@114.55.117.20 'pm2 status'
 ```
 
 ### 查看测试环境日志
 ```bash
-ssh root@47.55.117.20 'pm2 logs wechat-editor-staging --lines 50'
+ssh root@114.55.117.20 'pm2 logs wechat-editor-staging --lines 50'
 ```
 
 ### 查看生产环境日志
 ```bash
-ssh root@47.55.117.20 'pm2 logs wechat-editor --lines 50'
+ssh root@114.55.117.20 'pm2 logs wechat-editor --lines 50'
 ```
 
 ### 重启服务
 ```bash
 # 重启测试环境
-ssh root@47.55.117.20 'pm2 restart wechat-editor-staging'
+ssh root@114.55.117.20 'pm2 restart wechat-editor-staging'
 
 # 重启生产环境
-ssh root@47.55.117.20 'pm2 restart wechat-editor'
+ssh root@114.55.117.20 'pm2 restart wechat-editor'
 ```
 
 ---
@@ -100,11 +100,11 @@ ssh root@47.55.117.20 'pm2 restart wechat-editor'
 
 ```bash
 # 备份数据库
-ssh root@47.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf backup-$(date +%Y%m%d).tar.gz production.db'
+ssh root@114.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf backup-$(date +%Y%m%d).tar.gz production.db'
 
 # 下载备份到本地
 mkdir -p backups
-scp root@47.55.117.20:/opt/wechat-editor/prisma/backup-*.tar.gz backups/
+scp root@114.55.117.20:/opt/wechat-editor/prisma/backup-*.tar.gz backups/
 ```
 
 ---
@@ -113,7 +113,7 @@ scp root@47.55.117.20:/opt/wechat-editor/prisma/backup-*.tar.gz backups/
 
 ### 问题1: 部署后出现401错误
 **原因**: Nginx配置未生效  
-**解决**: `ssh root@47.55.117.20 'sudo systemctl reload nginx'`
+**解决**: `ssh root@114.55.117.20 'sudo systemctl reload nginx'`
 
 ### 问题2: 前端显示空白
 **原因**: 浏览器缓存  
@@ -123,7 +123,7 @@ scp root@47.55.117.20:/opt/wechat-editor/prisma/backup-*.tar.gz backups/
 **原因**: Schema不匹配  
 **解决**: 
 ```bash
-ssh root@47.55.117.20 'cd /opt/wechat-editor && npx prisma db push && pm2 restart wechat-editor'
+ssh root@114.55.117.20 'cd /opt/wechat-editor && npx prisma db push && pm2 restart wechat-editor'
 ```
 
 ---

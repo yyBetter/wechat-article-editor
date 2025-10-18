@@ -21,7 +21,7 @@
 
 ```bash
 # SSH登录服务器
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 创建项目目录
 mkdir -p /opt/wechat-editor
@@ -47,22 +47,22 @@ exit
 
 ### 查看服务状态
 ```bash
-ssh root@47.55.117.20 'pm2 status'
+ssh root@114.55.117.20 'pm2 status'
 ```
 
 ### 查看日志
 ```bash
-ssh root@47.55.117.20 'pm2 logs wechat-editor --lines 50'
+ssh root@114.55.117.20 'pm2 logs wechat-editor --lines 50'
 ```
 
 ### 重启服务
 ```bash
-ssh root@47.55.117.20 'pm2 restart wechat-editor'
+ssh root@114.55.117.20 'pm2 restart wechat-editor'
 ```
 
 ### 查看Nginx状态
 ```bash
-ssh root@47.55.117.20 'systemctl status nginx'
+ssh root@114.55.117.20 'systemctl status nginx'
 ```
 
 ## 故障排查
@@ -74,7 +74,7 @@ ssh root@47.55.117.20 'systemctl status nginx'
 **解决**：
 ```bash
 # SSH登录服务器
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 检查Nginx配置
 cat /etc/nginx/sites-available/wechat-editor
@@ -98,7 +98,7 @@ sudo systemctl reload nginx
 
 **解决**：
 ```bash
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 cd /opt/wechat-editor
 pm2 restart wechat-editor
 pm2 logs wechat-editor

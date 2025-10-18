@@ -141,7 +141,7 @@ cd /Users/yangyu/develop/gzhpaiban
 # 自动生成 .env.development, .env.staging, .env.production
 
 # 步骤4: 测试SSH连接
-ssh root@47.55.117.20 'date'
+ssh root@114.55.117.20 'date'
 
 # 步骤5: 首次部署到测试环境
 ./deploy-agent.sh staging
@@ -163,7 +163,7 @@ git commit -m "feat: 新功能"
 # 3. 一键部署到测试环境
 ./deploy-agent.sh staging
 
-# 4. 浏览器测试 http://47.55.117.20:8080
+# 4. 浏览器测试 http://114.55.117.20:8080
 
 # 5. 确认无误后部署生产
 ./deploy-agent.sh production
@@ -333,11 +333,11 @@ npm run dev                    # 本地开发
 
 # 测试阶段
 ./deploy-agent.sh staging     # 部署测试环境
-# 访问 http://47.55.117.20:8080 测试
+# 访问 http://114.55.117.20:8080 测试
 
 # 生产阶段
 ./deploy-agent.sh production  # 部署生产环境
-# 访问 http://47.55.117.20
+# 访问 http://114.55.117.20
 ```
 
 ### 紧急修复流程
@@ -353,7 +353,7 @@ git commit -m "hotfix: 紧急修复"
 
 ```bash
 # SSH到服务器
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 查看PM2日志
 pm2 logs wechat-editor --lines 100
@@ -393,7 +393,7 @@ pm2 restart wechat-editor
 cat deploy-agent.log
 
 # 检查SSH连接
-ssh root@47.55.117.20 'date'
+ssh root@114.55.117.20 'date'
 
 # 手动执行传统脚本
 ./deploy-multi-env.sh staging

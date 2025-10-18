@@ -4,7 +4,7 @@
 
 ### 问题表现
 ```bash
-Connection closed by 47.55.117.20 port 22
+Connection closed by 114.55.117.20 port 22
 ```
 
 ### 原因
@@ -15,7 +15,7 @@ Connection closed by 47.55.117.20 port 22
 #### 1. 等待解封（10-20分钟）
 ```bash
 # 等待后测试
-ssh root@47.55.117.20 'date'
+ssh root@114.55.117.20 'date'
 
 # 连接成功后部署
 ./deploy-multi-env.sh staging
@@ -33,7 +33,7 @@ ssh root@47.55.117.20 'date'
 #### 3. 保持SSH连接
 ```bash
 # 在一个Terminal窗口保持连接
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 在另一个窗口执行部署
 # 这样可以减少新建连接的次数
@@ -89,10 +89,10 @@ git commit -m "feat: 新功能"
 ### 1. SSH连接失败
 ```bash
 # 检查网络
-ping 47.55.117.20
+ping 114.55.117.20
 
 # 检查SSH端口
-telnet 47.55.117.20 22
+telnet 114.55.117.20 22
 
 # 等待10分钟后重试
 ```
@@ -108,16 +108,16 @@ cd server && npm run build
 ### 3. 服务启动失败
 ```bash
 # SSH到服务器查看日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor --lines 50'
+ssh root@114.55.117.20 'pm2 logs wechat-editor --lines 50'
 ```
 
 ### 4. Nginx配置问题
 ```bash
 # 检查Nginx配置
-ssh root@47.55.117.20 'sudo nginx -t'
+ssh root@114.55.117.20 'sudo nginx -t'
 
 # 重启Nginx
-ssh root@47.55.117.20 'sudo systemctl reload nginx'
+ssh root@114.55.117.20 'sudo systemctl reload nginx'
 ```
 
 ---
@@ -147,16 +147,16 @@ ssh root@47.55.117.20 'sudo systemctl reload nginx'
 
 ```bash
 # 1. 检查服务状态
-ssh root@47.55.117.20 'pm2 status'
+ssh root@114.55.117.20 'pm2 status'
 
 # 2. 检查日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor --lines 20'
+ssh root@114.55.117.20 'pm2 logs wechat-editor --lines 20'
 
 # 3. 测试API
-curl http://47.55.117.20/api/status
+curl http://114.55.117.20/api/status
 
 # 4. 浏览器测试
-# 访问 http://47.55.117.20
+# 访问 http://114.55.117.20
 ```
 
 ---
@@ -167,7 +167,7 @@ curl http://47.55.117.20/api/status
 
 ```bash
 # 1. SSH到服务器
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 2. 恢复数据库备份（如果有）
 cd /opt/wechat-editor/prisma
@@ -185,10 +185,10 @@ pm2 logs wechat-editor
 
 ```bash
 # 1. 停止服务
-ssh root@47.55.117.20 'pm2 delete wechat-editor'
+ssh root@114.55.117.20 'pm2 delete wechat-editor'
 
 # 2. 清理旧文件
-ssh root@47.55.117.20 'rm -rf /opt/wechat-editor/dist'
+ssh root@114.55.117.20 'rm -rf /opt/wechat-editor/dist'
 
 # 3. 重新部署
 ./deploy-multi-env.sh production
@@ -201,13 +201,13 @@ ssh root@47.55.117.20 'rm -rf /opt/wechat-editor/dist'
 ### 实时监控
 ```bash
 # 监控所有PM2进程
-ssh root@47.55.117.20 'pm2 monit'
+ssh root@114.55.117.20 'pm2 monit'
 
 # 实时查看日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor'
+ssh root@114.55.117.20 'pm2 logs wechat-editor'
 
 # 查看系统资源
-ssh root@47.55.117.20 'htop'
+ssh root@114.55.117.20 'htop'
 ```
 
 ### 日志位置

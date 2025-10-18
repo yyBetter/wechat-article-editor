@@ -7,7 +7,7 @@
 set -e  # 遇到错误立即退出
 
 # ========== 配置区域 ==========
-SERVER_IP="47.55.117.20"
+SERVER_IP="114.55.117.20"
 SERVER_USER="root"
 SERVER_PATH="/opt/wechat-editor"
 FRONTEND_PATH="/var/www/html"

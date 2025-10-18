@@ -7,7 +7,7 @@
 set -e
 
 # ========== 配置 ==========
-SERVER_IP="47.55.117.20"
+SERVER_IP="114.55.117.20"
 SERVER_USER="root"
 KNOWLEDGE_BASE="./deploy-agent-knowledge.json"
 LOG_FILE="./deploy-agent.log"

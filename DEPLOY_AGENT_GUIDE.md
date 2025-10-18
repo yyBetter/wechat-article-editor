@@ -211,7 +211,7 @@ which tar
 ./setup-ssh-key.sh
 
 # 测试SSH连接
-ssh root@47.55.117.20 'date'
+ssh root@114.55.117.20 'date'
 ```
 
 ### 构建失败

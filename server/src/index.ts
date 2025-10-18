@@ -22,22 +22,32 @@ import { analyticsMiddleware } from './utils/analytics'
 // 加载环境变量
 dotenv.config()
 
-// 速率限制配置
+// 速率限制配置 - 开发环境放宽限制
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production'
+
 const rateLimiter = new RateLimiterMemory({
-  points: 100, // 每个IP每个时间窗口的请求次数
+  points: isDevelopment ? 1000 : 100, // 开发环境1000次，生产环境100次
   duration: 900, // 15分钟时间窗口
 })
 
-// 登录限制器（更严格）
+// 登录限制器（更严格）- 开发环境放宽
 const loginLimiter = new RateLimiterMemory({
-  points: 5, // 每15分钟只能尝试5次登录
+  points: isDevelopment ? 100 : 5, // 开发环境100次，生产环境5次
   duration: 900,
-  blockDuration: 900, // 超限后阻塞15分钟
+  blockDuration: isDevelopment ? 0 : 900, // 开发环境不阻塞，生产环境阻塞15分钟
 })
 
 const app = express()
 const prisma = new PrismaClient()
 const PORT = process.env.PORT || 3002
+
+// 输出速率限制配置
+console.log('🔒 速率限制配置:', {
+  environment: isDevelopment ? 'development' : 'production',
+  generalLimit: isDevelopment ? '1000 requests/15min' : '100 requests/15min',
+  loginLimit: isDevelopment ? '100 attempts/15min' : '5 attempts/15min',
+  blockDuration: isDevelopment ? '无阻塞' : '15分钟'
+})
 
 // 速率限制中间件
 const rateLimitMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {

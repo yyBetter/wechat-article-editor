@@ -113,7 +113,7 @@ npm run dev
 
 ### 查看所有环境的服务状态
 ```bash
-ssh root@47.55.117.20 'pm2 status'
+ssh root@114.55.117.20 'pm2 status'
 ```
 
 输出示例：
@@ -129,22 +129,22 @@ ssh root@47.55.117.20 'pm2 status'
 ### 管理测试环境
 ```bash
 # 查看测试环境日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor-staging'
+ssh root@114.55.117.20 'pm2 logs wechat-editor-staging'
 
 # 重启测试环境
-ssh root@47.55.117.20 'pm2 restart wechat-editor-staging'
+ssh root@114.55.117.20 'pm2 restart wechat-editor-staging'
 
 # 停止测试环境
-ssh root@47.55.117.20 'pm2 stop wechat-editor-staging'
+ssh root@114.55.117.20 'pm2 stop wechat-editor-staging'
 ```
 
 ### 管理生产环境
 ```bash
 # 查看生产环境日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor'
+ssh root@114.55.117.20 'pm2 logs wechat-editor'
 
 # 重启生产环境
-ssh root@47.55.117.20 'pm2 restart wechat-editor'
+ssh root@114.55.117.20 'pm2 restart wechat-editor'
 ```
 
 ## 🧪 测试流程建议
@@ -164,7 +164,7 @@ npm run dev
 ./deploy-multi-env.sh staging
 
 # 步骤3：在浏览器测试
-# 访问 http://47.55.117.20 (测试环境)
+# 访问 http://114.55.117.20 (测试环境)
 
 # 步骤4：确认无误后部署到生产
 ./deploy-multi-env.sh production
@@ -192,10 +192,10 @@ uuidgen
 ### 3. 数据库备份
 ```bash
 # 备份生产数据库
-ssh root@47.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf production-backup-$(date +%Y%m%d).tar.gz production.db'
+ssh root@114.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf production-backup-$(date +%Y%m%d).tar.gz production.db'
 
 # 下载备份
-scp root@47.55.117.20:/opt/wechat-editor/prisma/production-backup-*.tar.gz ./backups/
+scp root@114.55.117.20:/opt/wechat-editor/prisma/production-backup-*.tar.gz ./backups/
 ```
 
 ## 🎯 常见问题
@@ -209,8 +209,8 @@ A: 使用不同的端口和目录：
 ### Q2: 如何访问不同环境？
 
 A: 配置不同的域名或子域名：
-- 测试：`http://staging.yourdomain.com` 或 `http://47.55.117.20:8080`
-- 生产：`http://yourdomain.com` 或 `http://47.55.117.20`
+- 测试：`http://staging.yourdomain.com` 或 `http://114.55.117.20:8080`
+- 生产：`http://yourdomain.com` 或 `http://114.55.117.20`
 
 ### Q3: 测试环境的数据会影响生产环境吗？
 
@@ -223,7 +223,7 @@ A: **不会！** 两个环境：
 
 ```bash
 # SSH到服务器
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 备份生产数据库（重要！）
 cp /opt/wechat-editor/prisma/production.db /opt/wechat-editor/prisma/production.db.backup
@@ -251,13 +251,13 @@ pm2 restart wechat-editor
 ### 回滚到上一个版本
 ```bash
 # 查看PM2启动的进程
-ssh root@47.55.117.20 'pm2 list'
+ssh root@114.55.117.20 'pm2 list'
 
 # 查看应用日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor --lines 100'
+ssh root@114.55.117.20 'pm2 logs wechat-editor --lines 100'
 
 # 如果需要回滚，恢复数据库备份
-ssh root@47.55.117.20 'cd /opt/wechat-editor/prisma && cp production.db.backup production.db && pm2 restart wechat-editor'
+ssh root@114.55.117.20 'cd /opt/wechat-editor/prisma && cp production.db.backup production.db && pm2 restart wechat-editor'
 ```
 
 ## 📞 技术支持

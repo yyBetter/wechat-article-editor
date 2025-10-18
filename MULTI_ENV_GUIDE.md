@@ -90,7 +90,7 @@ npm run dev
 5. 重启staging服务
 6. 验证部署结果
 
-访问 `http://47.55.117.20` 进行测试
+访问 `http://114.55.117.20` 进行测试
 
 ### 阶段3: 部署到生产环境
 
@@ -175,36 +175,36 @@ npm run dev
 ### 查看所有环境状态
 
 ```bash
-ssh root@47.55.117.20 'pm2 status'
+ssh root@114.55.117.20 'pm2 status'
 ```
 
 ### 测试环境管理
 
 ```bash
 # 查看测试环境日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor-staging --lines 50'
+ssh root@114.55.117.20 'pm2 logs wechat-editor-staging --lines 50'
 
 # 重启测试环境
-ssh root@47.55.117.20 'pm2 restart wechat-editor-staging'
+ssh root@114.55.117.20 'pm2 restart wechat-editor-staging'
 
 # 停止测试环境
-ssh root@47.55.117.20 'pm2 stop wechat-editor-staging'
+ssh root@114.55.117.20 'pm2 stop wechat-editor-staging'
 
 # 查看测试数据库大小
-ssh root@47.55.117.20 'ls -lh /opt/wechat-editor-staging/prisma/*.db'
+ssh root@114.55.117.20 'ls -lh /opt/wechat-editor-staging/prisma/*.db'
 ```
 
 ### 生产环境管理
 
 ```bash
 # 查看生产环境日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor --lines 50'
+ssh root@114.55.117.20 'pm2 logs wechat-editor --lines 50'
 
 # 重启生产环境
-ssh root@47.55.117.20 'pm2 restart wechat-editor'
+ssh root@114.55.117.20 'pm2 restart wechat-editor'
 
 # 查看生产数据库大小
-ssh root@47.55.117.20 'ls -lh /opt/wechat-editor/prisma/*.db'
+ssh root@114.55.117.20 'ls -lh /opt/wechat-editor/prisma/*.db'
 ```
 
 ---
@@ -215,7 +215,7 @@ ssh root@47.55.117.20 'ls -lh /opt/wechat-editor/prisma/*.db'
 
 ```bash
 # SSH到服务器
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 创建备份目录
 mkdir -p /root/backups
@@ -233,13 +233,13 @@ ls -lh /root/backups/
 ```bash
 # 在本地执行
 mkdir -p backups
-scp root@47.55.117.20:/root/backups/prod-db-*.tar.gz backups/
+scp root@114.55.117.20:/root/backups/prod-db-*.tar.gz backups/
 ```
 
 ### 从测试环境复制数据到生产
 
 ```bash
-ssh root@47.55.117.20 << 'EOF'
+ssh root@114.55.117.20 << 'EOF'
 # ⚠️ 谨慎操作！先备份生产数据
 cd /opt/wechat-editor/prisma
 cp production.db production.db.backup-$(date +%Y%m%d)
@@ -294,13 +294,13 @@ git merge feature/new-feature
 
 ```bash
 # 定时检查服务状态
-watch -n 5 'ssh root@47.55.117.20 pm2 status'
+watch -n 5 'ssh root@114.55.117.20 pm2 status'
 
 # 实时查看生产日志
-ssh root@47.55.117.20 'pm2 logs wechat-editor'
+ssh root@114.55.117.20 'pm2 logs wechat-editor'
 
 # 查看系统资源
-ssh root@47.55.117.20 'pm2 monit'
+ssh root@114.55.117.20 'pm2 monit'
 ```
 
 ---
@@ -313,7 +313,7 @@ ssh root@47.55.117.20 'pm2 monit'
 
 **解决**:
 ```bash
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -324,7 +324,7 @@ sudo systemctl reload nginx
 
 **解决**:
 ```bash
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 cd /opt/wechat-editor  # 或 /opt/wechat-editor-staging
 npx prisma db push --accept-data-loss
 pm2 restart wechat-editor  # 或 wechat-editor-staging
@@ -336,7 +336,7 @@ pm2 restart wechat-editor  # 或 wechat-editor-staging
 
 **解决**:
 ```bash
-ssh root@47.55.117.20
+ssh root@114.55.117.20
 
 # 查看端口占用
 netstat -tlnp | grep 3002
@@ -367,16 +367,16 @@ cat /opt/wechat-editor/.env
 ### 常用命令
 ```bash
 # 查看状态
-ssh root@47.55.117.20 'pm2 status'
+ssh root@114.55.117.20 'pm2 status'
 
 # 查看日志
-ssh root@47.55.117.20 'pm2 logs <app-name>'
+ssh root@114.55.117.20 'pm2 logs <app-name>'
 
 # 重启服务
-ssh root@47.55.117.20 'pm2 restart <app-name>'
+ssh root@114.55.117.20 'pm2 restart <app-name>'
 
 # 备份数据库
-ssh root@47.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf backup-$(date +%Y%m%d).tar.gz production.db'
+ssh root@114.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf backup-$(date +%Y%m%d).tar.gz production.db'
 ```
 
 ### 应用名称

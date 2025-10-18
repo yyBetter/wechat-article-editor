@@ -2,9 +2,31 @@
 // 与后端API通信的统一接口
 
 // 在生产环境使用相对路径（通过Nginx代理），开发环境直连后端
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-  ? import.meta.env.VITE_API_BASE_URL + '/api'
-  : (import.meta.env.DEV ? 'http://localhost:3002/api' : '/api')
+// 优先使用环境变量，否则根据hostname判断
+const getApiBaseUrl = () => {
+  // 如果设置了环境变量，使用环境变量
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL + '/api'
+  }
+  
+  // 根据hostname判断：localhost 或 127.0.0.1 使用开发地址，其他使用相对路径
+  const hostname = window.location.hostname
+  const apiUrl = (hostname === 'localhost' || hostname === '127.0.0.1') 
+    ? 'http://localhost:3002/api'
+    : '/api'
+  
+  // 调试输出（生产环境也保留，方便排查问题）
+  console.log('[API Config]', {
+    hostname,
+    apiUrl,
+    isDev: import.meta.env.DEV,
+    mode: import.meta.env.MODE
+  })
+  
+  return apiUrl
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 export interface User {
   id: string

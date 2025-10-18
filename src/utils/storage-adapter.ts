@@ -9,13 +9,32 @@ export interface StorageConfig {
   enableDebugLogs?: boolean
 }
 
-// 默认配置
+// 默认配置 - 根据环境自动判断存储模式
+const getDefaultMode = (): 'server' | 'local' | 'hybrid' => {
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+  
+  // 生产环境（非localhost）使用服务器存储
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    return 'server'
+  }
+  
+  // 本地开发环境使用本地存储
+  return 'local'
+}
+
 const DEFAULT_CONFIG: StorageConfig = {
-  mode: 'local', // 切换到本地存储模式
+  mode: getDefaultMode(),
   serverBaseUrl: (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002') + '/api',
   localDBName: 'WeChat_Editor',
   enableDebugLogs: true
 }
+
+// 输出配置信息
+console.log('[Storage Config]', {
+  mode: DEFAULT_CONFIG.mode,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
+  serverBaseUrl: DEFAULT_CONFIG.serverBaseUrl
+})
 
 // 全局存储配置
 let storageConfig: StorageConfig = { ...DEFAULT_CONFIG }

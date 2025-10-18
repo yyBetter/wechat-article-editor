@@ -309,12 +309,12 @@ npm run dev                                  # 本地开发
 ./deploy-multi-env.sh production            # 部署生产环境
 
 # ===== 管理 =====
-ssh root@47.55.117.20 'pm2 status'          # 查看状态
-ssh root@47.55.117.20 'pm2 logs <app>'      # 查看日志
-ssh root@47.55.117.20 'pm2 restart <app>'   # 重启服务
+ssh root@114.55.117.20 'pm2 status'          # 查看状态
+ssh root@114.55.117.20 'pm2 logs <app>'      # 查看日志
+ssh root@114.55.117.20 'pm2 restart <app>'   # 重启服务
 
 # ===== 备份 =====
-ssh root@47.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf backup.tar.gz production.db'
+ssh root@114.55.117.20 'cd /opt/wechat-editor/prisma && tar -czf backup.tar.gz production.db'
 ```
 
 ---

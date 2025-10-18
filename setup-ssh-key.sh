@@ -11,7 +11,7 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-SERVER_IP="47.55.117.20"
+SERVER_IP="114.55.117.20"
 SERVER_USER="root"
 
 echo -e "${BLUE}🔑 配置SSH免密登录...${NC}"
