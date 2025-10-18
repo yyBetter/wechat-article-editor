@@ -436,7 +436,7 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
                         </div>
                         <button 
                           className="copy-btn"
-                          onClick={() => copyToClipboard(platformId)}
+                          onClick={() => copyToClipboard(activePlatformTab)}
                         >
                           📋 复制
                         </button>
@@ -447,7 +447,7 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
                           // 样式预览模式
                           <div className="preview-mode">
                             <PlatformStylePreview
-                              platform={platformId as any}
+                              platform={activePlatformTab as any}
                               title={version.title}
                               content={version.content}
                             />

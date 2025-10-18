@@ -107,20 +107,19 @@
 }
 
 .platform-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: white;
+  border: none;
   border-radius: 16px;
   padding: 24px 16px;
   text-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .platform-card:hover {
   transform: translateY(-8px);
-  background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
 }
 
 .platform-card .platform-icon {
@@ -133,22 +132,22 @@
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 4px;
-  color: white;
+  color: #2d3748;
 }
 
 .platform-card .platform-desc {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #718096;
 }
 
 /* 工作流程 */
 .workflow-section {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 32px;
   margin: 40px 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .workflow-steps {
@@ -169,17 +168,18 @@
 }
 
 .step-circle {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.3);
+  width: 36px;
+  height: 36px;
+  background: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: #667eea;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .step-icon {
@@ -187,16 +187,18 @@
 }
 
 .step-label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: white;
   text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .workflow-arrow {
   font-size: 24px;
-  color: rgba(255, 255, 255, 0.6);
+  color: white;
   flex-shrink: 0;
+  font-weight: bold;
 }
 
 /* 时间对比 */
@@ -206,7 +208,7 @@
   justify-content: center;
   gap: 32px;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 16px;
 }
 
@@ -222,31 +224,34 @@
 }
 
 .time-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .time-value {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
   color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .time-item.current .time-value {
   color: #4ade80;
-  text-shadow: 0 2px 8px rgba(74, 222, 128, 0.5);
+  text-shadow: 0 2px 8px rgba(74, 222, 128, 0.8), 0 0 20px rgba(74, 222, 128, 0.4);
 }
 
 .time-item.traditional .time-value {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: line-through;
 }
 
 .time-vs {
   font-size: 20px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 价值主张 */
@@ -258,9 +263,9 @@
 }
 
 .value-item {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -269,7 +274,7 @@
 }
 
 .value-item:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   transform: translateY(-4px);
 }
 
@@ -287,12 +292,14 @@
   font-weight: 700;
   color: white;
   margin-bottom: 6px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .value-desc {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.95);
   line-height: 1.5;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 /* CTA区域 */
