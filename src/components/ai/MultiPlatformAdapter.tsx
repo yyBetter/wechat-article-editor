@@ -1,6 +1,7 @@
 // AI多平台分发组件
 import React, { useState, useCallback } from 'react'
 import { notification } from '../../utils/notification'
+import { PlatformStylePreview } from './PlatformStylePreview'
 import '../../styles/multi-platform-adapter.css'
 
 interface PlatformVersion {
@@ -61,6 +62,7 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
   const [platformVersions, setPlatformVersions] = useState<Record<string, PlatformVersion>>({})
   const [isAdapting, setIsAdapting] = useState(false)
   const [currentStep, setCurrentStep] = useState<'select' | 'adapting' | 'result'>('select')
+  const [viewMode, setViewMode] = useState<'text' | 'preview'>('preview') // 默认显示样式预览
 
   // 切换平台选择
   const togglePlatform = useCallback((platformId: string) => {
@@ -336,12 +338,28 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
                 </div>
 
                 <div className="result-actions">
-                  <button className="btn-secondary" onClick={resetAdapter}>
-                    🔄 重新适配
-                  </button>
-                  <button className="btn-primary" onClick={exportAll}>
-                    📥 导出全部
-                  </button>
+                  <div className="view-mode-toggle">
+                    <button 
+                      className={`toggle-btn ${viewMode === 'preview' ? 'active' : ''}`}
+                      onClick={() => setViewMode('preview')}
+                    >
+                      👁️ 样式预览
+                    </button>
+                    <button 
+                      className={`toggle-btn ${viewMode === 'text' ? 'active' : ''}`}
+                      onClick={() => setViewMode('text')}
+                    >
+                      📝 文本内容
+                    </button>
+                  </div>
+                  <div className="action-buttons">
+                    <button className="btn-secondary" onClick={resetAdapter}>
+                      🔄 重新适配
+                    </button>
+                    <button className="btn-primary" onClick={exportAll}>
+                      📥 导出全部
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -370,32 +388,59 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
                       </div>
 
                       <div className="version-content">
-                        <div className="version-title-section">
-                          <label className="version-label">标题</label>
-                          <h4 className="version-title">{version.title}</h4>
-                        </div>
-
-                        <div className="version-text-section">
-                          <label className="version-label">内容</label>
-                          <div className="version-text">
-                            {version.content.split('\n').map((line, index) => (
-                              <p key={index}>{line || '\u00A0'}</p>
-                            ))}
+                        {viewMode === 'preview' ? (
+                          // 样式预览模式
+                          <div className="preview-mode">
+                            <PlatformStylePreview
+                              platform={platformId as any}
+                              title={version.title}
+                              content={version.content}
+                            />
+                            {version.tips.length > 0 && (
+                              <div className="version-tips">
+                                <label className="version-label">
+                                  <span className="tips-icon">💡</span>
+                                  适配建议
+                                </label>
+                                <ul className="tips-list">
+                                  {version.tips.map((tip, index) => (
+                                    <li key={index}>{tip}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                           </div>
-                        </div>
+                        ) : (
+                          // 文本内容模式
+                          <>
+                            <div className="version-title-section">
+                              <label className="version-label">标题</label>
+                              <h4 className="version-title">{version.title}</h4>
+                            </div>
 
-                        {version.tips.length > 0 && (
-                          <div className="version-tips">
-                            <label className="version-label">
-                              <span className="tips-icon">💡</span>
-                              适配建议
-                            </label>
-                            <ul className="tips-list">
-                              {version.tips.map((tip, index) => (
-                                <li key={index}>{tip}</li>
-                              ))}
-                            </ul>
-                          </div>
+                            <div className="version-text-section">
+                              <label className="version-label">内容</label>
+                              <div className="version-text">
+                                {version.content.split('\n').map((line, index) => (
+                                  <p key={index}>{line || '\u00A0'}</p>
+                                ))}
+                              </div>
+                            </div>
+
+                            {version.tips.length > 0 && (
+                              <div className="version-tips">
+                                <label className="version-label">
+                                  <span className="tips-icon">💡</span>
+                                  适配建议
+                                </label>
+                                <ul className="tips-list">
+                                  {version.tips.map((tip, index) => (
+                                    <li key={index}>{tip}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

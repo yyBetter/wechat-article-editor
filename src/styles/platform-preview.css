@@ -1,0 +1,433 @@
+/* 平台样式预览 - 模拟各平台真实样式 */
+
+.platform-preview {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 通用样式 */
+.preview-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.preview-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.preview-author {
+  flex: 1;
+}
+
+.author-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.author-desc,
+.publish-time {
+  font-size: 13px;
+  color: #999;
+}
+
+.follow-btn {
+  padding: 6px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.preview-body {
+  padding: 16px;
+}
+
+.preview-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.preview-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.preview-content {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.preview-h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin: 24px 0 12px;
+  line-height: 1.4;
+}
+
+.preview-h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin: 20px 0 10px;
+  line-height: 1.4;
+}
+
+.preview-p {
+  margin-bottom: 12px;
+  line-height: 1.8;
+}
+
+.preview-li {
+  margin-left: 20px;
+  margin-bottom: 8px;
+  line-height: 1.8;
+}
+
+.preview-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 10px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #e8e8e8;
+}
+
+/* ========== 公众号样式 ========== */
+.wechat-preview {
+  background: #f7f7f7;
+}
+
+.wechat-preview .preview-header {
+  background: white;
+}
+
+.wechat-preview .preview-body {
+  background: white;
+  padding: 20px 16px;
+  margin: 0 8px;
+  border-radius: 8px 8px 0 0;
+}
+
+.wechat-title {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.wechat-content {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #333;
+  letter-spacing: 0.3px;
+}
+
+.wechat-content .preview-h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 24px 0 12px;
+  padding-left: 12px;
+  border-left: 4px solid #07c160;
+}
+
+.wechat-content strong {
+  color: #07c160;
+  font-weight: 700;
+}
+
+.wechat-footer {
+  background: white;
+  margin: 0 8px;
+  border-top: 1px solid #f0f0f0;
+  border-radius: 0 0 8px 8px;
+}
+
+.wechat-footer .action-btn {
+  background: white;
+  border: 1px solid #e8e8e8;
+  color: #576b95;
+  font-weight: 600;
+}
+
+.wechat-footer .action-btn:hover {
+  background: #f0f4ff;
+  border-color: #576b95;
+}
+
+/* ========== 知乎样式 ========== */
+.zhihu-preview {
+  background: white;
+}
+
+.zhihu-preview .follow-btn {
+  background: #0084ff;
+}
+
+.zhihu-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.zhihu-content {
+  font-size: 16px;
+  line-height: 1.75;
+  color: #1a1a1a;
+}
+
+.zhihu-content .preview-h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 24px 0 12px;
+}
+
+.zhihu-content strong {
+  font-weight: 600;
+  background: linear-gradient(transparent 60%, #fff3bf 40%);
+}
+
+.zhihu-footer .action-btn {
+  background: #f6f6f6;
+  color: #646464;
+}
+
+.zhihu-footer .action-btn:hover {
+  background: #e8e8e8;
+}
+
+/* ========== 小红书样式 ========== */
+.xiaohongshu-preview {
+  background: white;
+}
+
+.xiaohongshu-preview .follow-btn {
+  background: #ff2442;
+}
+
+.preview-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-placeholder {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #ffeef0 0%, #ffe0e5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #ff2442;
+}
+
+.xiaohongshu-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.xiaohongshu-content {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.tag {
+  padding: 4px 12px;
+  background: #fff3f3;
+  color: #ff2442;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.xiaohongshu-footer {
+  border-top: none;
+  padding: 16px 0 0;
+}
+
+.xiaohongshu-footer .footer-actions {
+  justify-content: space-around;
+}
+
+.xiaohongshu-footer .action-btn {
+  background: transparent;
+  flex: initial;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ========== 头条样式 ========== */
+.toutiao-preview {
+  background: white;
+}
+
+.toutiao-preview .preview-header {
+  padding: 16px 16px 12px;
+  border-bottom: none;
+}
+
+.toutiao-title {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.toutiao-preview .preview-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.toutiao-content {
+  font-size: 17px;
+  line-height: 1.75;
+  color: #222;
+}
+
+.toutiao-content .preview-h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 24px 0 12px;
+}
+
+.toutiao-footer .action-btn {
+  background: white;
+  border: 1px solid #e8e8e8;
+  color: #999;
+}
+
+/* ========== 微博样式 ========== */
+.weibo-preview {
+  background: white;
+}
+
+.weibo-preview .author-name::after {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  background: #ffa500;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.weibo-preview .follow-btn {
+  background: #ff8200;
+}
+
+.weibo-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.weibo-images {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.weibo-images .image-placeholder {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+  border-radius: 4px;
+  font-size: 24px;
+  color: #ff8200;
+}
+
+.weibo-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+.weibo-footer .footer-actions {
+  justify-content: space-around;
+}
+
+.weibo-footer .action-btn {
+  background: transparent;
+  flex: initial;
+  font-size: 14px;
+  color: #999;
+}
+
+.weibo-footer .action-btn:hover {
+  color: #ff8200;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .platform-preview {
+    border-radius: 0;
+  }
+}
+
