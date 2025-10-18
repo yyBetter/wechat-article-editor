@@ -138,18 +138,25 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
           }
 
           const data = await response.json()
+          
+          console.log(`✅ ${platformId} 适配成功，数据:`, data)
 
           // 更新适配结果
-          setPlatformVersions(prev => ({
-            ...prev,
-            [platformId]: {
-              ...prev[platformId],
-              title: data.title,
-              content: data.content,
-              tips: data.tips || [],
-              status: 'ready'
+          setPlatformVersions(prev => {
+            const newVersions = {
+              ...prev,
+              [platformId]: {
+                ...prev[platformId],
+                platform: data.platform || platform.name,
+                title: data.title,
+                content: data.content,
+                tips: data.tips || [],
+                status: 'ready'
+              }
             }
-          }))
+            console.log(`📦 更新后的platformVersions:`, newVersions)
+            return newVersions
+          })
 
         } catch (error: any) {
           console.error(`${platformId} 适配失败:`, error)
@@ -381,9 +388,15 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
 
               <div className="platform-versions">
                 {Object.entries(platformVersions).map(([platformId, version]) => {
+                  console.log(`🔍 渲染平台 ${platformId}:`, version)
                   const platform = PLATFORMS.find(p => p.id === platformId)!
                   
-                  if (version.status !== 'ready') return null
+                  if (version.status !== 'ready') {
+                    console.log(`⚠️ ${platformId} 状态不是ready，跳过渲染。当前状态:`, version.status)
+                    return null
+                  }
+                  
+                  console.log(`✅ 开始渲染 ${platformId}`)
 
                   return (
                     <div key={platformId} className="version-card">
