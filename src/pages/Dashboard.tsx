@@ -9,7 +9,8 @@ import { UserMenu } from '../components/auth/UserMenu'
 import { getDocuments } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import { StorageStatusMonitor } from '../components/StorageStatusMonitor'
-import { SmartPasteFeature } from '../components/SmartPasteFeature'
+import { MultiPlatformFeature } from '../components/MultiPlatformFeature'
+import { IncognitoWarning } from '../components/IncognitoWarning'
 
 // 字数统计函数 - 与服务端保持一致
 function countWords(content: string): number {
@@ -151,9 +152,13 @@ export function Dashboard() {
   }
 
   return (
-    <div className="dashboard">
-      {/* 顶部导航栏 */}
-      <header className="dashboard-header">
+    <>
+      {/* 无痕模式警告 */}
+      <IncognitoWarning />
+      
+      <div className="dashboard">
+        {/* 顶部导航栏 */}
+        <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
             <h1 className="app-title">📝 公众号排版工具</h1>
@@ -250,8 +255,8 @@ export function Dashboard() {
                   </div>
                 </div>
                 
-                {/* 智能粘贴功能展示 */}
-                <SmartPasteFeature variant="hero" />
+                {/* AI多平台分发功能展示 */}
+                <MultiPlatformFeature variant="hero" />
               </div>
             )}
           </section>
@@ -259,7 +264,7 @@ export function Dashboard() {
           {/* 已登录用户的功能亮点 */}
           {authState.isAuthenticated && (
             <section className="feature-highlight-section">
-              <SmartPasteFeature variant="compact" />
+              <MultiPlatformFeature variant="compact" />
             </section>
           )}
 
@@ -350,6 +355,7 @@ export function Dashboard() {
 
       {/* 存储状态监控 */}
       <StorageStatusMonitor />
-    </div>
+      </div>
+    </>
   )
 }

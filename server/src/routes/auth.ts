@@ -121,13 +121,19 @@ router.post('/login', async (req, res) => {
     })
 
     if (!user) {
-      return res.status(401).json(createErrorResponse('邮箱或密码错误', 'INVALID_CREDENTIALS'))
+      return res.status(401).json(createErrorResponse(
+        '该邮箱尚未注册，请先注册账号', 
+        'USER_NOT_FOUND'
+      ))
     }
 
     // 验证密码
     const isPasswordValid = await verifyPassword(password, user.password)
     if (!isPasswordValid) {
-      return res.status(401).json(createErrorResponse('邮箱或密码错误', 'INVALID_CREDENTIALS'))
+      return res.status(401).json(createErrorResponse(
+        '密码错误，请检查后重试', 
+        'INVALID_PASSWORD'
+      ))
     }
 
     // 生成JWT token

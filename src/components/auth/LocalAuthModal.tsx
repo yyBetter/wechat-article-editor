@@ -69,8 +69,26 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
         setUsername('')
         setPassword('')
       }
-    } catch (error) {
-      notification.error((error as Error).message)
+    } catch (error: any) {
+      const errorMessage = error.message || '操作失败'
+      const errorCode = error.code
+      
+      // 根据错误类型提供明确的提示
+      if (errorCode === 'USER_NOT_FOUND') {
+        notification.error('该邮箱尚未注册', '请点击下方"注册账号"按钮进行注册')
+        // 自动切换到注册模式
+        setTimeout(() => setMode('register'), 1500)
+      } else if (errorCode === 'INVALID_PASSWORD') {
+        notification.error('密码错误', '请检查密码是否正确，或联系管理员重置密码')
+      } else if (errorCode === 'EMAIL_EXISTS') {
+        notification.error('该邮箱已被注册', '请直接登录，或使用其他邮箱注册')
+        // 自动切换到登录模式
+        setTimeout(() => setMode('login'), 1500)
+      } else if (errorCode === 'USERNAME_EXISTS') {
+        notification.error('该用户名已被使用', '请尝试其他用户名')
+      } else {
+        notification.error(errorMessage)
+      }
     } finally {
       setLoading(false)
     }

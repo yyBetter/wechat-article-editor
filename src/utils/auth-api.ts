@@ -98,6 +98,17 @@ export function getAuthHeaders(): Record<string, string> {
   return createHeaders()
 }
 
+// 自定义错误类，包含错误代码
+class ApiError extends Error {
+  code: string
+  
+  constructor(message: string, code: string = 'UNKNOWN_ERROR') {
+    super(message)
+    this.name = 'ApiError'
+    this.code = code
+  }
+}
+
 // 通用API请求函数
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
@@ -110,11 +121,16 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     }
   })
 
+  const result = await response.json()
+
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+    // 从响应中提取错误信息和错误代码
+    const errorMessage = result.error || result.message || `HTTP error! status: ${response.status}`
+    const errorCode = result.code || 'HTTP_ERROR'
+    throw new ApiError(errorMessage, errorCode)
   }
 
-  return response.json()
+  return result
 }
 
 // 用户注册
@@ -129,7 +145,7 @@ export async function registerUser(data: {
   })
   
   if (!result.success) {
-    throw new Error(result.error || '注册失败')
+    throw new ApiError(result.error || '注册失败', result.code || 'REGISTER_FAILED')
   }
   
   return result.data!
@@ -146,7 +162,7 @@ export async function loginUser(data: {
   })
   
   if (!result.success) {
-    throw new Error(result.error || '登录失败')
+    throw new ApiError(result.error || '登录失败', result.code || 'LOGIN_FAILED')
   }
   
   return result.data!
