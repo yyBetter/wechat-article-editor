@@ -12,6 +12,7 @@ import { SpellChecker } from './SpellChecker'
 import { OutlinePanel } from './OutlinePanel'
 import { OutlineNode } from '../utils/outline-parser'
 import { countWords } from '../utils/word-counter'
+import { smartPasteHandler, SmartPasteHandler } from '../utils/paste-handler'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -571,19 +572,94 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     e.target.value = ''
   }, [handleImageUpload])
 
-  // 处理剪贴板粘贴
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+  // 智能粘贴处理 - 支持飞书、Notion、Word等
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
     const items = Array.from(e.clipboardData.items)
     const imageItem = items.find(item => item.type.startsWith('image/'))
     
+    // 优先处理图片
     if (imageItem) {
       e.preventDefault()
       const file = imageItem.getAsFile()
       if (file) {
         handleImageUpload(file)
       }
+      return
     }
-  }, [handleImageUpload])
+    
+    // 处理HTML内容（飞书、Notion、Word等）
+    const html = e.clipboardData.getData('text/html')
+    const plainText = e.clipboardData.getData('text/plain')
+    
+    // 检测是否应该使用智能粘贴
+    if (SmartPasteHandler.shouldUseSmartPaste(html)) {
+      e.preventDefault()
+      
+      try {
+        // 显示处理中提示
+        notification.info('🔄 正在智能识别格式...')
+        
+        // 使用智能粘贴处理器转换
+        const result = await smartPasteHandler.convert(html, plainText)
+        
+        // 在光标位置插入转换后的Markdown
+        const textarea = textareaRef.current
+        if (textarea) {
+          const start = textarea.selectionStart
+          const end = textarea.selectionEnd
+          const currentContent = state.editor.content
+          
+          // 插入新内容
+          const newContent = 
+            currentContent.substring(0, start) +
+            result.markdown +
+            currentContent.substring(end)
+          
+          // 更新编辑器内容
+          dispatch({
+            type: 'UPDATE_EDITOR_CONTENT',
+            payload: newContent
+          })
+          
+          // 显示成功通知
+          const sourceText = result.source !== '未知来源' ? `从${result.source}` : ''
+          notification.success(
+            `✅ ${sourceText}导入成功！${result.imageCount > 0 ? `包含 ${result.imageCount} 张图片` : ''}`
+          )
+          
+          console.log('[智能粘贴]', result)
+          
+          // 恢复光标位置
+          setTimeout(() => {
+            const newPosition = start + result.markdown.length
+            textarea.setSelectionRange(newPosition, newPosition)
+            textarea.focus()
+          }, 0)
+        }
+      } catch (error) {
+        console.error('[智能粘贴] 转换失败:', error)
+        notification.error('格式转换失败，已插入纯文本')
+        
+        // 失败时插入纯文本
+        const textarea = textareaRef.current
+        if (textarea) {
+          const start = textarea.selectionStart
+          const end = textarea.selectionEnd
+          const currentContent = state.editor.content
+          const newContent = 
+            currentContent.substring(0, start) +
+            plainText +
+            currentContent.substring(end)
+          
+          dispatch({
+            type: 'UPDATE_EDITOR_CONTENT',
+            payload: newContent
+          })
+        }
+      }
+    }
+    // 纯文本直接使用浏览器默认行为
+  }, [handleImageUpload, state.editor.content, dispatch, textareaRef])
 
   // 处理拖拽
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -945,8 +1021,9 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
           onClick={handleSelectionChange}
           placeholder="# 在这里开始写作...
 
-支持 Markdown 语法 | 支持拖拽/粘贴图片
-内容达到 30 字后自动保存"
+✨ 智能粘贴：支持从飞书、Notion、Word直接复制
+📸 图片上传：支持拖拽或粘贴截图
+💾 自动保存：内容达到30字后自动保存"
           className="editor-textarea"
           spellCheck={false}
         />
