@@ -6,7 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3001,
-    host: true
+    host: true,
+    // 配置API代理，将/api开头的请求转发到后端
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   root: '.',
   publicDir: 'public',
