@@ -1,7 +1,8 @@
 // 用户设置页面
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../utils/auth-context'
+import { StyleAnalyzer } from '../components/ai/StyleAnalyzer'
 
 export function UserSettings() {
   const navigate = useNavigate()
@@ -46,6 +47,11 @@ export function UserSettings() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* AI风格学习 */}
+          <div className="ai-style-section">
+            <StyleAnalyzer />
           </div>
 
           <div className="settings-sections">
