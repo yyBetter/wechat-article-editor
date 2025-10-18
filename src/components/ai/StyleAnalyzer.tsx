@@ -42,7 +42,7 @@ export function StyleAnalyzer() {
   const loadArticles = async () => {
     try {
       setIsLoading(true)
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('auth_token')
       
       const response = await fetch('/api/documents', {
         headers: {
@@ -71,7 +71,7 @@ export function StyleAnalyzer() {
 
   const loadStyleProfile = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('auth_token')
       
       const response = await fetch('/api/ai/style-profile', {
         headers: {
@@ -125,7 +125,7 @@ export function StyleAnalyzer() {
       setIsAnalyzing(true)
       setStep('analyzing')
       
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('auth_token')
       
       const response = await fetch('/api/ai/analyze-style', {
         method: 'POST',

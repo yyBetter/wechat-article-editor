@@ -108,7 +108,15 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
       })
       setPlatformVersions(initialVersions)
 
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('auth_token')
+      
+      console.log('🔑 当前Token:', token ? `${token.substring(0, 20)}...` : 'null')
+      
+      if (!token) {
+        notification.error('请先登录账号')
+        setIsAdapting(false)
+        return
+      }
 
       // 逐个平台适配
       for (const platformId of selectedPlatforms) {
