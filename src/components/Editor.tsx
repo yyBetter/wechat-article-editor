@@ -13,6 +13,7 @@ import { OutlinePanel } from './OutlinePanel'
 import { OutlineNode } from '../utils/outline-parser'
 import { countWords } from '../utils/word-counter'
 import { smartPasteHandler, SmartPasteHandler } from '../utils/paste-handler'
+import { SmartPasteFeature } from './SmartPasteFeature'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -60,6 +61,18 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   })
   const [spellListExpanded, setSpellListExpanded] = useState(false)
   const [cursorPosition, setCursorPosition] = useState(0)
+  
+  // 首次使用引导
+  const [showGuide, setShowGuide] = useState(() => {
+    const hasSeenGuide = localStorage.getItem('smart_paste_guide_seen')
+    return !hasSeenGuide  // 如果没看过，就显示
+  })
+  
+  // 关闭引导并记住
+  const handleCloseGuide = useCallback(() => {
+    setShowGuide(false)
+    localStorage.setItem('smart_paste_guide_seen', 'true')
+  }, [])
 
   // 自动保存功能
   const autoSave = useAutoSave(
@@ -940,6 +953,9 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   return (
     <div className="editor-container">
       {ToolbarComponent}
+      
+      {/* 首次使用引导 */}
+      {showGuide && <SmartPasteFeature variant="guide" onClose={handleCloseGuide} />}
       
       <div className="editor-main-content">
         {/* 大纲面板 */}

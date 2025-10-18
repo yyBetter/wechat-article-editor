@@ -1,0 +1,439 @@
+/* 智能粘贴功能展示样式 */
+
+/* ============ Hero版本（首页大横幅）============ */
+.smart-paste-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 48px;
+  margin: 32px 0;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+}
+
+.smart-paste-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.smart-paste-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.badge-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.badge-text {
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.smart-paste-content {
+  max-width: 800px;
+  margin-bottom: 40px;
+}
+
+.smart-paste-title {
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+}
+
+.title-icon {
+  font-size: 48px;
+}
+
+.smart-paste-description {
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.95;
+  margin-bottom: 24px;
+}
+
+.platform-support {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.platform-label {
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.platform-icons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.platform-icon {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.platform-icon:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* 演示流程 */
+.smart-paste-demo {
+  margin-top: 40px;
+}
+
+.demo-flow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.demo-step {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  min-width: 120px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.demo-step:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.step-number {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  background: white;
+  color: #667eea;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.step-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.step-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.demo-arrow {
+  font-size: 24px;
+  opacity: 0.7;
+}
+
+.demo-time {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.time-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.time-comparison {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* ============ Compact版本（已登录用户）============ */
+.smart-paste-compact {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 16px;
+  padding: 24px;
+  color: white;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin: 24px 0;
+  box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+}
+
+.compact-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.compact-content {
+  flex: 1;
+}
+
+.compact-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.new-badge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compact-description {
+  font-size: 14px;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+.compact-features {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.feature-tag {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ============ Guide版本（编辑器引导）============ */
+.smart-paste-guide {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border: 2px solid #f0f0f0;
+  position: relative;
+  max-width: 500px;
+  margin: 16px auto;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.guide-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.guide-close:hover {
+  background: #e0e0e0;
+  transform: rotate(90deg);
+}
+
+.guide-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.guide-icon {
+  font-size: 32px;
+}
+
+.guide-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.guide-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.guide-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.step-badge {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-info {
+  flex: 1;
+}
+
+.step-info strong {
+  display: block;
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.step-info p {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.guide-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.guide-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.tip-icon {
+  font-size: 16px;
+}
+
+.guide-action {
+  width: 100%;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.guide-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .smart-paste-hero {
+    padding: 32px 24px;
+  }
+  
+  .smart-paste-title {
+    font-size: 28px;
+  }
+  
+  .smart-paste-description {
+    font-size: 16px;
+  }
+  
+  .demo-flow {
+    flex-direction: column;
+  }
+  
+  .demo-arrow {
+    transform: rotate(90deg);
+  }
+  
+  .smart-paste-compact {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .compact-icon {
+    align-self: center;
+  }
+}
+

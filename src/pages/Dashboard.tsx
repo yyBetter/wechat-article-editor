@@ -9,6 +9,7 @@ import { UserMenu } from '../components/auth/UserMenu'
 import { getDocuments } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import { StorageStatusMonitor } from '../components/StorageStatusMonitor'
+import { SmartPasteFeature } from '../components/SmartPasteFeature'
 
 // 字数统计函数 - 与服务端保持一致
 function countWords(content: string): number {
@@ -217,8 +218,12 @@ export function Dashboard() {
                   
                   <div className="hero-features">
                     <div className="feature-item">
+                      <span className="feature-icon">✨</span>
+                      <span>智能粘贴</span>
+                    </div>
+                    <div className="feature-item">
                       <span className="feature-icon">🎨</span>
-                      <span>智能模板</span>
+                      <span>精美模板</span>
                     </div>
                     <div className="feature-item">
                       <span className="feature-icon">☁️</span>
@@ -244,9 +249,19 @@ export function Dashboard() {
                     </p>
                   </div>
                 </div>
+                
+                {/* 智能粘贴功能展示 */}
+                <SmartPasteFeature variant="hero" />
               </div>
             )}
           </section>
+
+          {/* 已登录用户的功能亮点 */}
+          {authState.isAuthenticated && (
+            <section className="feature-highlight-section">
+              <SmartPasteFeature variant="compact" />
+            </section>
+          )}
 
           {/* 统计卡片区域 */}
           {authState.isAuthenticated && (
