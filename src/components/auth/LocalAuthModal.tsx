@@ -16,6 +16,7 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
   const isDev = import.meta.env.DEV
   const [email, setEmail] = useState(isDev ? 'shawn@local.com' : '')
   const [username, setUsername] = useState(isDev ? 'Shawn' : '')
+  const [password, setPassword] = useState(isDev ? 'shawn@local.com' : '')
   const [loading, setLoading] = useState(false)
 
   if (!isOpen) return null
@@ -25,6 +26,11 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
     
     if (!email.trim()) {
       notification.error('请输入邮箱')
+      return
+    }
+    
+    if (!password.trim()) {
+      notification.error('请输入密码')
       return
     }
     
@@ -39,12 +45,12 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
       let result: { user: any; token: string }
       
       if (mode === 'login') {
-        // 调用后端登录API（使用邮箱作为密码进行简化登录）
-        result = await loginUser({ email, password: email })
+        // 调用后端登录API
+        result = await loginUser({ email, password })
         notification.success(`欢迎回来，${result.user.username}！`)
       } else {
-        // 调用后端注册API（使用邮箱作为密码进行简化注册）
-        result = await registerUser({ email, password: email, username })
+        // 调用后端注册API
+        result = await registerUser({ email, password, username })
         notification.success(`注册成功！欢迎，${result.user.username}！`)
       }
       
@@ -61,6 +67,7 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
       if (!isDev) {
         setEmail('')
         setUsername('')
+        setPassword('')
       }
     } catch (error) {
       notification.error((error as Error).message)
@@ -128,7 +135,7 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
               autoFocus
             />
             <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: isDev ? '#10b981' : '#999' }}>
-              {isDev ? '🚀 开发模式：已预填测试账号' : '💡 邮箱仅用于本地账号识别，不会上传到服务器'}
+              {isDev ? '🚀 开发模式：已预填测试账号' : '💡 邮箱仅用于本地账号识别'}
             </p>
           </div>
 
@@ -154,6 +161,32 @@ export function LocalAuthModal({ isOpen, onClose, onAuthSuccess }: LocalAuthModa
               />
             </div>
           )}
+
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500 }}>
+              密码
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={mode === 'register' ? '设置密码（至少6位）' : '输入密码'}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+              disabled={loading}
+            />
+            {mode === 'register' && (
+              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#999' }}>
+                💡 密码长度至少6位，建议使用字母+数字组合
+              </p>
+            )}
+          </div>
 
           {/* 提交按钮 */}
           <button
