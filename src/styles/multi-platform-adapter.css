@@ -27,8 +27,8 @@
 
 .multi-platform-adapter-modal {
   width: 100%;
-  max-width: 1200px;
-  max-height: 90vh;
+  max-width: 1600px; /* 增大宽度 */
+  max-height: 95vh; /* 增大高度 */
   background: white;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -53,8 +53,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 32px 32px 24px;
+  padding: 20px 32px 16px; /* 减少头部padding */
   border-bottom: 2px solid #f0f0f0;
+  flex-shrink: 0; /* 防止头部被压缩 */
 }
 
 .header-content {
@@ -64,15 +65,15 @@
 .adapter-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 28px;
+  gap: 10px;
+  font-size: 24px; /* 减小标题 */
   font-weight: 800;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .title-icon {
-  font-size: 32px;
+  font-size: 28px; /* 减小icon */
 }
 
 .adapter-subtitle {
@@ -103,8 +104,9 @@
 .adapter-body {
   flex: 1;
   overflow-y: auto;
-  padding: 32px;
-  max-height: calc(90vh - 150px); /* 确保有足够空间显示内容 */
+  padding: 24px 32px; /* 减少上下padding */
+  max-height: calc(95vh - 120px); /* 增大内容区域 */
+  min-height: 500px; /* 确保最小高度 */
 }
 
 .step-content {
@@ -403,10 +405,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 12px 20px; /* 减少padding */
   background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
   border-radius: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px; /* 减少margin */
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -414,11 +416,11 @@
 .result-success {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px; /* 减少gap */
 }
 
 .success-icon {
-  font-size: 32px;
+  font-size: 28px; /* 减小icon */
 }
 
 .success-title {
@@ -479,7 +481,7 @@
 /* 版本区域标题 */
 .versions-section-title {
   text-align: center;
-  padding: 24px 16px 16px;
+  padding: 16px 16px 12px; /* 减少padding */
   background: linear-gradient(to bottom, transparent, #f8f9fa);
   border-radius: 12px 12px 0 0;
   margin: 0 -32px 0;
@@ -513,7 +515,8 @@
 .platform-versions {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px; /* 减少间距 */
+  margin-top: 20px;
 }
 
 .version-card {
