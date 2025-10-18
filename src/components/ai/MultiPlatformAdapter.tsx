@@ -3,6 +3,7 @@ import React, { useState, useCallback } from 'react'
 import { notification } from '../../utils/notification'
 import { PlatformStylePreview } from './PlatformStylePreview'
 import '../../styles/multi-platform-adapter.css'
+import '../../styles/platform-tabs.css'
 
 interface PlatformVersion {
   platform: string
@@ -63,6 +64,7 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
   const [isAdapting, setIsAdapting] = useState(false)
   const [currentStep, setCurrentStep] = useState<'select' | 'adapting' | 'result'>('select')
   const [viewMode, setViewMode] = useState<'text' | 'preview'>('preview') // 默认显示样式预览
+  const [activePlatformTab, setActivePlatformTab] = useState<string>('') // 当前激活的平台tab
   const resultRef = React.useRef<HTMLDivElement>(null)
 
   // 当适配完成后，自动滚动到结果区域
@@ -176,6 +178,11 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
       }
 
       setCurrentStep('result')
+      // 自动选中第一个适配成功的平台
+      const firstPlatform = selectedPlatforms[0]
+      if (firstPlatform) {
+        setActivePlatformTab(firstPlatform)
+      }
       notification.success('✅ 多平台适配完成！')
 
     } catch (error: any) {
@@ -388,26 +395,37 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
                 </div>
               </div>
 
-              {/* 平台版本列表标题 */}
-              <div className="versions-section-title">
-                <h3>📱 各平台适配版本</h3>
-                <p>👇 滚动查看各平台的专属版本</p>
+              {/* 平台Tab切换 */}
+              <div className="platform-tabs">
+                {Object.entries(platformVersions)
+                  .filter(([_, version]) => version.status === 'ready')
+                  .map(([platformId, version]) => {
+                    const platform = PLATFORMS.find(p => p.id === platformId)!
+                    return (
+                      <button
+                        key={platformId}
+                        className={`platform-tab ${activePlatformTab === platformId ? 'active' : ''}`}
+                        onClick={() => setActivePlatformTab(platformId)}
+                        style={{ '--platform-color': platform.color } as React.CSSProperties}
+                      >
+                        <span className="tab-icon">{platform.icon}</span>
+                        <span className="tab-name">{platform.name}</span>
+                      </button>
+                    )
+                  })
+                }
               </div>
 
-              <div className="platform-versions">
-                {Object.entries(platformVersions).map(([platformId, version]) => {
-                  console.log(`🔍 渲染平台 ${platformId}:`, version)
-                  const platform = PLATFORMS.find(p => p.id === platformId)!
+              {/* 当前选中平台的内容 */}
+              <div className="platform-content">
+                {activePlatformTab && platformVersions[activePlatformTab] && (() => {
+                  const version = platformVersions[activePlatformTab]
+                  const platform = PLATFORMS.find(p => p.id === activePlatformTab)!
                   
-                  if (version.status !== 'ready') {
-                    console.log(`⚠️ ${platformId} 状态不是ready，跳过渲染。当前状态:`, version.status)
-                    return null
-                  }
-                  
-                  console.log(`✅ 开始渲染 ${platformId}`)
+                  if (version.status !== 'ready') return null
 
                   return (
-                    <div key={platformId} className="version-card">
+                    <div key={activePlatformTab} className="version-card-single">
                       <div 
                         className="version-header"
                         style={{ '--platform-color': platform.color } as React.CSSProperties}
@@ -482,7 +500,7 @@ export function MultiPlatformAdapter({ originalTitle, originalContent, onClose }
                       </div>
                     </div>
                   )
-                })}
+                })()}
               </div>
             </div>
           )}

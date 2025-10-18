@@ -65,21 +65,21 @@
 .adapter-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 24px; /* 减小标题 */
-  font-weight: 800;
+  gap: 8px;
+  font-size: 20px; /* 更小 */
+  font-weight: 700;
   color: #333;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .title-icon {
-  font-size: 28px; /* 减小icon */
+  font-size: 24px; /* 更小 */
 }
 
 .adapter-subtitle {
-  font-size: 14px;
+  font-size: 13px; /* 更小 */
   color: #666;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .close-btn {
