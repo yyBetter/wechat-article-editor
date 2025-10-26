@@ -424,6 +424,50 @@ export function Dashboard() {
                 </div>
               </section>
 
+              {/* 快速开始区域 */}
+              <section className="quick-start-section">
+                <div className="quick-start-container">
+                  <div className="section-header-v2">
+                    <h2 className="section-title-v2">快速开始</h2>
+                    <p className="section-subtitle-v2">
+                      选择模板，立即开始创作
+                    </p>
+                  </div>
+                  
+                  <div className="quick-start-grid">
+                    <div className="quick-start-card" onClick={handleNewArticle}>
+                      <div className="quick-icon">📱</div>
+                      <h3 className="quick-title">公众号文章</h3>
+                      <p className="quick-desc">适合深度内容，适配公众号风格</p>
+                      <div className="quick-features">
+                        <span className="quick-tag">洞察分析</span>
+                        <span className="quick-tag">专业排版</span>
+                      </div>
+                    </div>
+
+                    <div className="quick-start-card" onClick={handleNewArticle}>
+                      <div className="quick-icon">🎤</div>
+                      <h3 className="quick-title">语音转文章</h3>
+                      <p className="quick-desc">说出想法，AI 自动整理成文章</p>
+                      <div className="quick-features">
+                        <span className="quick-tag">快速创作</span>
+                        <span className="quick-tag">智能分段</span>
+                      </div>
+                    </div>
+
+                    <div className="quick-start-card" onClick={handleNewArticle}>
+                      <div className="quick-icon">✨</div>
+                      <h3 className="quick-title">AI 风格改写</h3>
+                      <p className="quick-desc">学习大师风格，优化你的文章</p>
+                      <div className="quick-features">
+                        <span className="quick-tag">风格学习</span>
+                        <span className="quick-tag">内容优化</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               {/* 最近文章 */}
               {stats.recentDocuments.length > 0 && (
                 <section className="recent-section">
