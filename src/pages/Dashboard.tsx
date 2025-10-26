@@ -1,4 +1,4 @@
-// Dashboard首页组件 - To C产品的主入口页面
+// Dashboard首页组件 - 现代化 AI 写作工具主页
 import React, { useState, useEffect } from 'react'
 import '../styles/dashboard.css'
 import { useNavigate } from 'react-router-dom'
@@ -15,38 +15,26 @@ import { IncognitoWarning } from '../components/IncognitoWarning'
 function countWords(content: string): number {
   if (!content || content.trim() === '') return 0
   
-  // 移除 markdown 语法字符，但保留文字内容
   let cleanContent = content
-    // 移除代码块
     .replace(/```[\s\S]*?```/g, ' ')
-    // 移除内联代码
     .replace(/`[^`]+`/g, ' ')
-    // 移除图片和链接语法
     .replace(/!?\[[^\]]*\]\([^)]*\)/g, ' ')
-    // 移除标题符号
     .replace(/^#{1,6}\s+/gm, '')
-    // 移除列表符号
     .replace(/^\s*[-*+]\s+/gm, '')
     .replace(/^\s*\d+\.\s+/gm, '')
-    // 移除引用符号
     .replace(/^>\s*/gm, '')
-    // 移除加粗、斜体符号
     .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
-    // 移除多余空格和换行
     .replace(/\s+/g, ' ')
     .trim()
   
   if (!cleanContent) return 0
   
-  // 统计中文字符
   const chineseChars = (cleanContent.match(/[\u4e00-\u9fa5]/g) || []).length
-  
-  // 统计英文单词（不包括单独的数字和符号）
   const englishWords = cleanContent
-    .replace(/[\u4e00-\u9fa5]/g, ' ') // 移除中文
-    .replace(/[^a-zA-Z\s]/g, ' ') // 只保留英文字母
+    .replace(/[\u4e00-\u9fa5]/g, ' ')
+    .replace(/[^a-zA-Z\s]/g, ' ')
     .split(/\s+/)
-    .filter(word => word.length > 1) // 只统计长度>1的单词
+    .filter(word => word.length > 1)
     .length
   
   return chineseChars + englishWords
@@ -81,7 +69,6 @@ export function Dashboard() {
     try {
       setLoading(true)
       const response = await getDocuments()
-      console.log('API响应数据:', response)
       const documents = response.documents || []
       
       const totalWords = documents.reduce((sum: number, doc: any) => {
@@ -91,7 +78,7 @@ export function Dashboard() {
       setStats({
         totalDocuments: documents.length,
         totalWords,
-        recentDocuments: documents.slice(0, 5) // 取前5篇最近文章
+        recentDocuments: documents.slice(0, 5)
       })
     } catch (error) {
       console.error('加载统计数据失败:', error)
@@ -100,19 +87,11 @@ export function Dashboard() {
     }
   }
 
-  // 处理认证成功（后端登录，有真实token）
   const handleAuthSuccess = async (user: any) => {
-    console.log('用户登录成功（后端模式）:', user)
-    
-    // 存储用户信息到localStorage（重要！LocalStorageAdapter需要）
     localStorage.setItem('current_user', JSON.stringify(user))
-    
-    // 调用 AuthContext 的 login 方法（使用真实的JWT token）
-    // 这会正确更新 authState.isAuthenticated = true
-    const token = user.token || 'local-token' // 使用真实token或降级到local-token
+    const token = user.token || 'local-token'
     login(user, token)
     
-    // 同步品牌设置到 AppContext
     if (user.brandSettings) {
       dispatch({
         type: 'UPDATE_FIXED_ASSETS',
@@ -123,228 +102,352 @@ export function Dashboard() {
     setAuthModalOpen(false)
   }
 
-  // 创建新文章
   const handleNewArticle = () => {
     if (!authState.isAuthenticated) {
-      // 未登录用户，引导登录
       setAuthModalOpen(true)
       return
     }
     
-    // 已登录用户，正常创建文章
     dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
     dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '' } })
     navigate('/editor')
   }
 
-  // 编辑现有文章
   const handleEditArticle = (documentId: string) => {
-    // 清理当前编辑器状态，避免显示上一个文档的内容
     dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: '' })
     dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: { title: '加载中...' } })
     navigate(`/editor/${documentId}`)
   }
 
-  // 查看所有文章
   const handleViewAllArticles = () => {
     navigate('/articles')
   }
 
   return (
     <>
-      {/* 无痕模式警告 */}
       <IncognitoWarning />
       
-      <div className="dashboard">
-        {/* 顶部导航栏 */}
-        <header className="dashboard-header">
-        <div className="header-content">
-          <div className="header-left">
-            <h1 className="app-title">📝 公众号排版工具</h1>
+      <div className="dashboard-v2">
+        {/* 顶部导航栏 - 简约现代 */}
+        <header className="nav-header">
+          <div className="nav-container">
+            <div className="nav-left">
+              <div className="brand">
+                <span className="brand-icon">✨</span>
+                <span className="brand-name">AI 写作助手</span>
+              </div>
+            </div>
+            <div className="nav-right">
+              <UserMenu onOpenAuthModal={() => setAuthModalOpen(true)} />
+            </div>
           </div>
-          <div className="header-right">
-            <UserMenu onOpenAuthModal={() => setAuthModalOpen(true)} />
-          </div>
-        </div>
-      </header>
+        </header>
 
-      {/* 主要内容区域 */}
-      <main className="dashboard-main">
-        <div className="dashboard-container">
-          {/* 欢迎区域 */}
-          <section className="welcome-section">
-            {authState.isAuthenticated ? (
-              // 已登录用户界面
-              <>
-                <div className="welcome-content">
-                  <h2>欢迎回来，{authState.user?.email?.split('@')[0] || '用户'}！</h2>
-                  <p className="welcome-subtitle">继续你的创作之旅，打造专业的公众号内容</p>
+        {/* 主要内容 */}
+        <main className="main-content">
+          {!authState.isAuthenticated ? (
+            /* 未登录 - Hero Section */
+            <>
+              {/* Hero 区域 */}
+              <section className="hero-section-v2">
+                <div className="hero-container">
+                  <div className="hero-content-v2">
+                    {/* 标签 */}
+                    <div className="hero-badge-v2">
+                      <span className="badge-dot"></span>
+                      <span>AI 驱动的智能写作工具</span>
+                    </div>
+                    
+                    {/* 主标题 */}
+                    <h1 className="hero-title-v2">
+                      AI 写作助手
+                      <br />
+                      <span className="gradient-text">让创作更简单</span>
+                    </h1>
+                    
+                    {/* 副标题 */}
+                    <p className="hero-subtitle-v2">
+                      学习你的写作风格，生成专业内容，一键适配多平台
+                      <br />
+                      3 位 AI 数字员工全天候为您服务
+                    </p>
+                    
+                    {/* CTA 按钮 */}
+                    <div className="hero-cta-v2">
+                      <button 
+                        className="cta-primary-v2"
+                        onClick={() => setAuthModalOpen(true)}
+                      >
+                        <span>开始创作</span>
+                        <span className="cta-arrow">→</span>
+                      </button>
+                      <button 
+                        className="cta-secondary-v2"
+                        onClick={() => {
+                          document.querySelector('.features-section-v2')?.scrollIntoView({ 
+                            behavior: 'smooth' 
+                          })
+                        }}
+                      >
+                        了解功能
+                      </button>
+                    </div>
+                    
+                    {/* 特性标签 */}
+                    <div className="hero-features-v2">
+                      <div className="feature-tag">🤖 AI 学习风格</div>
+                      <div className="feature-tag">🎤 语音转文章</div>
+                      <div className="feature-tag">🚀 多平台适配</div>
+                      <div className="feature-tag">✨ 智能优化</div>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="quick-actions">
-                  <button 
-                    className="action-btn primary"
-                    onClick={handleNewArticle}
-                  >
-                    <span className="btn-icon">✨</span>
-                    <span>新建文章</span>
-                  </button>
-                  
-                  <button 
-                    className="action-btn secondary"
-                    onClick={handleViewAllArticles}
-                  >
-                    <span className="btn-icon">📚</span>
-                    <span>管理文章</span>
-                  </button>
+                {/* 背景装饰 */}
+                <div className="hero-bg-decoration">
+                  <div className="bg-circle bg-circle-1"></div>
+                  <div className="bg-circle bg-circle-2"></div>
+                  <div className="bg-circle bg-circle-3"></div>
                 </div>
-              </>
-            ) : (
-              // 未登录用户界面 - 高端引导设计
-              <div className="hero-section">
-                <div className="hero-content">
-                  <div className="hero-badge">
-                    <span className="badge-icon">✨</span>
-                    <span>专业排版工具</span>
-                  </div>
-                  
-                  <h1 className="hero-title">
-                    让你的公众号文章
-                    <br />
-                    <span className="highlight">脱颖而出</span>
-                  </h1>
-                  
-                  <p className="hero-description">
-                    专业级 Markdown 编辑器，智能模板推荐，一键生成精美排版
-                    <br />
-                    助力内容创作者打造高品质公众号内容
-                  </p>
-                  
-                  <div className="hero-features">
-                    <div className="feature-item">
-                      <span className="feature-icon">✨</span>
-                      <span>智能粘贴</span>
-                    </div>
-                    <div className="feature-item">
-                      <span className="feature-icon">🎨</span>
-                      <span>精美模板</span>
-                    </div>
-                    <div className="feature-item">
-                      <span className="feature-icon">☁️</span>
-                      <span>云端同步</span>
-                    </div>
-                    <div className="feature-item">
-                      <span className="feature-icon">📱</span>
-                      <span>实时预览</span>
-                    </div>
-                  </div>
-                  
-                  <div className="hero-cta">
-                    <button 
-                      className="cta-button primary"
-                      onClick={() => setAuthModalOpen(true)}
-                    >
-                      <span className="cta-icon">🚀</span>
-                      <span>开始创作</span>
-                    </button>
-                    
-                    <p className="cta-hint">
-                      立即登录，解锁所有功能
+              </section>
+
+              {/* 功能展示区域 */}
+              <section className="features-section-v2">
+                <div className="features-container">
+                  <div className="section-header-v2">
+                    <h2 className="section-title-v2">强大的 AI 写作能力</h2>
+                    <p className="section-subtitle-v2">
+                      3 位 AI 数字员工，为您提供全方位的写作支持
                     </p>
                   </div>
-                </div>
-              </div>
-            )}
-          </section>
+                  
+                  <div className="features-grid">
+                    {/* 功能卡片 1 - AI 写作工作室 */}
+                    <div className="feature-card-v2">
+                      <div className="feature-icon-wrapper">
+                        <div className="feature-icon-v2">✨</div>
+                      </div>
+                      <h3 className="feature-title-v2">AI 写作工作室</h3>
+                      <p className="feature-desc-v2">
+                        风格化改写、内容优化。阿强（笔杆子）帮你写出符合品牌风格的专业内容。
+                      </p>
+                      <ul className="feature-list-v2">
+                        <li>学习 10+ 种大师写作风格</li>
+                        <li>自动分析并记住你的风格</li>
+                        <li>一键风格转换和优化</li>
+                      </ul>
+                    </div>
 
-          {/* 统计卡片区域 */}
-          {authState.isAuthenticated && (
-            <section className="stats-section">
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon">📄</div>
-                  <div className="stat-content">
-                    <div className="stat-number">{stats.totalDocuments}</div>
-                    <div className="stat-label">篇文章</div>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon">✍️</div>
-                  <div className="stat-content">
-                    <div className="stat-number">{stats.totalWords.toLocaleString()}</div>
-                    <div className="stat-label">总字数</div>
-                  </div>
-                </div>
-                
-                <div className="stat-card">
-                  <div className="stat-icon">🎨</div>
-                  <div className="stat-content">
-                    <div className="stat-number">{stats.recentDocuments.length}</div>
-                    <div className="stat-label">最近文章</div>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
+                    {/* 功能卡片 2 - AI 语音转文章 */}
+                    <div className="feature-card-v2 feature-card-highlight">
+                      <div className="card-badge">独家功能</div>
+                      <div className="feature-icon-wrapper">
+                        <div className="feature-icon-v2">🎤</div>
+                      </div>
+                      <h3 className="feature-title-v2">AI 语音转文章</h3>
+                      <p className="feature-desc-v2">
+                        录音秒变专业文章。说出你的想法，AI 自动整理成结构清晰的文章。
+                      </p>
+                      <ul className="feature-list-v2">
+                        <li>支持长时间连续录音</li>
+                        <li>智能分段和格式化</li>
+                        <li>自动生成标题和大纲</li>
+                      </ul>
+                    </div>
 
-          {/* 最近文章区域 */}
-          {authState.isAuthenticated && stats.recentDocuments.length > 0 && (
-            <section className="recent-articles-section">
-              <div className="section-header">
-                <h3>最近文章</h3>
-                <button 
-                  className="view-all-link"
-                  onClick={handleViewAllArticles}
-                >
-                  查看全部 →
-                </button>
-              </div>
-              
-              <div className="articles-grid">
-                {stats.recentDocuments.map((doc: any) => (
-                  <div key={doc.id} className="article-card" onClick={() => handleEditArticle(doc.id)}>
-                    <div className="article-header">
-                      <h4 className="article-title">{doc.title || '无标题'}</h4>
-                      <div className="article-date">
-                        {new Date(doc.updatedAt).toLocaleDateString('zh-CN')}
+                    {/* 功能卡片 3 - 智能写作助手 */}
+                    <div className="feature-card-v2">
+                      <div className="feature-icon-wrapper">
+                        <div className="feature-icon-v2">🤖</div>
+                      </div>
+                      <h3 className="feature-title-v2">智能写作助手</h3>
+                      <p className="feature-desc-v2">
+                        小美（资料库）+ 丧彪（主编）联手，为你提供素材支持和质量把关。
+                      </p>
+                      <ul className="feature-list-v2">
+                        <li>AI 标题生成和优化</li>
+                        <li>智能封面图设计</li>
+                        <li>错别字检查和修正</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 平台适配展示 */}
+              <section className="platforms-section-v2">
+                <div className="platforms-container">
+                  <div className="section-header-v2">
+                    <h2 className="section-title-v2">一键适配多平台</h2>
+                    <p className="section-subtitle-v2">
+                      同一篇文章，自动改写成适合不同平台的风格
+                    </p>
+                  </div>
+                  
+                  <div className="platforms-grid">
+                    <div className="platform-item">
+                      <div className="platform-icon">📱</div>
+                      <div className="platform-name">微信公众号</div>
+                    </div>
+                    <div className="platform-item">
+                      <div className="platform-icon">💡</div>
+                      <div className="platform-name">知乎</div>
+                    </div>
+                    <div className="platform-item">
+                      <div className="platform-icon">📸</div>
+                      <div className="platform-name">小红书</div>
+                    </div>
+                    <div className="platform-item">
+                      <div className="platform-icon">📰</div>
+                      <div className="platform-name">今日头条</div>
+                    </div>
+                    <div className="platform-item">
+                      <div className="platform-icon">🐦</div>
+                      <div className="platform-name">微博</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 底部 CTA */}
+              <section className="cta-section-v2">
+                <div className="cta-container-v2">
+                  <h2 className="cta-title-v2">准备好开始了吗？</h2>
+                  <p className="cta-text-v2">立即登录，体验 AI 赋能的写作新方式</p>
+                  <button 
+                    className="cta-button-final"
+                    onClick={() => setAuthModalOpen(true)}
+                  >
+                    免费开始使用
+                  </button>
+                </div>
+              </section>
+            </>
+          ) : (
+            /* 已登录 - 工作台 */
+            <>
+              {/* 欢迎区域 */}
+              <section className="workspace-welcome">
+                <div className="workspace-container">
+                  <div className="welcome-header">
+                    <div className="welcome-text">
+                      <h2 className="welcome-title">
+                        欢迎回来，{authState.user?.email?.split('@')[0] || '用户'}！
+                      </h2>
+                      <p className="welcome-subtitle">继续你的创作之旅</p>
+                    </div>
+                    <button 
+                      className="new-article-btn"
+                      onClick={handleNewArticle}
+                    >
+                      <span className="btn-icon">✨</span>
+                      <span>新建文章</span>
+                    </button>
+                  </div>
+                  
+                  {/* 统计卡片 */}
+                  <div className="stats-cards">
+                    <div className="stat-card-v2">
+                      <div className="stat-icon-v2">📄</div>
+                      <div className="stat-info">
+                        <div className="stat-value">{stats.totalDocuments}</div>
+                        <div className="stat-label">篇文章</div>
                       </div>
                     </div>
                     
-                    <div className="article-meta">
-                      <span className="meta-item">
-                        📝 {doc.metadata?.wordCount ?? 0} 字
-                      </span>
-                      <span className="meta-item">
-                        🖼️ {doc.metadata?.imageCount ?? 0} 图
-                      </span>
+                    <div className="stat-card-v2">
+                      <div className="stat-icon-v2">✍️</div>
+                      <div className="stat-info">
+                        <div className="stat-value">{stats.totalWords.toLocaleString()}</div>
+                        <div className="stat-label">总字数</div>
+                      </div>
                     </div>
                     
-                    <div className="article-preview">
-                      {doc.content ? 
-                        doc.content.substring(0, 80).replace(/[#*>`\n]/g, '').trim() + '...' : 
-                        '暂无内容'
-                      }
+                    <div className="stat-card-v2">
+                      <div className="stat-icon-v2">🎨</div>
+                      <div className="stat-info">
+                        <div className="stat-value">{stats.recentDocuments.length}</div>
+                        <div className="stat-label">最近文章</div>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </section>
+                </div>
+              </section>
+
+              {/* 最近文章 */}
+              {stats.recentDocuments.length > 0 && (
+                <section className="recent-section">
+                  <div className="recent-container">
+                    <div className="recent-header">
+                      <h3 className="recent-title">最近文章</h3>
+                      <button 
+                        className="view-all-btn"
+                        onClick={handleViewAllArticles}
+                      >
+                        查看全部 →
+                      </button>
+                    </div>
+                    
+                    <div className="recent-grid">
+                      {stats.recentDocuments.map((doc: any) => (
+                        <div 
+                          key={doc.id} 
+                          className="recent-card"
+                          onClick={() => handleEditArticle(doc.id)}
+                        >
+                          <div className="recent-card-header">
+                            <h4 className="recent-card-title">
+                              {doc.title || '无标题'}
+                            </h4>
+                            <div className="recent-card-date">
+                              {new Date(doc.updatedAt).toLocaleDateString('zh-CN')}
+                            </div>
+                          </div>
+                          
+                          <div className="recent-card-meta">
+                            <span className="meta-badge">
+                              📝 {doc.metadata?.wordCount ?? 0} 字
+                            </span>
+                            <span className="meta-badge">
+                              🖼️ {doc.metadata?.imageCount ?? 0} 图
+                            </span>
+                          </div>
+                          
+                          <div className="recent-card-preview">
+                            {doc.content ? 
+                              doc.content.substring(0, 80).replace(/[#*>`\n]/g, '').trim() + '...' : 
+                              '暂无内容'
+                            }
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </>
           )}
+        </main>
 
-        </div>
-      </main>
+        {/* 页脚 */}
+        <footer className="footer-v2">
+          <div className="footer-container">
+            <p className="footer-text">
+              © 2024 AI 写作助手 · 让创作更简单
+            </p>
+          </div>
+        </footer>
+      </div>
 
-      {/* 本地认证弹窗 */}
+      {/* 认证弹窗 */}
       <LocalAuthModal 
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
       />
 
-      {/* 存储状态监控 */}
+      {/* 存储监控 */}
       <StorageStatusMonitor />
-      </div>
     </>
   )
 }
