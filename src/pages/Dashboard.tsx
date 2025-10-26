@@ -162,15 +162,43 @@ export function Dashboard() {
                     <h1 className="hero-title-v2">
                       AI 写作助手
                       <br />
-                      <span className="gradient-text">让创作更简单</span>
+                      <span className="gradient-text">你的 AI 写作团队</span>
                     </h1>
                     
                     {/* 副标题 */}
                     <p className="hero-subtitle-v2">
-                      学习你的写作风格，生成专业内容，一键适配多平台
-                      <br />
-                      3 位 AI 数字员工全天候为您服务
+                      理解你的思考与表达方式，与你一起，将想法写成好文章
                     </p>
+                    
+                    {/* 产品演示输入框 */}
+                    <div className="hero-demo-box">
+                      <div className="demo-input-area">
+                        <div className="demo-placeholder">
+                          描述你的创作需求，比如：第一期公众号实现日常的读书笔记
+                        </div>
+                        <div className="demo-toolbar">
+                          <button className="demo-btn">
+                            <span>🎨</span>
+                            <span>启发模式</span>
+                          </button>
+                          <button className="demo-btn demo-btn-primary">
+                            <span>📱</span>
+                            <span>公众号风格・洞察</span>
+                          </button>
+                          <div className="demo-actions">
+                            <button className="demo-icon-btn">💡</button>
+                            <button className="demo-icon-btn">🔄</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="demo-suggestions">
+                        <span className="demo-tag">推荐模板</span>
+                        <div className="demo-template-chip">
+                          <span>📱</span>
+                          <span>公众号文章・洞察</span>
+                        </div>
+                      </div>
+                    </div>
                     
                     {/* CTA 按钮 */}
                     <div className="hero-cta-v2">
@@ -178,27 +206,9 @@ export function Dashboard() {
                         className="cta-primary-v2"
                         onClick={() => setAuthModalOpen(true)}
                       >
-                        <span>开始创作</span>
+                        <span>立即开始创作</span>
                         <span className="cta-arrow">→</span>
                       </button>
-                      <button 
-                        className="cta-secondary-v2"
-                        onClick={() => {
-                          document.querySelector('.features-section-v2')?.scrollIntoView({ 
-                            behavior: 'smooth' 
-                          })
-                        }}
-                      >
-                        了解功能
-                      </button>
-                    </div>
-                    
-                    {/* 特性标签 */}
-                    <div className="hero-features-v2">
-                      <div className="feature-tag">🤖 AI 学习风格</div>
-                      <div className="feature-tag">🎤 语音转文章</div>
-                      <div className="feature-tag">🚀 多平台适配</div>
-                      <div className="feature-tag">✨ 智能优化</div>
                     </div>
                   </div>
                 </div>
@@ -211,284 +221,139 @@ export function Dashboard() {
                 </div>
               </section>
 
-              {/* 功能展示区域 */}
-              <section className="features-section-v2">
-                <div className="features-container">
+              {/* 灵感发现区域 */}
+              <section className="inspiration-section-v2">
+                <div className="inspiration-container">
                   <div className="section-header-v2">
-                    <h2 className="section-title-v2">强大的 AI 写作能力</h2>
+                    <h2 className="section-title-v2">灵感发现</h2>
                     <p className="section-subtitle-v2">
-                      3 位 AI 数字员工，为您提供全方位的写作支持
+                      看看其他同学们的创作成果，找到属于你的灵感点
                     </p>
                   </div>
                   
-                  <div className="features-grid">
-                    {/* 功能卡片 1 - AI 写作工作室 */}
-                    <div className="feature-card-v2">
-                      <div className="feature-icon-wrapper">
-                        <div className="feature-icon-v2">✨</div>
-                      </div>
-                      <h3 className="feature-title-v2">AI 写作工作室</h3>
-                      <p className="feature-desc-v2">
-                        风格化改写、内容优化。阿强（笔杆子）帮你写出符合品牌风格的专业内容。
-                      </p>
-                      <ul className="feature-list-v2">
-                        <li>学习 10+ 种大师写作风格</li>
-                        <li>自动分析并记住你的风格</li>
-                        <li>一键风格转换和优化</li>
-                      </ul>
-                    </div>
-
-                    {/* 功能卡片 2 - AI 语音转文章 */}
-                    <div className="feature-card-v2 feature-card-highlight">
-                      <div className="card-badge">独家功能</div>
-                      <div className="feature-icon-wrapper">
-                        <div className="feature-icon-v2">🎤</div>
-                      </div>
-                      <h3 className="feature-title-v2">AI 语音转文章</h3>
-                      <p className="feature-desc-v2">
-                        录音秒变专业文章。说出你的想法，AI 自动整理成结构清晰的文章。
-                      </p>
-                      <ul className="feature-list-v2">
-                        <li>支持长时间连续录音</li>
-                        <li>智能分段和格式化</li>
-                        <li>自动生成标题和大纲</li>
-                      </ul>
-                    </div>
-
-                    {/* 功能卡片 3 - 智能写作助手 */}
-                    <div className="feature-card-v2">
-                      <div className="feature-icon-wrapper">
-                        <div className="feature-icon-v2">🤖</div>
-                      </div>
-                      <h3 className="feature-title-v2">智能写作助手</h3>
-                      <p className="feature-desc-v2">
-                        小美（资料库）+ 丧彪（主编）联手，为你提供素材支持和质量把关。
-                      </p>
-                      <ul className="feature-list-v2">
-                        <li>AI 标题生成和优化</li>
-                        <li>智能封面图设计</li>
-                        <li>错别字检查和修正</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* 平台适配展示 */}
-              <section className="platforms-section-v2">
-                <div className="platforms-container">
-                  <div className="section-header-v2">
-                    <h2 className="section-title-v2">一键适配多平台</h2>
-                    <p className="section-subtitle-v2">
-                      同一篇文章，自动改写成适合不同平台的风格
-                    </p>
+                  {/* 分类标签 */}
+                  <div className="inspiration-tabs">
+                    <button className="inspo-tab active">公众号文章</button>
+                    <button className="inspo-tab">科技探讨</button>
+                    <button className="inspo-tab">访谈对话</button>
+                    <button className="inspo-tab">日常笔记</button>
+                    <button className="inspo-tab">新手指南</button>
+                    <button className="inspo-tab">短文翻新</button>
+                    <button className="inspo-tab">历史节目</button>
                   </div>
                   
-                  <div className="platforms-grid">
-                    <div className="platform-item">
-                      <div className="platform-icon">📱</div>
-                      <div className="platform-name">微信公众号</div>
-                    </div>
-                    <div className="platform-item">
-                      <div className="platform-icon">💡</div>
-                      <div className="platform-name">知乎</div>
-                    </div>
-                    <div className="platform-item">
-                      <div className="platform-icon">📸</div>
-                      <div className="platform-name">小红书</div>
-                    </div>
-                    <div className="platform-item">
-                      <div className="platform-icon">📰</div>
-                      <div className="platform-name">今日头条</div>
-                    </div>
-                    <div className="platform-item">
-                      <div className="platform-icon">🐦</div>
-                      <div className="platform-name">微博</div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* AI 数字员工介绍 */}
-              <section className="team-section-v2">
-                <div className="team-container">
-                  <div className="section-header-v2">
-                    <h2 className="section-title-v2">3 位 AI 数字员工</h2>
-                    <p className="section-subtitle-v2">
-                      专业团队全天候为您服务，让写作更高效
-                    </p>
-                  </div>
-                  
-                  <div className="team-grid">
-                    <div className="team-card">
-                      <div className="team-avatar">✍️</div>
-                      <h3 className="team-name">阿强 - 笔杆子</h3>
-                      <p className="team-role">风格化改写专家</p>
-                      <p className="team-desc">
-                        精通各种写作风格，能够按照指定风格改写稿件。
-                        学习刘润、王慧文等大师风格，让你的文章更专业。
-                      </p>
-                      <ul className="team-skills">
-                        <li>风格分析与学习</li>
-                        <li>内容改写优化</li>
-                        <li>语言润色加工</li>
-                      </ul>
-                    </div>
-
-                    <div className="team-card team-card-featured">
-                      <div className="team-badge">核心成员</div>
-                      <div className="team-avatar">📚</div>
-                      <h3 className="team-name">小美 - 资料库</h3>
-                      <p className="team-role">素材搜集与核验</p>
-                      <p className="team-desc">
-                        快速搜集案例、核验数据准确性。
-                        为你的文章提供权威素材支撑，确保内容真实可信。
-                      </p>
-                      <ul className="team-skills">
-                        <li>全网素材检索</li>
-                        <li>数据准确核验</li>
-                        <li>案例精准匹配</li>
-                      </ul>
-                    </div>
-
-                    <div className="team-card">
-                      <div className="team-avatar">👔</div>
-                      <h3 className="team-name">丧彪 - 主编</h3>
-                      <p className="team-role">质量把关与审核</p>
-                      <p className="team-desc">
-                        统筹写作流程，把控内容质量。
-                        提供专业修改建议，让每篇文章都能达到发布标准。
-                      </p>
-                      <ul className="team-skills">
-                        <li>风格定义与指导</li>
-                        <li>稿件审核优化</li>
-                        <li>质量标准把控</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* 工作流程展示 */}
-              <section className="workflow-section-v2">
-                <div className="workflow-container">
-                  <div className="section-header-v2">
-                    <h2 className="section-title-v2">简单 3 步，完成专业创作</h2>
-                    <p className="section-subtitle-v2">
-                      从想法到发布，AI 全程陪伴
-                    </p>
-                  </div>
-                  
-                  <div className="workflow-steps">
-                    <div className="workflow-step">
-                      <div className="step-number">01</div>
-                      <div className="step-content">
-                        <h3 className="step-title">输入想法</h3>
-                        <p className="step-desc">
-                          文字输入或语音录音，说出你的想法
-                        </p>
-                        <div className="step-features">
-                          <span className="step-tag">✍️ 文字编辑</span>
-                          <span className="step-tag">🎤 语音输入</span>
-                          <span className="step-tag">📋 智能粘贴</span>
-                        </div>
+                  {/* 案例卡片 */}
+                  <div className="inspiration-grid">
+                    <div className="inspo-card">
+                      <div className="inspo-header">
+                        <span className="inspo-badge">📱 教程总结</span>
+                      </div>
+                      <h3 className="inspo-title">如果再上一次学，我可能做错选择？</h3>
+                      <div className="inspo-meta">
+                        <span className="inspo-stat">👁️ 1 观点</span>
+                        <span className="inspo-stat">📝 5447 字</span>
+                      </div>
+                      <div className="inspo-author">
+                        <div className="author-avatar">👤</div>
+                        <span className="author-name">roadbee</span>
                       </div>
                     </div>
 
-                    <div className="workflow-arrow">→</div>
-
-                    <div className="workflow-step">
-                      <div className="step-number">02</div>
-                      <div className="step-content">
-                        <h3 className="step-title">AI 优化</h3>
-                        <p className="step-desc">
-                          AI 团队协作，优化内容结构和表达
-                        </p>
-                        <div className="step-features">
-                          <span className="step-tag">✨ 风格改写</span>
-                          <span className="step-tag">🔍 错别字检查</span>
-                          <span className="step-tag">📊 大纲生成</span>
-                        </div>
+                    <div className="inspo-card">
+                      <div className="inspo-header">
+                        <span className="inspo-badge">✨ 多平台笔记</span>
+                      </div>
+                      <h3 className="inspo-title">未来几年，哪位语音模型会脱颖而出？</h3>
+                      <div className="inspo-meta">
+                        <span className="inspo-stat">👁️ 1 观点</span>
+                        <span className="inspo-stat">📝 4301 字</span>
+                      </div>
+                      <div className="inspo-author">
+                        <div className="author-avatar">👤</div>
+                        <span className="author-name">Shawn YANG</span>
                       </div>
                     </div>
 
-                    <div className="workflow-arrow">→</div>
-
-                    <div className="workflow-step">
-                      <div className="step-number">03</div>
-                      <div className="step-content">
-                        <h3 className="step-title">多平台适配</h3>
-                        <p className="step-desc">
-                          一键适配不同平台，轻松分发内容
-                        </p>
-                        <div className="step-features">
-                          <span className="step-tag">📱 公众号</span>
-                          <span className="step-tag">💡 知乎</span>
-                          <span className="step-tag">📸 小红书</span>
-                        </div>
+                    <div className="inspo-card">
+                      <div className="inspo-header">
+                        <span className="inspo-badge">🎯 一键生成</span>
+                      </div>
+                      <h3 className="inspo-title">半年时间，我可能挣来一半左边10W+，玩坏了主流的三家视频策划</h3>
+                      <div className="inspo-meta">
+                        <span className="inspo-stat">👁️ 16 观点</span>
+                        <span className="inspo-stat">📝 3266 字</span>
+                      </div>
+                      <div className="inspo-author">
+                        <div className="author-avatar">👤</div>
+                        <span className="author-name">Sisen Chen</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </section>
 
-              {/* 用户收益展示 */}
-              <section className="benefits-section-v2">
-                <div className="benefits-container">
+              {/* AI 写作团队 - 头像卡片风格 */}
+              <section className="team-section-v3">
+                <div className="team-container-v3">
                   <div className="section-header-v2">
-                    <h2 className="section-title-v2">为什么选择我们？</h2>
+                    <h2 className="section-title-v2">你的写作团队</h2>
                     <p className="section-subtitle-v2">
-                      AI 赋能，让写作效率提升 10 倍
+                      AI 写作助手 是由多个 AI 专家组成的协作团队，你雇得起的专家团，他们会完成彼此的任务
                     </p>
                   </div>
                   
-                  <div className="benefits-grid">
-                    <div className="benefit-item">
-                      <div className="benefit-icon">⚡</div>
-                      <h3 className="benefit-title">效率提升</h3>
-                      <p className="benefit-desc">
-                        语音转文章 + AI 优化，30 分钟完成一篇 3000 字文章
-                      </p>
+                  <div className="team-avatars-grid">
+                    <div className="team-avatar-card">
+                      <div className="avatar-circle">✍️</div>
+                      <h4 className="avatar-name">阿强</h4>
+                      <p className="avatar-role">笔杆子专家</p>
+                      <div className="avatar-tags">
+                        <span className="avatar-tag">细致校对</span>
+                        <span className="avatar-tag">风格改写</span>
+                        <span className="avatar-tag">新代评论</span>
+                      </div>
                     </div>
 
-                    <div className="benefit-item">
-                      <div className="benefit-icon">🎯</div>
-                      <h3 className="benefit-title">质量保证</h3>
-                      <p className="benefit-desc">
-                        3 位 AI 员工协同工作，确保内容专业、准确、优质
-                      </p>
+                    <div className="team-avatar-card">
+                      <div className="avatar-circle">💡</div>
+                      <h4 className="avatar-name">小帅</h4>
+                      <p className="avatar-role">创意策划</p>
+                      <div className="avatar-tags">
+                        <span className="avatar-tag">头脑风暴</span>
+                        <span className="avatar-tag">策略规划</span>
+                      </div>
                     </div>
 
-                    <div className="benefit-item">
-                      <div className="benefit-icon">🎨</div>
-                      <h3 className="benefit-title">风格多样</h3>
-                      <p className="benefit-desc">
-                        10+ 种大师风格可选，轻松适配不同场景和平台
-                      </p>
+                    <div className="team-avatar-card">
+                      <div className="avatar-circle">🎯</div>
+                      <h4 className="avatar-name">民勋</h4>
+                      <p className="avatar-role">编辑</p>
+                      <div className="avatar-tags">
+                        <span className="avatar-tag">读者策略</span>
+                        <span className="avatar-tag">素材检索</span>
+                        <span className="avatar-tag">数据核验</span>
+                      </div>
                     </div>
 
-                    <div className="benefit-item">
-                      <div className="benefit-icon">💰</div>
-                      <h3 className="benefit-title">成本节省</h3>
-                      <p className="benefit-desc">
-                        无需雇佣专业写手，一个工具解决所有写作需求
-                      </p>
+                    <div className="team-avatar-card">
+                      <div className="avatar-circle">📚</div>
+                      <h4 className="avatar-name">小美</h4>
+                      <p className="avatar-role">研究员</p>
+                      <div className="avatar-tags">
+                        <span className="avatar-tag">深度研究</span>
+                        <span className="avatar-tag">专家访谈</span>
+                      </div>
                     </div>
 
-                    <div className="benefit-item">
-                      <div className="benefit-icon">🔒</div>
-                      <h3 className="benefit-title">数据安全</h3>
-                      <p className="benefit-desc">
-                        本地存储 + 云端同步，数据完全由你掌控
-                      </p>
-                    </div>
-
-                    <div className="benefit-item">
-                      <div className="benefit-icon">📈</div>
-                      <h3 className="benefit-title">持续进化</h3>
-                      <p className="benefit-desc">
-                        AI 模型不断升级，写作能力持续提升
-                      </p>
+                    <div className="team-avatar-card">
+                      <div className="avatar-circle">👔</div>
+                      <h4 className="avatar-name">阿珍</h4>
+                      <p className="avatar-role">风格顾问室核师</p>
+                      <div className="avatar-tags">
+                        <span className="avatar-tag">排序分析</span>
+                        <span className="avatar-tag">语言形式</span>
+                        <span className="avatar-tag">风格定义</span>
+                      </div>
                     </div>
                   </div>
                 </div>

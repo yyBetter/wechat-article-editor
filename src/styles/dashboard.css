@@ -236,7 +236,7 @@
 /* ========== Hero Section ========== */
 .hero-section-v2 {
   position: relative;
-  padding: 120px 32px 80px;
+  padding: 100px 32px 80px;
   overflow: hidden;
   background: var(--xuan-paper);
 }
@@ -264,6 +264,122 @@
   pointer-events: none;
   opacity: 0.5;
   z-index: 1;
+}
+
+/* ========== 产品演示输入框 ========== */
+.hero-demo-box {
+  max-width: 700px;
+  margin: 48px auto 32px;
+  position: relative;
+  z-index: 2;
+}
+
+.demo-input-area {
+  background: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition-ink);
+}
+
+.demo-input-area:hover {
+  border-color: var(--gold-accent);
+  box-shadow: var(--shadow-xl);
+}
+
+.demo-placeholder {
+  font-size: 15px;
+  color: var(--color-text-light);
+  line-height: 1.8;
+  min-height: 80px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: var(--xuan-paper);
+  border-radius: var(--radius-sm);
+}
+
+.demo-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.demo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--xuan-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--ink-black);
+  cursor: pointer;
+  transition: var(--transition-ink);
+}
+
+.demo-btn:hover {
+  border-color: var(--gold-accent);
+  transform: translateY(-1px);
+}
+
+.demo-btn-primary {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--gold-accent);
+  font-weight: 600;
+}
+
+.demo-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.demo-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--xuan-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-ink);
+}
+
+.demo-icon-btn:hover {
+  border-color: var(--gold-accent);
+  transform: scale(1.1);
+}
+
+.demo-suggestions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-tag {
+  font-size: 13px;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.demo-template-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: white;
+  border: 2px solid var(--gold-accent);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-black);
+  box-shadow: var(--shadow-sm);
 }
 
 .hero-container {
@@ -1166,15 +1282,166 @@
   }
 }
 
-/* ========== AI 数字员工介绍 ========== */
-.team-section-v2 {
+/* ========== 灵感发现区域 ========== */
+.inspiration-section-v2 {
+  padding: 80px 32px;
+  background: var(--xuan-paper-dark);
+  position: relative;
+}
+
+/* 灵感区宣纸纹理 */
+.inspiration-section-v2::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(44, 62, 80, 0.01) 2px,
+      rgba(44, 62, 80, 0.01) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(44, 62, 80, 0.01) 2px,
+      rgba(44, 62, 80, 0.01) 4px
+    );
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.inspiration-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.inspiration-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.inspo-tab {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-black);
+  cursor: pointer;
+  transition: var(--transition-ink);
+}
+
+.inspo-tab:hover {
+  border-color: var(--gold-accent);
+  transform: translateY(-2px);
+}
+
+.inspo-tab.active {
+  background: var(--ink-gradient);
+  color: white;
+  border-color: var(--ink-black);
+}
+
+.inspiration-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.inspo-card {
+  background: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  cursor: pointer;
+  transition: var(--transition-ink);
+}
+
+.inspo-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold-accent);
+}
+
+.inspo-header {
+  margin-bottom: 16px;
+}
+
+.inspo-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--gold-accent);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-black);
+}
+
+.inspo-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink-black);
+  line-height: 1.6;
+  margin: 0 0 16px;
+  min-height: 58px;
+}
+
+.inspo-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.inspo-stat {
+  font-size: 13px;
+  color: var(--color-text-light);
+}
+
+.inspo-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.author-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--xuan-paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.author-name {
+  font-size: 14px;
+  color: var(--ink-black);
+  font-weight: 500;
+}
+
+/* ========== AI 写作团队 V3 - 头像卡片 ========== */
+.team-section-v3 {
   padding: 80px 32px;
   background: white;
   position: relative;
 }
 
 /* 宣纸纹理效果 */
-.team-section-v2::before {
+.team-section-v3::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1198,6 +1465,82 @@
   margin: 0 auto;
   position: relative;
   z-index: 2;
+}
+
+.team-container-v3 {
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.team-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.team-avatar-card {
+  background: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  transition: var(--transition-ink);
+  cursor: pointer;
+}
+
+.team-avatar-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold-accent);
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: var(--ink-gradient);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  border: 3px solid var(--gold-accent);
+  box-shadow: var(--shadow-ink);
+}
+
+.avatar-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-black);
+  margin: 0 0 8px;
+  font-family: var(--font-family-title);
+}
+
+.avatar-role {
+  font-size: 14px;
+  color: var(--color-text-light);
+  margin: 0 0 16px;
+}
+
+.avatar-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.avatar-tag {
+  padding: 4px 10px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--gold-accent);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--ink-black);
+  font-weight: 500;
 }
 
 .team-grid {
