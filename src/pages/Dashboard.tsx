@@ -309,6 +309,191 @@ export function Dashboard() {
                 </div>
               </section>
 
+              {/* AI 数字员工介绍 */}
+              <section className="team-section-v2">
+                <div className="team-container">
+                  <div className="section-header-v2">
+                    <h2 className="section-title-v2">3 位 AI 数字员工</h2>
+                    <p className="section-subtitle-v2">
+                      专业团队全天候为您服务，让写作更高效
+                    </p>
+                  </div>
+                  
+                  <div className="team-grid">
+                    <div className="team-card">
+                      <div className="team-avatar">✍️</div>
+                      <h3 className="team-name">阿强 - 笔杆子</h3>
+                      <p className="team-role">风格化改写专家</p>
+                      <p className="team-desc">
+                        精通各种写作风格，能够按照指定风格改写稿件。
+                        学习刘润、王慧文等大师风格，让你的文章更专业。
+                      </p>
+                      <ul className="team-skills">
+                        <li>风格分析与学习</li>
+                        <li>内容改写优化</li>
+                        <li>语言润色加工</li>
+                      </ul>
+                    </div>
+
+                    <div className="team-card team-card-featured">
+                      <div className="team-badge">核心成员</div>
+                      <div className="team-avatar">📚</div>
+                      <h3 className="team-name">小美 - 资料库</h3>
+                      <p className="team-role">素材搜集与核验</p>
+                      <p className="team-desc">
+                        快速搜集案例、核验数据准确性。
+                        为你的文章提供权威素材支撑，确保内容真实可信。
+                      </p>
+                      <ul className="team-skills">
+                        <li>全网素材检索</li>
+                        <li>数据准确核验</li>
+                        <li>案例精准匹配</li>
+                      </ul>
+                    </div>
+
+                    <div className="team-card">
+                      <div className="team-avatar">👔</div>
+                      <h3 className="team-name">丧彪 - 主编</h3>
+                      <p className="team-role">质量把关与审核</p>
+                      <p className="team-desc">
+                        统筹写作流程，把控内容质量。
+                        提供专业修改建议，让每篇文章都能达到发布标准。
+                      </p>
+                      <ul className="team-skills">
+                        <li>风格定义与指导</li>
+                        <li>稿件审核优化</li>
+                        <li>质量标准把控</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 工作流程展示 */}
+              <section className="workflow-section-v2">
+                <div className="workflow-container">
+                  <div className="section-header-v2">
+                    <h2 className="section-title-v2">简单 3 步，完成专业创作</h2>
+                    <p className="section-subtitle-v2">
+                      从想法到发布，AI 全程陪伴
+                    </p>
+                  </div>
+                  
+                  <div className="workflow-steps">
+                    <div className="workflow-step">
+                      <div className="step-number">01</div>
+                      <div className="step-content">
+                        <h3 className="step-title">输入想法</h3>
+                        <p className="step-desc">
+                          文字输入或语音录音，说出你的想法
+                        </p>
+                        <div className="step-features">
+                          <span className="step-tag">✍️ 文字编辑</span>
+                          <span className="step-tag">🎤 语音输入</span>
+                          <span className="step-tag">📋 智能粘贴</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="workflow-arrow">→</div>
+
+                    <div className="workflow-step">
+                      <div className="step-number">02</div>
+                      <div className="step-content">
+                        <h3 className="step-title">AI 优化</h3>
+                        <p className="step-desc">
+                          AI 团队协作，优化内容结构和表达
+                        </p>
+                        <div className="step-features">
+                          <span className="step-tag">✨ 风格改写</span>
+                          <span className="step-tag">🔍 错别字检查</span>
+                          <span className="step-tag">📊 大纲生成</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="workflow-arrow">→</div>
+
+                    <div className="workflow-step">
+                      <div className="step-number">03</div>
+                      <div className="step-content">
+                        <h3 className="step-title">多平台适配</h3>
+                        <p className="step-desc">
+                          一键适配不同平台，轻松分发内容
+                        </p>
+                        <div className="step-features">
+                          <span className="step-tag">📱 公众号</span>
+                          <span className="step-tag">💡 知乎</span>
+                          <span className="step-tag">📸 小红书</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 用户收益展示 */}
+              <section className="benefits-section-v2">
+                <div className="benefits-container">
+                  <div className="section-header-v2">
+                    <h2 className="section-title-v2">为什么选择我们？</h2>
+                    <p className="section-subtitle-v2">
+                      AI 赋能，让写作效率提升 10 倍
+                    </p>
+                  </div>
+                  
+                  <div className="benefits-grid">
+                    <div className="benefit-item">
+                      <div className="benefit-icon">⚡</div>
+                      <h3 className="benefit-title">效率提升</h3>
+                      <p className="benefit-desc">
+                        语音转文章 + AI 优化，30 分钟完成一篇 3000 字文章
+                      </p>
+                    </div>
+
+                    <div className="benefit-item">
+                      <div className="benefit-icon">🎯</div>
+                      <h3 className="benefit-title">质量保证</h3>
+                      <p className="benefit-desc">
+                        3 位 AI 员工协同工作，确保内容专业、准确、优质
+                      </p>
+                    </div>
+
+                    <div className="benefit-item">
+                      <div className="benefit-icon">🎨</div>
+                      <h3 className="benefit-title">风格多样</h3>
+                      <p className="benefit-desc">
+                        10+ 种大师风格可选，轻松适配不同场景和平台
+                      </p>
+                    </div>
+
+                    <div className="benefit-item">
+                      <div className="benefit-icon">💰</div>
+                      <h3 className="benefit-title">成本节省</h3>
+                      <p className="benefit-desc">
+                        无需雇佣专业写手，一个工具解决所有写作需求
+                      </p>
+                    </div>
+
+                    <div className="benefit-item">
+                      <div className="benefit-icon">🔒</div>
+                      <h3 className="benefit-title">数据安全</h3>
+                      <p className="benefit-desc">
+                        本地存储 + 云端同步，数据完全由你掌控
+                      </p>
+                    </div>
+
+                    <div className="benefit-item">
+                      <div className="benefit-icon">📈</div>
+                      <h3 className="benefit-title">持续进化</h3>
+                      <p className="benefit-desc">
+                        AI 模型不断升级，写作能力持续提升
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               {/* 底部 CTA */}
               <section className="cta-section-v2">
                 <div className="cta-container-v2">

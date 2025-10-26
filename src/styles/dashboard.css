@@ -840,3 +840,315 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ========== AI 数字员工介绍 ========== */
+.team-section-v2 {
+  padding: 80px 32px;
+  background: white;
+  position: relative;
+}
+
+/* 宣纸纹理效果 */
+.team-section-v2::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.01) 2px,
+      rgba(0, 0, 0, 0.01) 4px
+    );
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.team-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.team-card {
+  padding: 40px 32px;
+  background: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  position: relative;
+}
+
+.team-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
+}
+
+.team-card-featured {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+  border-color: var(--color-primary);
+  border-width: 2px;
+}
+
+.team-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 4px 12px;
+  background: var(--primary-gradient);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 100px;
+}
+
+.team-avatar {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-radius: 50%;
+  margin: 0 auto 20px;
+}
+
+.team-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.team-role {
+  font-size: 14px;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-align: center;
+  margin: 0 0 16px;
+}
+
+.team-desc {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-light);
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.team-skills {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.team-skills li {
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.team-skills li:first-child {
+  border-top: none;
+  padding-top: 16px;
+}
+
+.team-skills li::before {
+  content: '✓';
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* ========== 工作流程展示 ========== */
+.workflow-section-v2 {
+  padding: 80px 32px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+}
+
+.workflow-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.workflow-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.workflow-step {
+  flex: 1;
+  min-width: 280px;
+  max-width: 360px;
+  padding: 40px 32px;
+  background: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  position: relative;
+}
+
+.workflow-step:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
+}
+
+.step-number {
+  position: absolute;
+  top: -20px;
+  left: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-gradient);
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.step-content {
+  margin-top: 20px;
+}
+
+.step-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 12px;
+}
+
+.step-desc {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-light);
+  margin: 0 0 20px;
+}
+
+.step-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.step-tag {
+  padding: 6px 14px;
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 100px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.workflow-arrow {
+  font-size: 32px;
+  color: var(--color-primary);
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+/* ========== 用户收益展示 ========== */
+.benefits-section-v2 {
+  padding: 80px 32px;
+  background: white;
+}
+
+.benefits-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+}
+
+.benefit-item {
+  padding: 32px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  text-align: center;
+}
+
+.benefit-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.benefit-icon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-radius: 50%;
+  margin: 0 auto 20px;
+}
+
+.benefit-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 12px;
+}
+
+.benefit-desc {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+/* ========== 移动端响应式 - 新增区块 ========== */
+@media (max-width: 768px) {
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .workflow-steps {
+    flex-direction: column;
+  }
+  
+  .workflow-arrow {
+    transform: rotate(90deg);
+  }
+  
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+}
