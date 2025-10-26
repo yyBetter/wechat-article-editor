@@ -790,11 +790,40 @@
 /* ========== 已登录用户工作台 ========== */
 .workspace-welcome {
   padding: 48px 32px;
+  background: var(--xuan-paper);
+  position: relative;
+}
+
+/* 工作台宣纸纹理 */
+.workspace-welcome::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(44, 62, 80, 0.01) 2px,
+      rgba(44, 62, 80, 0.01) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(44, 62, 80, 0.01) 2px,
+      rgba(44, 62, 80, 0.01) 4px
+    );
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 0;
 }
 
 .workspace-container {
   max-width: 1280px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .welcome-header {
@@ -811,8 +840,10 @@
 .welcome-title {
   font-size: 32px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--ink-black);
   margin: 0 0 8px;
+  font-family: var(--font-family-title);
+  letter-spacing: 1px;
 }
 
 .welcome-subtitle {
@@ -826,20 +857,22 @@
   align-items: center;
   gap: 8px;
   padding: 14px 32px;
-  background: var(--primary-gradient);
+  background: var(--ink-gradient);
   color: white;
-  border: none;
+  border: 2px solid var(--gold-accent);
   border-radius: var(--radius-md);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  transition: var(--transition);
+  box-shadow: var(--shadow-ink);
+  transition: var(--transition-ink);
+  letter-spacing: 1px;
 }
 
 .new-article-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
+  border-color: var(--cinnabar-red);
 }
 
 .btn-icon {
@@ -858,15 +891,16 @@
   gap: 20px;
   padding: 32px;
   background: white;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: var(--transition);
+  transition: var(--transition-ink);
 }
 
 .stat-card-v2:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
+  border-color: var(--gold-accent);
 }
 
 .stat-icon-v2 {
@@ -876,7 +910,8 @@
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  background: linear-gradient(135deg, rgba(44, 62, 80, 0.08), rgba(90, 108, 125, 0.08));
+  border: 2px solid var(--gold-accent);
   border-radius: var(--radius-md);
 }
 
@@ -900,12 +935,40 @@
 /* ========== 最近文章 ========== */
 .recent-section {
   padding: 48px 32px;
-  background: white;
+  background: var(--xuan-paper-dark);
+  position: relative;
+}
+
+/* 最近文章区宣纸纹理 */
+.recent-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(44, 62, 80, 0.01) 2px,
+      rgba(44, 62, 80, 0.01) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(44, 62, 80, 0.01) 2px,
+      rgba(44, 62, 80, 0.01) 4px
+    );
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 0;
 }
 
 .recent-container {
   max-width: 1280px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .recent-header {
@@ -918,25 +981,29 @@
 .recent-title {
   font-size: 24px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--ink-black);
   margin: 0;
+  font-family: var(--font-family-title);
 }
 
 .view-all-btn {
   padding: 8px 16px;
-  background: none;
-  border: 1px solid var(--color-border);
+  background: var(--xuan-paper);
+  border: 2px solid var(--gold-accent);
   border-radius: var(--radius-sm);
-  color: var(--color-text);
+  color: var(--ink-black);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: var(--transition);
+  transition: var(--transition-ink);
+  letter-spacing: 0.5px;
 }
 
 .view-all-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--cinnabar-red);
+  color: var(--cinnabar-red);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .recent-grid {
@@ -948,16 +1015,16 @@
 .recent-card {
   padding: 24px;
   background: white;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: var(--transition);
+  transition: var(--transition-ink);
 }
 
 .recent-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-primary);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold-accent);
 }
 
 .recent-card-header {
@@ -987,10 +1054,13 @@
 
 .meta-badge {
   padding: 4px 12px;
-  background: var(--color-bg-subtle);
-  border-radius: 100px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--gold-accent);
+  border-radius: var(--radius-sm);
   font-size: 12px;
-  color: var(--color-text);
+  color: var(--ink-black);
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .recent-card-preview {
@@ -1006,8 +1076,8 @@
 /* ========== 页脚 ========== */
 .footer-v2 {
   padding: 48px 32px;
-  background: white;
-  border-top: 1px solid var(--color-border);
+  background: var(--xuan-paper);
+  border-top: 2px solid var(--gold-accent);
 }
 
 .footer-container {
