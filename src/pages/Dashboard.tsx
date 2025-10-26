@@ -9,7 +9,6 @@ import { UserMenu } from '../components/auth/UserMenu'
 import { getDocuments } from '../utils/document-api'
 import { notification } from '../utils/notification'
 import { StorageStatusMonitor } from '../components/StorageStatusMonitor'
-import { MultiPlatformFeature } from '../components/MultiPlatformFeature'
 import { IncognitoWarning } from '../components/IncognitoWarning'
 
 // 字数统计函数 - 与服务端保持一致
@@ -254,19 +253,9 @@ export function Dashboard() {
                     </p>
                   </div>
                 </div>
-                
-                {/* AI多平台分发功能展示 */}
-                <MultiPlatformFeature variant="hero" />
               </div>
             )}
           </section>
-
-          {/* 已登录用户的功能亮点 */}
-          {authState.isAuthenticated && (
-            <section className="feature-highlight-section">
-              <MultiPlatformFeature variant="compact" />
-            </section>
-          )}
 
           {/* 统计卡片区域 */}
           {authState.isAuthenticated && (

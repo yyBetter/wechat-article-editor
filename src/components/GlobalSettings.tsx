@@ -1,7 +1,6 @@
 import React from 'react'
 import { useApp } from '../utils/app-context'
 import { useAuth } from '../utils/auth-context'
-import { WeChatConfig } from './WeChatConfig'
 import '../styles/donation.css'
 
 export function GlobalSettings() {
@@ -78,11 +77,6 @@ export function GlobalSettings() {
             </div>
           </label>
         </div>
-      </div>
-      
-      {/* 微信公众号授权 - 真正的全局设置 */}
-      <div className="settings-section">
-        <WeChatConfig />
       </div>
 
       {/* 支持作者 */}

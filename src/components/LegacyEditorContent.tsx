@@ -5,7 +5,6 @@ import { useApp } from '../utils/app-context'
 import { useAuth } from '../utils/auth-context'
 import { Editor } from './Editor'
 import { Preview } from './Preview'
-import { PublishModal } from './PublishModal'
 import { LocalAuthModal } from './auth/LocalAuthModal'
 import { UserMenu } from './auth/UserMenu'
 import { getDocument, saveCurrentContent } from '../utils/document-api'
@@ -13,7 +12,6 @@ import { notification } from '../utils/notification'
 import { AIAssistant } from './ai/AIAssistant'
 import '../App.css'
 import '../styles/sidebar.css'
-import '../styles/publish.css'
 import '../styles/settings.css'
 
 export function LegacyEditorContent() {
@@ -22,7 +20,6 @@ export function LegacyEditorContent() {
   const { state, dispatch } = useApp()
   const { state: authState, login } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [previousUserId, setPreviousUserId] = useState<string | null>(authState.user?.id || null)
   const [isSavingBeforeLogout, setIsSavingBeforeLogout] = useState(false)
@@ -304,18 +301,6 @@ export function LegacyEditorContent() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         onAuthSuccess={handleAuthSuccess}
-      />
-
-      {/* 发布模态框 */}
-      <PublishModal
-        isOpen={publishModalOpen}
-        onClose={() => setPublishModalOpen(false)}
-        currentDocument={{
-          id: currentDocumentId || undefined,
-          title: state.templates.variables.title || '',
-          content: state.editor.content,
-          author: state.templates.variables.author || 'Shawn'
-        }}
       />
     </div>
   )

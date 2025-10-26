@@ -15,7 +15,7 @@ import { countWords } from '../utils/word-counter'
 import { smartPasteHandler, SmartPasteHandler } from '../utils/paste-handler'
 import { SmartPasteFeature } from './SmartPasteFeature'
 import { VoiceToArticle } from './ai/VoiceToArticle'
-import { MultiPlatformAdapter } from './ai/MultiPlatformAdapter'
+import { AIStudioModal } from './ai/AIStudioModal'
 
 // 防抖Hook - 优化性能
 function useDebounce<T>(value: T, delay: number): T {
@@ -79,8 +79,8 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   // AI语音转文字模态框
   const [showVoiceToArticle, setShowVoiceToArticle] = useState(false)
   
-  // AI多平台分发模态框
-  const [showMultiPlatform, setShowMultiPlatform] = useState(false)
+  // AI写作工作室模态框
+  const [showAIStudio, setShowAIStudio] = useState(false)
 
   // 自动保存功能
   const autoSave = useAutoSave(
@@ -848,11 +848,11 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
           
           <button 
             type="button"
-            onClick={() => setShowMultiPlatform(true)}
-            title="AI多平台分发 (一键适配多平台)"
-            className="toolbar-btn platform-btn"
+            onClick={() => setShowAIStudio(true)}
+            title="AI写作工作室 (风格改写、内容优化)"
+            className="toolbar-btn ai-studio-btn"
           >
-            🚀
+            ✨
           </button>
           
           {/* 手动保存按钮 */}
@@ -1022,14 +1022,15 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
         />
       )}
       
-      {/* AI多平台分发模态框 */}
-      {showMultiPlatform && (
-        <MultiPlatformAdapter
-          originalTitle={state.templates.variables.title || '未命名文档'}
-          originalContent={state.editor.content}
-          onClose={() => setShowMultiPlatform(false)}
-        />
-      )}
+      {/* AI写作工作室模态框 */}
+      <AIStudioModal
+        isOpen={showAIStudio}
+        onClose={() => setShowAIStudio(false)}
+        initialContent={state.editor.content}
+        onApply={(content) => {
+          dispatch({ type: 'SET_CONTENT', payload: content })
+        }}
+      />
       
       <div className="editor-main-content">
         {/* 大纲面板 */}
