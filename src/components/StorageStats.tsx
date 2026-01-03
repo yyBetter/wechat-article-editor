@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react'
 import { checkStorageQuota } from '../utils/local-storage-utils'
 import { getStorageAdapter } from '../utils/storage-adapter'
-import { useAuth } from '../utils/auth-context'
 
 interface StorageInfo {
   documentsCount: number
@@ -12,7 +11,6 @@ interface StorageInfo {
 }
 
 export function StorageStats() {
-  const { state: authState } = useAuth()
   const [info, setInfo] = useState<StorageInfo>({
     documentsCount: 0,
     imagesCount: 0,
@@ -22,15 +20,8 @@ export function StorageStats() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!authState.isAuthenticated) {
-      return
-    }
-
     const fetchStorageInfo = async () => {
       try {
-        // 延迟500ms，确保 storage adapter 已初始化
-        await new Promise(resolve => setTimeout(resolve, 500))
-
         const adapter = await getStorageAdapter()
         if (!adapter.isAvailable()) {
           setLoading(false)
@@ -38,17 +29,9 @@ export function StorageStats() {
         }
 
         const quota = await checkStorageQuota()
-        
+
         // 获取数据库实例
-        let db: IDBDatabase | null = null
-        if (adapter.constructor.name === 'LocalStorageAdapter') {
-          db = (adapter as any).getDB()
-        } else if (adapter.constructor.name === 'HybridStorageAdapter') {
-          const localAdapter = (adapter as any).getCurrentAdapter()
-          if (localAdapter && localAdapter.isAvailable()) {
-            db = localAdapter.getDB()
-          }
-        }
+        const db = adapter.getDB()
 
         if (!db) {
           setLoading(false)
@@ -58,7 +41,7 @@ export function StorageStats() {
         // 统计文档和图片数量
         const docCount = await new Promise<number>((resolve) => {
           try {
-            const transaction = db!.transaction(['documents'], 'readonly')
+            const transaction = db.transaction(['documents'], 'readonly')
             const request = transaction.objectStore('documents').count()
             request.onsuccess = () => resolve(request.result)
             request.onerror = () => resolve(0)
@@ -69,7 +52,7 @@ export function StorageStats() {
 
         const imgCount = await new Promise<number>((resolve) => {
           try {
-            const transaction = db!.transaction(['images'], 'readonly')
+            const transaction = db.transaction(['images'], 'readonly')
             const request = transaction.objectStore('images').count()
             request.onsuccess = () => resolve(request.result)
             request.onerror = () => resolve(0)
@@ -92,11 +75,7 @@ export function StorageStats() {
     }
 
     fetchStorageInfo()
-  }, [authState.isAuthenticated])
-
-  if (!authState.isAuthenticated) {
-    return null
-  }
+  }, [])
 
   if (loading) {
     return (

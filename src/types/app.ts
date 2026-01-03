@@ -1,7 +1,6 @@
 // 应用状态类型定义
-
 import { Template, TemplateVariables } from './template'
-import { ContentStructure, ContentAsset } from './content'
+import { ContentAsset } from './content'
 
 // 应用主状态
 export interface AppState {
@@ -13,12 +12,6 @@ export interface AppState {
   ui: UIState
 }
 
-// 文档状态类型（飞书模式）
-export type DocumentStatus = 
-  | 'TEMP'      // 临时状态（仅前端，未持久化）
-  | 'DRAFT'     // 草稿（已持久化，可能被清理）
-  | 'NORMAL'    // 正常文档（不会被清理）
-
 // 编辑器状态
 export interface EditorState {
   content: string
@@ -26,10 +19,6 @@ export interface EditorState {
   cursorPosition: number
   isChanged: boolean
   lastSaved: Date | null
-  // 文档状态管理
-  documentStatus: DocumentStatus  // 当前文档状态
-  documentId: string | null  // 当前文档ID（临时或永久）
-  editStartTime: Date | null  // 开始编辑时间
   // 滚动同步相关
   scrollPercentage: number  // 滚动百分比 (0-1)
   cursorLinePercentage: number  // 光标所在行的百分比 (0-1)
@@ -62,15 +51,14 @@ export interface AssetState {
   images: ContentAsset[]
   imageMap: Record<string, string> // 图片占位符到真实base64的映射
   fixedAssets: FixedAssetConfig
-  uploadQueue: UploadQueueItem[]
-  cdnConfig: CDNConfig | null
+  uploadQueue: any[] // 这里的 any 仅为了兼容，实际上不再使用
+  cdnConfig: null
 }
 
 // 导出状态
 export interface ExportState {
   isExporting: boolean
   lastExported: Date | null
-  exportHistory: ExportRecord[]
 }
 
 // UI状态
@@ -94,35 +82,6 @@ export interface FixedAssetConfig {
   customCSS: string
 }
 
-// 上传队列项
-export interface UploadQueueItem {
-  id: string
-  file: File
-  progress: number
-  status: 'pending' | 'uploading' | 'completed' | 'failed'
-  url?: string
-  error?: string
-}
-
-// CDN配置
-export interface CDNConfig {
-  provider: 'qiniu' | 'aliyun' | 'tencent' | 'custom'
-  accessKey: string
-  secretKey: string
-  bucket: string
-  domain: string
-}
-
-// 导出记录
-export interface ExportRecord {
-  id: string
-  timestamp: Date
-  templateId: string
-  format: 'html' | 'markdown' | 'pdf'
-  size: number
-  downloadUrl?: string
-}
-
 // 用户配置
 export interface UserConfig {
   defaultTemplate: string
@@ -135,7 +94,7 @@ export interface UserConfig {
 }
 
 // 应用动作类型
-export type AppAction = 
+export type AppAction =
   | { type: 'UPDATE_EDITOR_CONTENT'; payload: string }
   | { type: 'SELECT_TEMPLATE'; payload: string }
   | { type: 'UPDATE_TEMPLATE_VARIABLES'; payload: Partial<TemplateVariables> }
@@ -146,10 +105,7 @@ export type AppAction =
   | { type: 'UPDATE_FIXED_ASSETS'; payload: Partial<FixedAssetConfig> }
   | { type: 'SET_UI_STATE'; payload: Partial<UIState> }
   | { type: 'EXPORT_START' }
-  | { type: 'EXPORT_COMPLETE'; payload: ExportRecord }
+  | { type: 'EXPORT_COMPLETE' }
   | { type: 'UPDATE_EDITOR_SCROLL'; payload: { scrollPercentage: number; cursorLinePercentage: number; totalLines: number } }
   | { type: 'UPDATE_PREVIEW_SCROLL'; payload: { scrollPosition: number; source: 'editor' | 'preview' } }
   | { type: 'TOGGLE_SYNC_SCROLL'; payload: boolean }
-  | { type: 'SET_DOCUMENT_STATUS'; payload: DocumentStatus }
-  | { type: 'SET_DOCUMENT_ID'; payload: string | null }
-  | { type: 'RESET_DOCUMENT'; payload?: { content?: string; title?: string } }

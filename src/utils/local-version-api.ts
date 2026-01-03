@@ -1,6 +1,7 @@
 // 本地版本历史API - 替代服务器版本存储
 import { getStorageAdapter } from './storage-adapter'
 import { LocalStorageUtils, generateId } from './local-storage-utils'
+import { Document } from './document-api'
 import {
   DocumentVersion,
   DocumentVersionListResponse,
@@ -15,55 +16,44 @@ import {
 class LocalVersionManager {
   private utils: LocalStorageUtils | null = null
   private initialized = false
-  
+
   async initialize() {
     if (this.initialized) return
-    
+
     try {
       const adapter = await getStorageAdapter()
-      if (adapter.constructor.name !== 'LocalStorageAdapter' && 
-          adapter.constructor.name !== 'HybridStorageAdapter') {
-        throw new Error('本地版本存储只能在本地存储模式下使用')
-      }
-      
-      // 获取LocalStorageAdapter实例
-      const localAdapter = adapter.constructor.name === 'HybridStorageAdapter' 
-        ? (adapter as any).getCurrentAdapter()
-        : adapter
-      
-      this.utils = new LocalStorageUtils(localAdapter)
+      this.utils = new LocalStorageUtils(adapter)
       this.initialized = true
-      
       console.log('本地版本管理器已初始化')
     } catch (error) {
       console.error('本地版本管理器初始化失败:', error)
       throw error
     }
   }
-  
+
   // 计算版本元数据
   private calculateVersionMetadata(content: string): DocumentVersion['metadata'] {
     // 使用统一的字数统计函数（与编辑器保持一致）
     const wordCount = this.countWords(content)
-    
+
     // 图片数量统计
     const imageMatches = content.match(/!\[.*?\]\(.*?\)/g) || []
     const imageCount = imageMatches.length
-    
+
     // 估算阅读时间
     const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200))
-    
+
     return {
       wordCount,
       imageCount,
       estimatedReadTime
     }
   }
-  
+
   // 字数统计工具 - 与 word-counter.ts 保持一致
   private countWords(content: string): number {
     if (!content || content.trim() === '') return 0
-    
+
     // 移除 markdown 语法字符，但保留文字内容
     let cleanContent = content
       // 移除代码块
@@ -84,12 +74,12 @@ class LocalVersionManager {
       // 移除多余空格和换行
       .replace(/\s+/g, ' ')
       .trim()
-    
+
     if (!cleanContent) return 0
-    
+
     // 统计中文字符
     const chineseChars = (cleanContent.match(/[\u4e00-\u9fa5]/g) || []).length
-    
+
     // 统计英文单词（不包括单独的数字和符号）
     const englishWords = cleanContent
       .replace(/[\u4e00-\u9fa5]/g, ' ') // 移除中文
@@ -97,16 +87,16 @@ class LocalVersionManager {
       .split(/\s+/)
       .filter(word => word.length > 1) // 只统计长度>1的单词
       .length
-    
+
     return chineseChars + englishWords
   }
-  
+
   // 获取文档当前版本号
   private async getCurrentVersionNumber(documentId: string): Promise<number> {
     try {
       const versions = await this.utils!.findByIndex<DocumentVersion>('versions', 'documentId', documentId)
       if (versions.length === 0) return 1
-      
+
       // 找到最大版本号
       const maxVersion = Math.max(...versions.map(v => v.versionNumber || 0))
       return maxVersion + 1
@@ -115,7 +105,7 @@ class LocalVersionManager {
       return 1
     }
   }
-  
+
   // 自动创建版本记录（用于自动保存）
   async createAutoVersion(documentId: string, document: {
     title: string
@@ -124,11 +114,11 @@ class LocalVersionManager {
     templateVariables: Record<string, any>
   }): Promise<DocumentVersion> {
     await this.initialize()
-    
+
     const versionId = generateId()
     const versionNumber = await this.getCurrentVersionNumber(documentId)
     const now = new Date().toISOString()
-    
+
     const version: DocumentVersion = {
       id: versionId,
       title: document.title,
@@ -141,13 +131,13 @@ class LocalVersionManager {
       versionNumber,
       createdAt: now
     }
-    
+
     try {
       await this.utils!.put('versions', version)
-      
+
       // 清理旧版本（保留最近50个自动保存版本）
       await this.cleanupOldVersions(documentId, 'AUTO_SAVE', 50)
-      
+
       console.log(`创建自动版本: 文档${documentId} v${versionNumber}`)
       return version
     } catch (error) {
@@ -155,7 +145,7 @@ class LocalVersionManager {
       throw new Error(`创建版本失败: ${error instanceof Error ? error.message : '未知错误'}`)
     }
   }
-  
+
   // 清理旧版本
   private async cleanupOldVersions(documentId: string, changeType: DocumentVersion['changeType'], keepCount: number) {
     try {
@@ -163,7 +153,7 @@ class LocalVersionManager {
       const filteredVersions = versions
         .filter(v => v.changeType === changeType)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      
+
       if (filteredVersions.length > keepCount) {
         const versionsToDelete = filteredVersions.slice(keepCount)
         for (const version of versionsToDelete) {
@@ -175,42 +165,42 @@ class LocalVersionManager {
       console.warn('清理旧版本失败:', error)
     }
   }
-  
+
   // 获取文档版本历史列表
   async getDocumentVersions(
     documentId: string,
     params: { page?: number; limit?: number } = {}
   ): Promise<DocumentVersionListResponse> {
     await this.initialize()
-    
+
     const { page = 1, limit = 15 } = params
-    
+
     try {
       // 获取文档信息
-      const document = await this.utils!.get('documents', documentId)
+      const document = await this.utils!.get<Document>('documents', documentId)
       if (!document) {
         throw new Error('文档未找到')
       }
-      
+
       // 获取所有版本记录
       const allVersions = await this.utils!.findByIndex<DocumentVersion>('versions', 'documentId', documentId)
-      
+
       // 按创建时间倒序排列
       allVersions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      
+
       const total = allVersions.length
       const pages = Math.ceil(total / limit)
       const offset = (page - 1) * limit
       const versions = allVersions.slice(offset, offset + limit)
-      
+
       // 为版本添加序号（从最新开始）
       const versionsWithNumbers = versions.map((version, index) => ({
         ...version,
         versionNumber: total - offset - index
       }))
-      
+
       console.log(`获取文档版本列表: 文档${documentId}, ${versions.length}/${total} 项`)
-      
+
       return {
         versions: versionsWithNumbers,
         pagination: {
@@ -230,26 +220,26 @@ class LocalVersionManager {
       throw new Error(`获取版本历史失败: ${error instanceof Error ? error.message : '未知错误'}`)
     }
   }
-  
+
   // 获取特定版本的详细内容
   async getVersionDetail(documentId: string, versionId: string): Promise<DocumentVersion> {
     await this.initialize()
-    
+
     try {
       const version = await this.utils!.get<DocumentVersion>('versions', versionId)
-      
+
       if (!version) {
         throw new Error('版本记录未找到')
       }
-      
+
       // 验证版本是否属于指定文档
       const allVersions = await this.utils!.findByIndex<DocumentVersion>('versions', 'documentId', documentId)
       const belongsToDocument = allVersions.some(v => v.id === versionId)
-      
+
       if (!belongsToDocument) {
         throw new Error('版本记录不属于该文档')
       }
-      
+
       console.log(`获取版本详情: 文档${documentId}, 版本${versionId}`)
       return version
     } catch (error) {
@@ -257,24 +247,24 @@ class LocalVersionManager {
       throw new Error(`获取版本详情失败: ${error instanceof Error ? error.message : '未知错误'}`)
     }
   }
-  
+
   // 恢复到指定版本
   async restoreToVersion(documentId: string, versionId: string): Promise<VersionRestoreResponse> {
     await this.initialize()
-    
+
     try {
       // 获取要恢复的版本
       const targetVersion = await this.utils!.get<DocumentVersion>('versions', versionId)
       if (!targetVersion) {
         throw new Error('目标版本未找到')
       }
-      
+
       // 获取当前文档
-      const currentDocument = await this.utils!.get('documents', documentId)
+      const currentDocument = await this.utils!.get<Document>('documents', documentId)
       if (!currentDocument) {
         throw new Error('文档未找到')
       }
-      
+
       // 创建恢复前的版本快照
       await this.createAutoVersion(documentId, {
         title: currentDocument.title,
@@ -282,7 +272,7 @@ class LocalVersionManager {
         templateId: currentDocument.templateId,
         templateVariables: currentDocument.templateVariables
       })
-      
+
       // 更新文档内容为目标版本
       const restoredDocument = {
         ...currentDocument,
@@ -292,9 +282,9 @@ class LocalVersionManager {
         templateVariables: targetVersion.templateVariables || currentDocument.templateVariables,
         updatedAt: new Date().toISOString()
       }
-      
+
       await this.utils!.put('documents', restoredDocument)
-      
+
       // 创建恢复版本记录
       const restoreVersion: DocumentVersion = {
         id: generateId(),
@@ -308,11 +298,11 @@ class LocalVersionManager {
         versionNumber: await this.getCurrentVersionNumber(documentId),
         createdAt: new Date().toISOString()
       }
-      
+
       await this.utils!.put('versions', restoreVersion)
-      
+
       console.log(`恢复文档版本: 文档${documentId} -> 版本${versionId}`)
-      
+
       return {
         document: {
           id: restoredDocument.id,
@@ -332,22 +322,22 @@ class LocalVersionManager {
       throw new Error(`版本恢复失败: ${error instanceof Error ? error.message : '未知错误'}`)
     }
   }
-  
+
   // 手动创建版本快照
   async createVersionSnapshot(documentId: string, reason: string = '手动保存'): Promise<CreateVersionResponse> {
     await this.initialize()
-    
+
     try {
       // 获取当前文档
-      const document = await this.utils!.get('documents', documentId)
+      const document = await this.utils!.get<Document>('documents', documentId)
       if (!document) {
         throw new Error('文档未找到')
       }
-      
+
       const versionId = generateId()
       const versionNumber = await this.getCurrentVersionNumber(documentId)
       const now = new Date().toISOString()
-      
+
       const version: DocumentVersion = {
         id: versionId,
         title: document.title,
@@ -360,11 +350,11 @@ class LocalVersionManager {
         versionNumber,
         createdAt: now
       }
-      
+
       await this.utils!.put('versions', version)
-      
+
       console.log(`创建手动版本快照: 文档${documentId} v${versionNumber}`)
-      
+
       return {
         version,
         message: `版本快照已创建 #${versionNumber}`
@@ -374,29 +364,29 @@ class LocalVersionManager {
       throw new Error(`创建版本快照失败: ${error instanceof Error ? error.message : '未知错误'}`)
     }
   }
-  
+
   // 删除版本记录
   async deleteVersion(documentId: string, versionId: string): Promise<{ message: string; deletedVersionId: string }> {
     await this.initialize()
-    
+
     try {
       const version = await this.utils!.get<DocumentVersion>('versions', versionId)
       if (!version) {
         throw new Error('版本记录未找到')
       }
-      
+
       // 验证版本属于指定文档
       const allVersions = await this.utils!.findByIndex<DocumentVersion>('versions', 'documentId', documentId)
       const belongsToDocument = allVersions.some(v => v.id === versionId)
-      
+
       if (!belongsToDocument) {
         throw new Error('版本记录不属于该文档')
       }
-      
+
       await this.utils!.delete('versions', versionId)
-      
+
       console.log(`删除版本记录: 文档${documentId}, 版本${versionId}`)
-      
+
       return {
         message: `版本记录 #${version.versionNumber} 已删除`,
         deletedVersionId: versionId
@@ -406,7 +396,7 @@ class LocalVersionManager {
       throw new Error(`删除版本记录失败: ${error instanceof Error ? error.message : '未知错误'}`)
     }
   }
-  
+
   // 获取版本统计信息
   async getVersionStats(documentId?: string): Promise<{
     totalVersions: number
@@ -414,38 +404,38 @@ class LocalVersionManager {
     recentActivity: Array<{ date: string; count: number }>
   }> {
     await this.initialize()
-    
+
     try {
       let allVersions: DocumentVersion[]
-      
+
       if (documentId) {
         allVersions = await this.utils!.findByIndex<DocumentVersion>('versions', 'documentId', documentId)
       } else {
         allVersions = await this.utils!.getAll<DocumentVersion>('versions')
       }
-      
+
       // 按变更类型统计
       const byChangeType = allVersions.reduce((acc, version) => {
         acc[version.changeType] = (acc[version.changeType] || 0) + 1
         return acc
       }, {} as Record<string, number>)
-      
+
       // 最近7天活动统计
       const now = new Date()
       const recentActivity = []
-      
+
       for (let i = 6; i >= 0; i--) {
         const date = new Date(now)
         date.setDate(date.getDate() - i)
         const dateStr = date.toISOString().split('T')[0]
-        
-        const count = allVersions.filter(version => 
+
+        const count = allVersions.filter(version =>
           version.createdAt.startsWith(dateStr)
         ).length
-        
+
         recentActivity.push({ date: dateStr, count })
       }
-      
+
       return {
         totalVersions: allVersions.length,
         byChangeType,

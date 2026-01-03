@@ -1,6 +1,5 @@
 // 文档列表管理组件
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useAuth } from '../utils/auth-context'
 import { useApp } from '../utils/app-context'
 import { getDocuments, deleteDocument, duplicateDocument, Document } from '../utils/document-api'
 import { notification } from '../utils/notification'
@@ -28,9 +27,8 @@ interface DocumentListState {
 }
 
 export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHistory }: DocumentListProps) {
-  const { state: authState } = useAuth()
   const { dispatch } = useApp()
-  
+
   const [state, setState] = useState<DocumentListState>({
     documents: [],
     loading: false,
@@ -49,13 +47,10 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
 
   // 加载文档列表
   const loadDocuments = useCallback(async (reset = false) => {
-    if (!authState.isAuthenticated) {
-      return
-    }
 
     try {
       setState(prev => ({ ...prev, loading: true }))
-      
+
       const params = {
         page: reset ? 1 : state.pagination.page,
         limit: state.pagination.limit,
@@ -64,7 +59,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
       }
 
       const response = await getDocuments(params)
-      
+
       setState(prev => ({
         ...prev,
         documents: response.documents,
@@ -72,26 +67,20 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
         loading: false,
         selectedDocuments: new Set() // 清空选择
       }))
-    } catch (error) {
-      console.error('加载文档列表失败:', error)
-      notification.error('加载文档列表失败', {
-        details: error instanceof Error ? error.message : '请重试'
-      })
+    } finally {
       setState(prev => ({ ...prev, loading: false }))
     }
-  }, [authState.isAuthenticated, state.searchTerm, state.statusFilter, state.pagination.page, state.pagination.limit])
+  }, [state.searchTerm, state.statusFilter, state.pagination.page, state.pagination.limit])
 
   // 初始加载
   useEffect(() => {
     loadDocuments(true)
-  }, [authState.isAuthenticated])
+  }, [])
 
   // 搜索和过滤变化时重新加载
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (authState.isAuthenticated) {
-        loadDocuments(true)
-      }
+      loadDocuments(true)
     }, 300) // 防抖
 
     return () => clearTimeout(timeoutId)
@@ -102,7 +91,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
     return [...state.documents].sort((a, b) => {
       let aValue: any
       let bValue: any
-      
+
       switch (state.sortBy) {
         case 'title':
           aValue = a.title.toLowerCase()
@@ -118,7 +107,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
           bValue = new Date(b.updatedAt)
           break
       }
-      
+
       if (state.sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1
       } else {
@@ -148,9 +137,9 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
 
   // 处理分页
   const handlePageChange = useCallback((page: number) => {
-    setState(prev => ({ 
-      ...prev, 
-      pagination: { ...prev.pagination, page } 
+    setState(prev => ({
+      ...prev,
+      pagination: { ...prev.pagination, page }
     }))
     loadDocuments()
   }, [loadDocuments])
@@ -224,7 +213,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
     try {
       const deletePromises = Array.from(state.selectedDocuments).map(id => deleteDocument(id))
       await Promise.all(deletePromises)
-      
+
       notification.success(`成功删除 ${state.selectedDocuments.size} 个文档`)
       loadDocuments(true)
     } catch (error) {
@@ -240,18 +229,18 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
   const handleLoadDocument = useCallback((document: Document) => {
     // 更新编辑器内容
     dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: document.content })
-    
+
     // 更新模板
     if (document.templateId) {
       dispatch({ type: 'SELECT_TEMPLATE', payload: document.templateId })
     }
-    
+
     // 更新模板变量
     dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: document.templateVariables })
-    
+
     // 调用父组件的回调
     onSelectDocument?.(document)
-    
+
     notification.success('文档已加载到编辑器', {
       details: document.title
     })
@@ -263,7 +252,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-    
+
     if (diffDays === 0) {
       return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
     } else if (diffDays < 7) {
@@ -287,17 +276,6 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
     }
   }, [])
 
-  if (!authState.isAuthenticated) {
-    return (
-      <div className="document-list-container">
-        <div className="empty-state">
-          <span className="empty-icon">🔐</span>
-          <h3>请先登录</h3>
-          <p>登录后即可查看和管理您的文档</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="document-list-container">
@@ -308,7 +286,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
             <span>➕</span>
             新建文档
           </button>
-          
+
           {state.selectedDocuments.size > 0 && (
             <button className="batch-action-btn delete" onClick={handleBatchDelete}>
               <span>🗑️</span>
@@ -316,7 +294,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
             </button>
           )}
         </div>
-        
+
         <div className="toolbar-right">
           <div className="search-box">
             <span className="search-icon">🔍</span>
@@ -341,18 +319,18 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
               className={`filter-btn ${state.statusFilter === status ? 'active' : ''}`}
               onClick={() => handleStatusFilter(status)}
             >
-              {status === 'ALL' ? '全部' : 
-               status === 'DRAFT' ? '草稿' :
-               status === 'PUBLISHED' ? '已发布' : '已归档'}
+              {status === 'ALL' ? '全部' :
+                status === 'DRAFT' ? '草稿' :
+                  status === 'PUBLISHED' ? '已发布' : '已归档'}
             </button>
           ))}
         </div>
-        
+
         <div className="sort-group">
           <span className="sort-label">排序:</span>
           {[
             { key: 'updatedAt', label: '更新时间' },
-            { key: 'createdAt', label: '创建时间' }, 
+            { key: 'createdAt', label: '创建时间' },
             { key: 'title', label: '标题' }
           ].map(sort => (
             <button
@@ -416,23 +394,23 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
                     onChange={(e) => handleDocumentSelect(document.id, e.target.checked)}
                   />
                 </div>
-                
+
                 <div className="document-content" onClick={() => handleLoadDocument(document)}>
                   <div className="document-header">
                     <h3 className="document-title">{document.title}</h3>
-                    <span 
+                    <span
                       className="document-status"
                       style={getStatusStyle(document.status)}
                     >
                       {document.status === 'DRAFT' ? '草稿' :
-                       document.status === 'PUBLISHED' ? '已发布' : '已归档'}
+                        document.status === 'PUBLISHED' ? '已发布' : '已归档'}
                     </span>
                   </div>
-                  
+
                   <div className="document-preview">
                     {document.preview || '无内容预览'}
                   </div>
-                  
+
                   <div className="document-meta">
                     <span className="meta-item">
                       📝 {document.metadata.wordCount} 字
@@ -448,7 +426,7 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="document-actions">
                   <button
                     className="action-btn"
@@ -493,11 +471,11 @@ export function DocumentList({ onSelectDocument, onNewDocument, onShowVersionHis
               >
                 上一页
               </button>
-              
+
               <div className="page-info">
                 第 {state.pagination.page} 页 / 共 {state.pagination.pages} 页
               </div>
-              
+
               <button
                 className="page-btn"
                 disabled={state.pagination.page === state.pagination.pages}

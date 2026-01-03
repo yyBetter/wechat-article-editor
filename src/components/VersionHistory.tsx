@@ -1,6 +1,5 @@
 // 版本历史管理组件
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useAuth } from '../utils/auth-context'
 import { useApp } from '../utils/app-context'
 import {
   getDocumentVersions,
@@ -43,9 +42,8 @@ interface VersionHistoryState {
 }
 
 export function VersionHistory({ documentId, onRestoreVersion, onClose }: VersionHistoryProps) {
-  const { state: authState } = useAuth()
   const { dispatch } = useApp()
-  
+
   const [state, setState] = useState<VersionHistoryState>({
     versions: [],
     loading: false,
@@ -64,20 +62,20 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
 
   // 加载版本历史列表
   const loadVersions = useCallback(async (reset = false) => {
-    if (!documentId || !authState.isAuthenticated) {
+    if (!documentId) {
       return
     }
 
     try {
       setState(prev => ({ ...prev, loading: true }))
-      
+
       const params = {
         page: reset ? 1 : state.pagination.page,
         limit: state.pagination.limit
       }
 
       const response = await getDocumentVersions(documentId, params)
-      
+
       setState(prev => ({
         ...prev,
         versions: response.versions,
@@ -85,14 +83,10 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
         document: response.document,
         loading: false
       }))
-    } catch (error) {
-      console.error('加载版本历史失败:', error)
-      notification.error('加载版本历史失败', {
-        details: error instanceof Error ? error.message : '请重试'
-      })
+    } finally {
       setState(prev => ({ ...prev, loading: false }))
     }
-  }, [documentId, authState.isAuthenticated, state.pagination.page, state.pagination.limit])
+  }, [documentId, state.pagination.page, state.pagination.limit])
 
   // 初始加载和文档ID变化时重新加载
   useEffect(() => {
@@ -107,9 +101,9 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
 
     try {
       setState(prev => ({ ...prev, loading: true }))
-      
+
       const versionDetail = await getVersionDetail(documentId, version.id)
-      
+
       setState(prev => ({
         ...prev,
         selectedVersion: versionDetail,
@@ -140,32 +134,32 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
 
     try {
       setState(prev => ({ ...prev, loading: true }))
-      
+
       const result = await restoreToVersion(documentId, version.id)
-      
+
       // 更新编辑器内容
       if (result.document) {
         dispatch({ type: 'UPDATE_EDITOR_CONTENT', payload: result.document.content })
-        
+
         if (result.document.templateId) {
           dispatch({ type: 'SELECT_TEMPLATE', payload: result.document.templateId })
         }
-        
+
         if (result.document.templateVariables) {
           dispatch({ type: 'UPDATE_TEMPLATE_VARIABLES', payload: result.document.templateVariables })
         }
       }
-      
+
       // 调用父组件回调
       onRestoreVersion?.(result.document)
-      
+
       // 重新加载版本列表
       await loadVersions(true)
-      
+
       notification.success('版本恢复成功', {
         details: result.message
       })
-      
+
       setState(prev => ({ ...prev, loading: false, showVersionDetail: false, selectedVersion: null }))
     } catch (error) {
       console.error('恢复版本失败:', error)
@@ -185,16 +179,16 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
 
     try {
       setState(prev => ({ ...prev, loading: true }))
-      
+
       const result = await createVersionSnapshot(documentId, reason)
-      
+
       notification.success('版本快照创建成功', {
         details: result.message
       })
-      
+
       // 重新加载版本列表
       await loadVersions(true)
-      
+
       setState(prev => ({ ...prev, loading: false }))
     } catch (error) {
       console.error('创建版本快照失败:', error)
@@ -220,9 +214,9 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
 
     try {
       await deleteVersion(documentId, version.id)
-      
+
       notification.success('版本记录删除成功')
-      
+
       // 重新加载版本列表
       await loadVersions(true)
     } catch (error) {
@@ -235,9 +229,9 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
 
   // 分页处理
   const handlePageChange = useCallback((page: number) => {
-    setState(prev => ({ 
-      ...prev, 
-      pagination: { ...prev.pagination, page } 
+    setState(prev => ({
+      ...prev,
+      pagination: { ...prev.pagination, page }
     }))
     loadVersions()
   }, [loadVersions])
@@ -246,10 +240,10 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
   const renderVersionItem = useCallback((version: DocumentVersion, index: number) => {
     const typeInfo = getChangeTypeInfo(version.changeType)
     const isSelected = state.selectedVersion?.id === version.id
-    
+
     return (
-      <div 
-        key={version.id} 
+      <div
+        key={version.id}
         className={`version-item ${isSelected ? 'selected' : ''}`}
       >
         <div className="version-header">
@@ -257,7 +251,7 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
             <span className="version-number">
               #{version.versionNumber || (state.pagination.total - index)}
             </span>
-            <span 
+            <span
               className="version-type"
               style={{ background: typeInfo.color }}
               title={version.changeReason}
@@ -265,23 +259,23 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
               {typeInfo.icon} {typeInfo.label}
             </span>
           </div>
-          
+
           <div className="version-time">
             {formatVersionTime(version.createdAt)}
           </div>
         </div>
-        
+
         <div className="version-content">
           <div className="version-title">{version.title}</div>
           <div className="version-reason">{version.changeReason}</div>
         </div>
-        
+
         <div className="version-metadata">
           <span className="meta-item">📝 {version.metadata.wordCount} 字</span>
           <span className="meta-item">🖼️ {version.metadata.imageCount} 图</span>
           <span className="meta-item">⏱️ {version.metadata.estimatedReadTime} 分钟</span>
         </div>
-        
+
         <div className="version-actions">
           <button
             className="action-btn view"
@@ -312,10 +306,10 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
   // 版本详情模态框
   const renderVersionDetail = useMemo(() => {
     if (!state.showVersionDetail || !state.selectedVersion) return null
-    
+
     const version = state.selectedVersion
     const typeInfo = getChangeTypeInfo(version.changeType)
-    
+
     return (
       <div className="version-detail-modal">
         <div className="version-detail-content">
@@ -323,21 +317,21 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
             <h3>版本详情 #{version.versionNumber}</h3>
             <button
               className="close-btn"
-              onClick={() => setState(prev => ({ 
-                ...prev, 
-                showVersionDetail: false, 
-                selectedVersion: null 
+              onClick={() => setState(prev => ({
+                ...prev,
+                showVersionDetail: false,
+                selectedVersion: null
               }))}
             >
               ✕
             </button>
           </div>
-          
+
           <div className="modal-body">
             <div className="version-meta-info">
               <div className="meta-row">
                 <span className="meta-label">变更类型:</span>
-                <span 
+                <span
                   className="meta-value version-type-badge"
                   style={{ background: typeInfo.color }}
                 >
@@ -353,20 +347,20 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
                 <span className="meta-value">{version.changeReason}</span>
               </div>
             </div>
-            
+
             <div className="version-content-preview">
               <h4>标题</h4>
               <div className="content-text title-text">{version.title}</div>
-              
+
               <h4>内容预览</h4>
               <div className="content-text content-preview">
-                {version.content ? 
-                  version.content.substring(0, 300) + 
-                  (version.content.length > 300 ? '...' : '') 
+                {version.content ?
+                  version.content.substring(0, 300) +
+                  (version.content.length > 300 ? '...' : '')
                   : '无内容'}
               </div>
             </div>
-            
+
             <div className="version-actions-detail">
               <button
                 className="detail-action-btn restore-btn"
@@ -383,30 +377,19 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
             </div>
           </div>
         </div>
-        
-        <div 
+
+        <div
           className="modal-backdrop"
-          onClick={() => setState(prev => ({ 
-            ...prev, 
-            showVersionDetail: false, 
-            selectedVersion: null 
+          onClick={() => setState(prev => ({
+            ...prev,
+            showVersionDetail: false,
+            selectedVersion: null
           }))}
         />
       </div>
     )
   }, [state.showVersionDetail, state.selectedVersion, handleRestoreVersion, handleDeleteVersion])
 
-  if (!authState.isAuthenticated) {
-    return (
-      <div className="version-history-container">
-        <div className="empty-state">
-          <span className="empty-icon">🔐</span>
-          <h3>请先登录</h3>
-          <p>登录后即可查看版本历史</p>
-        </div>
-      </div>
-    )
-  }
 
   if (!documentId) {
     return (
@@ -434,7 +417,7 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
             )}
           </h3>
         </div>
-        
+
         <div className="toolbar-right">
           <button
             className="toolbar-btn create-snapshot"
@@ -444,7 +427,7 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
           >
             📸 创建快照
           </button>
-          
+
           {onClose && (
             <button
               className="toolbar-btn close-btn"
@@ -468,7 +451,7 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
           <span className="empty-icon">📋</span>
           <h3>暂无版本历史</h3>
           <p>文档的变更历史将在这里显示</p>
-          <button 
+          <button
             className="empty-action-btn"
             onClick={handleCreateSnapshot}
           >
@@ -491,7 +474,7 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
 
           {/* 版本列表 */}
           <div className="version-list">
-            {state.versions.map((version, index) => 
+            {state.versions.map((version, index) =>
               renderVersionItem(version, index)
             )}
           </div>
@@ -506,11 +489,11 @@ export function VersionHistory({ documentId, onRestoreVersion, onClose }: Versio
               >
                 上一页
               </button>
-              
+
               <div className="page-info">
                 第 {state.pagination.page} 页 / 共 {state.pagination.pages} 页
               </div>
-              
+
               <button
                 className="page-btn"
                 disabled={state.pagination.page === state.pagination.pages}

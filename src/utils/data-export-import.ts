@@ -65,36 +65,25 @@ export interface ImportResult {
 class DataManager {
   private utils: LocalStorageUtils | null = null
   private initialized = false
-  
+
   async initialize() {
     if (this.initialized) return
-    
+
     try {
       const adapter = await getStorageAdapter()
-      if (adapter.constructor.name !== 'LocalStorageAdapter' && 
-          adapter.constructor.name !== 'HybridStorageAdapter') {
-        throw new Error('数据导入导出只能在本地存储模式下使用')
-      }
-      
-      // 获取LocalStorageAdapter实例
-      const localAdapter = adapter.constructor.name === 'HybridStorageAdapter' 
-        ? (adapter as any).getCurrentAdapter()
-        : adapter
-      
-      this.utils = new LocalStorageUtils(localAdapter)
+      this.utils = new LocalStorageUtils(adapter)
       this.initialized = true
-      
       console.log('数据管理器已初始化')
     } catch (error) {
       console.error('数据管理器初始化失败:', error)
       throw error
     }
   }
-  
+
   // 导出数据
   async exportData(options: ExportOptions = {}): Promise<ExportData> {
     await this.initialize()
-    
+
     const {
       includeDocuments = true,
       includeVersions = true,
@@ -104,9 +93,9 @@ class DataManager {
       documentIds,
       dateRange
     } = options
-    
+
     console.log('开始导出数据...', options)
-    
+
     const exportData: ExportData = {
       version: '1.0.0',
       exportedAt: new Date().toISOString(),
@@ -121,17 +110,17 @@ class DataManager {
       versions: [],
       images: []
     }
-    
+
     try {
       // 导出文档
       if (includeDocuments) {
         let documents = await this.utils!.getAll<Document>('documents')
-        
+
         // 按文档ID筛选
         if (documentIds && documentIds.length > 0) {
           documents = documents.filter(doc => documentIds.includes(doc.id))
         }
-        
+
         // 按日期筛选
         if (dateRange) {
           documents = documents.filter(doc => {
@@ -139,17 +128,17 @@ class DataManager {
             return docDate >= new Date(dateRange.from) && docDate <= new Date(dateRange.to)
           })
         }
-        
+
         exportData.documents = documents
         exportData.metadata.totalDocuments = documents.length
-        
+
         console.log(`导出了 ${documents.length} 个文档`)
       }
-      
+
       // 导出版本历史
       if (includeVersions) {
         let versions = await this.utils!.getAll<DocumentVersion>('versions')
-        
+
         // 如果有文档ID限制，只导出相关版本
         if (documentIds && documentIds.length > 0) {
           versions = versions.filter(version => {
@@ -157,7 +146,7 @@ class DataManager {
             return exportData.documents.some(doc => doc.id === version.id)
           })
         }
-        
+
         // 按日期筛选
         if (dateRange) {
           versions = versions.filter(version => {
@@ -165,17 +154,17 @@ class DataManager {
             return versionDate >= new Date(dateRange.from) && versionDate <= new Date(dateRange.to)
           })
         }
-        
+
         exportData.versions = versions
         exportData.metadata.totalVersions = versions.length
-        
+
         console.log(`导出了 ${versions.length} 个版本记录`)
       }
-      
+
       // 导出图片
       if (includeImages) {
         let images = await this.utils!.getAll<ImageInfo & { data?: string }>('images')
-        
+
         // 是否包含图片数据
         if (includeImageData) {
           // 图片数据已经在IndexedDB中，直接导出
@@ -188,11 +177,11 @@ class DataManager {
           })
           console.log(`导出了 ${images.length} 个图片（仅元信息）`)
         }
-        
+
         exportData.images = images
         exportData.metadata.totalImages = images.length
       }
-      
+
       // 导出设置
       if (includeSettings) {
         try {
@@ -206,10 +195,10 @@ class DataManager {
           console.warn('导出设置失败:', error)
         }
       }
-      
+
       // 计算总大小
       exportData.metadata.totalSize = JSON.stringify(exportData).length
-      
+
       console.log('数据导出完成:', exportData.metadata)
       return exportData
     } catch (error) {
@@ -217,20 +206,20 @@ class DataManager {
       throw new Error(`数据导出失败: ${error instanceof Error ? error.message : '未知错误'}`)
     }
   }
-  
+
   // 导入数据
   async importData(data: ExportData, options: ImportOptions = {}): Promise<ImportResult> {
     await this.initialize()
-    
+
     const {
       overwriteExisting = false,
       mergeMode = 'skip',
       validateData = true,
       onProgress
     } = options
-    
+
     console.log('开始导入数据...', { dataVersion: data.version, options })
-    
+
     const result: ImportResult = {
       success: false,
       imported: { documents: 0, versions: 0, images: 0 },
@@ -238,7 +227,7 @@ class DataManager {
       errors: [],
       warnings: []
     }
-    
+
     try {
       // 数据验证
       if (validateData) {
@@ -251,15 +240,15 @@ class DataManager {
           result.warnings.push(...validation.warnings)
         }
       }
-      
+
       const totalItems = data.documents.length + data.versions.length + data.images.length
       let currentItem = 0
-      
+
       // 导入文档
       for (const document of data.documents) {
         try {
           const existing = await this.utils!.get<Document>('documents', document.id)
-          
+
           if (existing && !overwriteExisting) {
             if (mergeMode === 'skip') {
               result.skipped.documents++
@@ -269,69 +258,69 @@ class DataManager {
               document.title = `${document.title} (导入)`
             }
           }
-          
+
           await this.utils!.put('documents', document)
           result.imported.documents++
-          
+
         } catch (error) {
           result.errors.push(`导入文档 ${document.title} 失败: ${error}`)
         }
-        
+
         currentItem++
         onProgress?.({ current: currentItem, total: totalItems, step: '导入文档' })
       }
-      
+
       // 导入版本历史
       for (const version of data.versions) {
         try {
           const existing = await this.utils!.get<DocumentVersion>('versions', version.id)
-          
+
           if (existing && !overwriteExisting && mergeMode === 'skip') {
             result.skipped.versions++
             continue
           }
-          
+
           if (existing && mergeMode === 'rename') {
             version.id = `${version.id}_imported_${Date.now()}`
           }
-          
+
           await this.utils!.put('versions', version)
           result.imported.versions++
-          
+
         } catch (error) {
           result.errors.push(`导入版本记录失败: ${error}`)
         }
-        
+
         currentItem++
         onProgress?.({ current: currentItem, total: totalItems, step: '导入版本历史' })
       }
-      
+
       // 导入图片
       for (const image of data.images) {
         try {
           const existing = await this.utils!.get('images', image.id)
-          
+
           if (existing && !overwriteExisting && mergeMode === 'skip') {
             result.skipped.images++
             continue
           }
-          
+
           if (existing && mergeMode === 'rename') {
             image.id = `${image.id}_imported_${Date.now()}`
             image.filename = `imported_${image.filename}`
           }
-          
+
           await this.utils!.put('images', image)
           result.imported.images++
-          
+
         } catch (error) {
           result.errors.push(`导入图片 ${image.filename} 失败: ${error}`)
         }
-        
+
         currentItem++
         onProgress?.({ current: currentItem, total: totalItems, step: '导入图片' })
       }
-      
+
       // 导入设置
       if (data.settings) {
         try {
@@ -345,19 +334,19 @@ class DataManager {
           result.warnings.push(`导入设置失败: ${error}`)
         }
       }
-      
+
       result.success = result.errors.length === 0
-      
+
       console.log('数据导入完成:', result)
       return result
-      
+
     } catch (error) {
       console.error('数据导入失败:', error)
       result.errors.push(`导入失败: ${error instanceof Error ? error.message : '未知错误'}`)
       return result
     }
   }
-  
+
   // 验证导入数据
   private async validateImportData(data: ExportData): Promise<{
     valid: boolean
@@ -366,21 +355,21 @@ class DataManager {
   }> {
     const errors: string[] = []
     const warnings: string[] = []
-    
+
     // 检查数据格式版本
     if (!data.version || data.version !== '1.0.0') {
       warnings.push(`数据版本不匹配: ${data.version}，可能存在兼容性问题`)
     }
-    
+
     // 检查必要字段
     if (!data.exportedAt) {
       errors.push('缺少导出时间信息')
     }
-    
+
     if (!data.metadata) {
       errors.push('缺少元数据信息')
     }
-    
+
     // 检查数据完整性
     if (data.documents) {
       for (const doc of data.documents) {
@@ -389,7 +378,7 @@ class DataManager {
         }
       }
     }
-    
+
     if (data.versions) {
       for (const version of data.versions) {
         if (!version.id || !version.changeType) {
@@ -397,7 +386,7 @@ class DataManager {
         }
       }
     }
-    
+
     if (data.images) {
       for (const image of data.images) {
         if (!image.id || !image.filename) {
@@ -405,7 +394,7 @@ class DataManager {
         }
       }
     }
-    
+
     // 检查存储空间
     const estimatedSize = JSON.stringify(data).length
     try {
@@ -419,39 +408,39 @@ class DataManager {
     } catch (error) {
       warnings.push('无法检查存储空间配额')
     }
-    
+
     return {
       valid: errors.length === 0,
       errors,
       warnings
     }
   }
-  
+
   // 下载导出文件
   async downloadExport(data: ExportData, filename?: string): Promise<void> {
     const jsonData = JSON.stringify(data, null, 2)
     const blob = new Blob([jsonData], { type: 'application/json' })
-    
+
     const defaultFilename = `wechat-editor-backup-${new Date().toISOString().split('T')[0]}.json`
     const finalFilename = filename || defaultFilename
-    
+
     // 创建下载链接
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
     link.download = finalFilename
-    
+
     // 触发下载
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
+
     // 释放URL
     URL.revokeObjectURL(url)
-    
+
     console.log(`数据已下载: ${finalFilename} (${formatStorageSize(jsonData.length)})`)
   }
-  
+
   // 从文件读取导入数据
   async readImportFile(file: File): Promise<ExportData> {
     return new Promise((resolve, reject) => {
@@ -459,9 +448,9 @@ class DataManager {
         reject(new Error('请选择有效的JSON文件'))
         return
       }
-      
+
       const reader = new FileReader()
-      
+
       reader.onload = (event) => {
         try {
           const jsonData = JSON.parse(event.target?.result as string)
@@ -470,15 +459,15 @@ class DataManager {
           reject(new Error('文件格式错误，无法解析JSON数据'))
         }
       }
-      
+
       reader.onerror = () => {
         reject(new Error('文件读取失败'))
       }
-      
+
       reader.readAsText(file)
     })
   }
-  
+
   // 获取导出预览信息
   async getExportPreview(options: ExportOptions = {}): Promise<{
     estimatedSize: string
@@ -493,27 +482,27 @@ class DataManager {
     } | null
   }> {
     await this.initialize()
-    
+
     // 临时导出以获取大小估算（不包含实际图片数据）
     const previewData = await this.exportData({
       ...options,
       includeImageData: false
     })
-    
+
     // 计算时间范围
     let timeRange = null
     const allDates = [
       ...previewData.documents.map(d => d.updatedAt),
       ...previewData.versions.map(v => v.createdAt)
     ].filter(Boolean).sort()
-    
+
     if (allDates.length > 0) {
       timeRange = {
         earliest: allDates[0],
         latest: allDates[allDates.length - 1]
       }
     }
-    
+
     return {
       estimatedSize: formatStorageSize(JSON.stringify(previewData).length),
       itemCounts: {

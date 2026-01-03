@@ -6,38 +6,34 @@ import { templates, defaultTemplateVariables } from '../templates'
 // 初始状态
 const initialState: AppState = {
   editor: {
-    content: '',  // 飞书模式：新文档从空白开始，避免触发自动保存
+    content: '',
     selectedText: '',
     cursorPosition: 0,
     isChanged: false,
     lastSaved: null,
-    // 文档状态管理（飞书模式）
-    documentStatus: 'TEMP' as const,  // 新文档初始为临时状态
-    documentId: null,
-    editStartTime: null,
     scrollPercentage: 0,
     cursorLinePercentage: 0,
     totalLines: 1
   },
-  
+
   preview: {
     html: '',
     css: '',
     isLoading: false,
-    deviceMode: 'mobile',
+    deviceMode: 'desktop',
     scale: 1,
     scrollPosition: 0,
     syncScrollEnabled: true,
     lastSyncSource: null
   },
-  
+
   templates: {
     available: templates,
     current: templates[0],
     variables: { ...defaultTemplateVariables, content: '' },
     customStyles: {}
   },
-  
+
   assets: {
     images: [],
     imageMap: {},
@@ -49,23 +45,23 @@ const initialState: AppState = {
       brandColors: ['#1e6fff', '#333333', '#666666'],
       customCSS: ''
     },
+    // Removed uploadQueue and cdnConfig as they are server-dependent
     uploadQueue: [],
     cdnConfig: null
   },
-  
+
   export: {
     isExporting: false,
-    lastExported: null,
-    exportHistory: []
+    lastExported: null
   },
-  
+
   ui: {
     sidebarOpen: true,
-    activePanel: 'guide',  // 默认打开发布指南
+    activePanel: 'editor',
     showPreview: true,
     theme: 'light',
     fontSize: 'medium',
-    deviceMode: 'mobile',
+    deviceMode: 'desktop',
     userHasSelectedTemplate: false
   }
 }
@@ -79,12 +75,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
         editor: {
           ...state.editor,
           content: action.payload,
-          isChanged: true,
-          // 首次输入时设置编辑开始时间（飞书模式）
-          editStartTime: state.editor.editStartTime || new Date()
+          isChanged: true
         }
       }
-      
+
     case 'SELECT_TEMPLATE':
       const template = templates.find(t => t.id === action.payload)
       return {
@@ -94,7 +88,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           current: template || state.templates.current
         }
       }
-      
+
     case 'UPDATE_TEMPLATE_VARIABLES':
       return {
         ...state,
@@ -106,7 +100,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           }
         }
       }
-      
+
     case 'SET_PREVIEW_HTML':
       return {
         ...state,
@@ -116,7 +110,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           isLoading: false
         }
       }
-      
+
     case 'ADD_ASSET':
       return {
         ...state,
@@ -125,7 +119,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           images: [...state.assets.images, action.payload]
         }
       }
-      
+
     case 'REMOVE_ASSET':
       return {
         ...state,
@@ -134,7 +128,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           images: state.assets.images.filter(img => img.id !== action.payload)
         }
       }
-      
+
     case 'UPDATE_IMAGE_MAP':
       return {
         ...state,
@@ -146,7 +140,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           }
         }
       }
-      
+
     case 'UPDATE_FIXED_ASSETS':
       return {
         ...state,
@@ -158,7 +152,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           }
         }
       }
-      
+
     case 'SET_UI_STATE':
       return {
         ...state,
@@ -167,7 +161,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           ...action.payload
         }
       }
-      
+
     case 'EXPORT_START':
       return {
         ...state,
@@ -176,18 +170,17 @@ function appReducer(state: AppState, action: AppAction): AppState {
           isExporting: true
         }
       }
-      
+
     case 'EXPORT_COMPLETE':
       return {
         ...state,
         export: {
           ...state.export,
           isExporting: false,
-          lastExported: new Date(),
-          exportHistory: [action.payload, ...state.export.exportHistory.slice(0, 9)]
+          lastExported: new Date()
         }
       }
-      
+
     case 'UPDATE_EDITOR_SCROLL':
       return {
         ...state,
@@ -202,7 +195,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           lastSyncSource: 'editor'
         }
       }
-      
+
     case 'UPDATE_PREVIEW_SCROLL':
       return {
         ...state,
@@ -212,7 +205,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           lastSyncSource: action.payload.source
         }
       }
-      
+
     case 'TOGGLE_SYNC_SCROLL':
       return {
         ...state,
@@ -221,46 +214,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           syncScrollEnabled: action.payload
         }
       }
-      
-    case 'SET_DOCUMENT_STATUS':
-      return {
-        ...state,
-        editor: {
-          ...state.editor,
-          documentStatus: action.payload
-        }
-      }
-      
-    case 'SET_DOCUMENT_ID':
-      return {
-        ...state,
-        editor: {
-          ...state.editor,
-          documentId: action.payload
-        }
-      }
-      
-    case 'RESET_DOCUMENT':
-      return {
-        ...state,
-        editor: {
-          ...initialState.editor,
-          content: action.payload?.content || initialState.editor.content,
-          documentStatus: 'TEMP',
-          documentId: null,
-          editStartTime: null
-        },
-        templates: {
-          ...state.templates,
-          variables: {
-            ...state.templates.variables,
-            title: action.payload?.title || '',
-            author: state.templates.variables.author,
-            date: state.templates.variables.date
-          }
-        }
-      }
-      
+
     default:
       return state
   }
@@ -275,7 +229,7 @@ const AppContext = createContext<{
 // Provider 组件
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState)
-  
+
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       {children}

@@ -1,9 +1,8 @@
-// 存储状态监控组件 - 简化版（只支持本地存储）
+// 存储状态监控组件 - 纯本地模式
 import React, { useState, useEffect } from 'react'
 import { checkStorageQuota } from '../utils/local-storage-utils'
 import { getStorageAdapter } from '../utils/storage-adapter'
 import { notification } from '../utils/notification'
-import { useAuth } from '../utils/auth-context'
 
 interface StorageStatus {
   quotaUsage: number  // 存储使用百分比
@@ -14,7 +13,6 @@ interface StorageStatus {
 }
 
 export function StorageStatusMonitor() {
-  const { state: authState } = useAuth()
   const [status, setStatus] = useState<StorageStatus>({
     quotaUsage: 0,
     quotaAvailable: 0,
@@ -26,20 +24,15 @@ export function StorageStatusMonitor() {
 
   // 检查本地存储状态
   useEffect(() => {
-    // 只有在认证后才开始统计
-    if (!authState.isAuthenticated) {
-      return
-    }
-
     const checkStatus = async () => {
       try {
         // 查询存储配额
         const quota = await checkStorageQuota()
-        
+
         // 查询本地文档和图片数量
         const docCount = await countDocuments()
         const imgCount = await countImages()
-        
+
         setStatus({
           quotaUsage: quota.percentage,
           quotaAvailable: quota.available / 1024 / 1024, // 转为 MB
@@ -56,43 +49,22 @@ export function StorageStatusMonitor() {
       }
     }
 
-    // 延迟500ms，确保 storage adapter 已初始化
-    const timeout = setTimeout(() => {
-      checkStatus()
-    }, 500)
-    
+    checkStatus()
+
     // 每30秒刷新一次
     const interval = setInterval(checkStatus, 30000)
-    
+
     return () => {
-      clearTimeout(timeout)
       clearInterval(interval)
     }
-  }, [authState.isAuthenticated])
+  }, [])
 
   // 获取数据库实例
   const getDB = async (): Promise<IDBDatabase | null> => {
     try {
       const adapter = await getStorageAdapter()
-      
-      // 确保 adapter 已初始化
-      if (!adapter.isAvailable()) {
-        console.log('存储适配器尚未就绪，等待初始化...')
-        return null
-      }
-      
-      // 检查是否是本地存储适配器
-      if (adapter.constructor.name === 'LocalStorageAdapter') {
-        const db = (adapter as any).getDB()
-        return db
-      } else if (adapter.constructor.name === 'HybridStorageAdapter') {
-        const localAdapter = (adapter as any).getCurrentAdapter()
-        if (localAdapter && localAdapter.isAvailable()) {
-          return localAdapter.getDB()
-        }
-      }
-      
-      return null
+      if (!adapter.isAvailable()) return null
+      return (adapter as any).getDB()
     } catch (error) {
       // 初始化错误是正常的，静默处理
       return null
@@ -104,7 +76,7 @@ export function StorageStatusMonitor() {
     try {
       const db = await getDB()
       if (!db) return 0
-      
+
       return new Promise((resolve, reject) => {
         try {
           const transaction = db.transaction(['documents'], 'readonly')
@@ -113,7 +85,6 @@ export function StorageStatusMonitor() {
           request.onsuccess = () => resolve(request.result)
           request.onerror = () => reject(request.error)
         } catch (error) {
-          console.error('统计文档失败:', error)
           resolve(0)
         }
       })
@@ -128,7 +99,7 @@ export function StorageStatusMonitor() {
     try {
       const db = await getDB()
       if (!db) return 0
-      
+
       return new Promise((resolve, reject) => {
         try {
           const transaction = db.transaction(['images'], 'readonly')
@@ -137,7 +108,6 @@ export function StorageStatusMonitor() {
           request.onsuccess = () => resolve(request.result)
           request.onerror = () => reject(request.error)
         } catch (error) {
-          console.error('统计图片失败:', error)
           resolve(0)
         }
       })
@@ -159,10 +129,10 @@ export function StorageStatusMonitor() {
         notification.error('无法访问本地数据库')
         return
       }
-      
+
       // 清理 IndexedDB
       const transaction = db.transaction(['documents', 'images', 'versions'], 'readwrite')
-      
+
       await Promise.all([
         new Promise((resolve, reject) => {
           const request = transaction.objectStore('documents').clear()
@@ -182,7 +152,7 @@ export function StorageStatusMonitor() {
       ])
 
       notification.success('本地缓存已清理')
-      
+
       // 刷新状态
       const quota = await checkStorageQuota()
       setStatus({
@@ -200,20 +170,15 @@ export function StorageStatusMonitor() {
 
   // 获取状态颜色
   const getStatusColor = () => {
-    if (status.quotaUsage > 90) return '#ff9800'  // 橙色警告
-    if (status.quotaUsage > 70) return '#ffeb3b'  // 黄色提示
+    if (status.quotaUsage > 90) return '#f44336'  // 红色警告
+    if (status.quotaUsage > 70) return '#ff9800'  // 橙色提示
     return '#4caf50'  // 绿色正常
-  }
-
-  // 未认证时不显示
-  if (!authState.isAuthenticated) {
-    return null
   }
 
   if (!showDetails) {
     // 简化状态指示器
     return (
-      <div 
+      <div
         onClick={() => setShowDetails(true)}
         style={{
           position: 'fixed',
@@ -233,12 +198,6 @@ export function StorageStatusMonitor() {
           zIndex: 1000,
           transition: 'all 0.2s'
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)'
-        }}
       >
         <div style={{
           width: '8px',
@@ -257,8 +216,7 @@ export function StorageStatusMonitor() {
       position: 'fixed',
       bottom: '20px',
       right: '20px',
-      width: '400px',
-      maxHeight: '600px',
+      width: '320px',
       background: 'white',
       border: '1px solid #e0e0e0',
       borderRadius: '12px',
@@ -270,7 +228,7 @@ export function StorageStatusMonitor() {
     }}>
       {/* 头部 */}
       <div style={{
-        padding: '16px',
+        padding: '12px 16px',
         borderBottom: '1px solid #f0f0f0',
         display: 'flex',
         justifyContent: 'space-between',
@@ -284,22 +242,17 @@ export function StorageStatusMonitor() {
             borderRadius: '50%',
             background: getStatusColor()
           }} />
-          <h3 style={{ margin: 0, fontSize: '16px' }}>存储状态</h3>
+          <h3 style={{ margin: 0, fontSize: '14px' }}>存储状态</h3>
         </div>
-        <button 
+        <button
           onClick={() => setShowDetails(false)}
           style={{
             background: 'none',
             border: 'none',
-            fontSize: '20px',
+            fontSize: '18px',
             cursor: 'pointer',
             color: '#999',
-            padding: '0',
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            padding: '0'
           }}
         >
           ✕
@@ -307,144 +260,73 @@ export function StorageStatusMonitor() {
       </div>
 
       {/* 内容 */}
-      <div style={{ padding: '20px', overflowY: 'auto' }}>
-        {/* 本地存储模式 */}
-        <div style={{
-          padding: '16px',
-          background: '#e8f5e9',
-          border: '2px solid #4caf50',
-          borderRadius: '8px',
-          marginBottom: '16px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '20px' }}>💾</span>
-            <strong>本地存储模式</strong>
-            <span style={{ 
-              marginLeft: 'auto', 
-              fontSize: '20px',
-              color: '#4caf50' 
-            }}>✓</span>
-          </div>
-          <div style={{ fontSize: '13px', color: '#666', marginLeft: '28px' }}>
-            数据安全存储在浏览器本地，速度快、隐私好
-          </div>
-        </div>
-
+      <div style={{ padding: '16px' }}>
         {/* 存储统计 */}
         <div style={{ marginBottom: '16px' }}>
-          <div style={{ 
-            fontSize: '14px', 
-            color: '#666', 
-            marginBottom: '12px',
-            fontWeight: 500 
-          }}>
-            📊 存储使用情况
-          </div>
-          
-          <div style={{ 
-            fontSize: '13px', 
+          <div style={{
+            fontSize: '12px',
+            color: '#666',
             marginBottom: '8px',
             display: 'flex',
             justifyContent: 'space-between'
           }}>
-            <span style={{ color: '#666' }}>存储使用:</span>
-            <span style={{ fontWeight: 500 }}>{status.quotaUsage.toFixed(2)}%</span>
+            <span>存储使用:</span>
+            <span style={{ fontWeight: 600 }}>{status.quotaUsage.toFixed(1)}%</span>
           </div>
-          
-          <div style={{ 
-            fontSize: '13px', 
-            marginBottom: '8px',
-            display: 'flex',
-            justifyContent: 'space-between'
+          <div style={{
+            height: '6px',
+            background: '#eee',
+            borderRadius: '3px',
+            overflow: 'hidden',
+            marginBottom: '12px'
           }}>
-            <span style={{ color: '#666' }}>剩余空间:</span>
-            <span style={{ fontWeight: 500 }}>{Math.floor(status.quotaAvailable)} MB</span>
+            <div style={{
+              width: `${status.quotaUsage}%`,
+              height: '100%',
+              background: getStatusColor(),
+              transition: 'width 0.3s'
+            }} />
           </div>
-          
-          <div style={{ 
-            fontSize: '13px', 
-            marginBottom: '8px',
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{ color: '#666' }}>本地文档:</span>
-            <span style={{ fontWeight: 500 }}>{status.documentsCount} 篇</span>
-          </div>
-          
-          <div style={{ 
-            fontSize: '13px',
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{ color: '#666' }}>本地图片:</span>
-            <span style={{ fontWeight: 500 }}>{status.imagesCount} 张</span>
-          </div>
-        </div>
 
-        {/* 服务器同步 - 标记为后续开发 */}
-        <div style={{
-          padding: '16px',
-          background: '#fff9e6',
-          border: '1px dashed #ffc107',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          opacity: 0.7
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '20px' }}>☁️</span>
-            <strong style={{ color: '#666' }}>服务器同步</strong>
-            <span style={{ 
-              marginLeft: 'auto',
-              padding: '2px 8px',
-              background: '#ffc107',
-              color: 'white',
-              fontSize: '11px',
-              borderRadius: '4px',
-              fontWeight: 500
-            }}>
-              后续开发
-            </span>
-          </div>
-          <div style={{ fontSize: '12px', color: '#999', marginLeft: '28px' }}>
-            多设备同步、云端备份功能正在开发中...
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div style={{ padding: '8px', background: '#f8f9fa', borderRadius: '6px' }}>
+              <div style={{ fontSize: '11px', color: '#999' }}>文档数量</div>
+              <div style={{ fontSize: '14px', fontWeight: 600 }}>{status.documentsCount}</div>
+            </div>
+            <div style={{ padding: '8px', background: '#f8f9fa', borderRadius: '6px' }}>
+              <div style={{ fontSize: '11px', color: '#999' }}>图片数量</div>
+              <div style={{ fontSize: '14px', fontWeight: 600 }}>{status.imagesCount}</div>
+            </div>
           </div>
         </div>
 
         {/* 操作按钮 */}
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            onClick={clearCache}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: '#f5f5f5',
-              border: '1px solid #e0e0e0',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 500,
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#e0e0e0'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#f5f5f5'
-            }}
-          >
-            🗑️ 清理缓存
-          </button>
-        </div>
+        <button
+          onClick={clearCache}
+          style={{
+            width: '100%',
+            padding: '8px',
+            background: '#fff',
+            border: '1px solid #ffc107',
+            color: '#856404',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500
+          }}
+        >
+          🗑️ 清理本地缓存
+        </button>
 
         {/* 提示信息 */}
         {status.quotaUsage > 80 && (
           <div style={{
-            marginTop: '16px',
-            padding: '12px',
+            marginTop: '12px',
+            padding: '8px',
             background: '#fff3cd',
             border: '1px solid #ffc107',
             borderRadius: '6px',
-            fontSize: '12px',
+            fontSize: '11px',
             color: '#856404'
           }}>
             ⚠️ 存储空间不足，建议清理旧文档或图片
@@ -453,12 +335,12 @@ export function StorageStatusMonitor() {
 
         {status.lastError && (
           <div style={{
-            marginTop: '16px',
-            padding: '12px',
+            marginTop: '12px',
+            padding: '8px',
             background: '#ffebee',
             border: '1px solid #f44336',
             borderRadius: '6px',
-            fontSize: '12px',
+            fontSize: '11px',
             color: '#c62828'
           }}>
             ❌ {status.lastError}
