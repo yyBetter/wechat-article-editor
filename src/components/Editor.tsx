@@ -61,11 +61,8 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
   const [spellListExpanded, setSpellListExpanded] = useState(false)
   const [cursorPosition, setCursorPosition] = useState(0)
 
-  // 首次使用引导
-  const [showGuide, setShowGuide] = useState(() => {
-    const hasSeenGuide = localStorage.getItem('smart_paste_guide_seen')
-    return !hasSeenGuide  // 如果没看过，就显示
-  })
+  // 首次使用引导 - 已禁用，防止遮挡编辑器
+  const [showGuide, setShowGuide] = useState(false)
 
   // 关闭引导并记住
   const handleCloseGuide = useCallback(() => {

@@ -6,10 +6,10 @@ export interface Template {
   usage?: string
   thumbnail: string
   category: 'document' | 'image-text' | 'custom'
-  
+
   // 品牌配色方案（每个模板的预设配色）
   brandColors?: [string, string, string]
-  
+
   // 样式配置
   styles: {
     container: TemplateContainerStyle
@@ -17,7 +17,7 @@ export interface Template {
     elements?: TemplateElements
     imageBlock?: ImageBlockStyle
   }
-  
+
   // 固定元素插入配置
   fixedElements: {
     header?: FixedElementConfig
@@ -62,6 +62,7 @@ export interface TextStyle {
   textDecoration?: string
   fontStyle?: string
   backgroundColor?: string
+  display?: string
   padding?: string
   borderRadius?: string
   border?: string
