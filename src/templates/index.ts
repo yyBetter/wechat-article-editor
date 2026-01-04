@@ -3,12 +3,14 @@ import { Template } from '../types/template'
 import { simpleDocTemplate } from './simple-doc'
 import { kuaidaoTemplate } from './kuaidao'
 import { blueprintReportTemplate } from './report-grid'
+import { electricNeoTemplate } from './electric-neo'
 
 // 所有可用模板
 export const templates: Template[] = [
   simpleDocTemplate,
   kuaidaoTemplate,
-  blueprintReportTemplate
+  blueprintReportTemplate,
+  electricNeoTemplate
 ]
 
 // 根据ID获取模板
@@ -63,6 +65,12 @@ export const templatePresets = {
     icon: '📊',
     description: '深青色分析简报，带稿纸方格底纹',
     scenarios: ['行业报告', '数据分析', '调研总结']
+  },
+  'electric-neo': {
+    name: '电讯风',
+    icon: '⚡',
+    description: '科技媒体风格，高对比撞色设计',
+    scenarios: ['技术点评', '深度报道', '趋势预测']
   }
 }
 
