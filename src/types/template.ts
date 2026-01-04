@@ -81,6 +81,7 @@ export interface TextStyle {
   textIndent?: string
   fontFamily?: string
   background?: string
+  boxShadow?: string
   opacity?: string | number
   position?: 'relative' | 'absolute' | 'fixed' | 'static'
   top?: string

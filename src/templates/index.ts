@@ -4,13 +4,15 @@ import { simpleDocTemplate } from './simple-doc'
 import { kuaidaoTemplate } from './kuaidao'
 import { blueprintReportTemplate } from './report-grid'
 import { electricNeoTemplate } from './electric-neo'
+import { liquidGlassTemplate } from './liquid-glass'
 
 // 所有可用模板
 export const templates: Template[] = [
   simpleDocTemplate,
   kuaidaoTemplate,
   blueprintReportTemplate,
-  electricNeoTemplate
+  electricNeoTemplate,
+  liquidGlassTemplate
 ]
 
 // 根据ID获取模板
@@ -71,6 +73,12 @@ export const templatePresets = {
     icon: '⚡',
     description: '科技媒体风格，高对比撞色设计',
     scenarios: ['技术点评', '深度报道', '趋势预测']
+  },
+  'liquid-glass': {
+    name: '液态玻璃',
+    icon: '💎',
+    description: '高级 Apple 磨砂风格，优雅流体感',
+    scenarios: ['产品发布', '品牌宣传', '极简生活']
   }
 }
 
