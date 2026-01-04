@@ -32,7 +32,7 @@ export const simpleDocTemplate: Template = {
   `,
   thumbnail: '/assets/thumbnails/simple-doc.png',
   category: 'document',
-  
+
   styles: {
     // 容器样式
     container: {
@@ -43,7 +43,7 @@ export const simpleDocTemplate: Template = {
       lineHeight: '1.6',
       textAlign: 'left'
     },
-    
+
     // 字体排版
     typography: {
       // 主标题
@@ -55,7 +55,7 @@ export const simpleDocTemplate: Template = {
         textAlign: 'center',
         lineHeight: '1.3'
       },
-      
+
       // 二级标题  
       h2: {
         fontSize: '18px',
@@ -64,7 +64,7 @@ export const simpleDocTemplate: Template = {
         margin: '32px 0 16px 0',
         lineHeight: '1.4'
       },
-      
+
       // 三级标题
       h3: {
         fontSize: '16px',
@@ -73,7 +73,7 @@ export const simpleDocTemplate: Template = {
         margin: '24px 0 12px 0',
         lineHeight: '1.4'
       },
-      
+
       // 正文段落
       p: {
         fontSize: '15px',
@@ -82,7 +82,7 @@ export const simpleDocTemplate: Template = {
         lineHeight: '1.7',
         textAlign: 'left'
       },
-      
+
       // 链接样式
       a: {
         fontSize: '15px',
@@ -90,21 +90,21 @@ export const simpleDocTemplate: Template = {
         textDecoration: 'underline',
         fontWeight: 'normal'
       },
-      
+
       // 加粗文本
       strong: {
         fontSize: '15px',
         fontWeight: '600',
         color: '#000000'
       },
-      
+
       // 斜体文本
       em: {
         fontSize: '15px',
         fontStyle: 'italic',
         color: '#666666'
       },
-      
+
       // 行内代码
       code: {
         backgroundColor: '#f5f5f5',
@@ -113,7 +113,7 @@ export const simpleDocTemplate: Template = {
         borderRadius: '3px',
         fontSize: '14px'
       },
-      
+
       // 引用块
       blockquote: {
         fontSize: '15px',
@@ -127,7 +127,7 @@ export const simpleDocTemplate: Template = {
         borderRadius: '0 4px 4px 0'
       }
     },
-    
+
     // 其他元素
     elements: {
       // 无序列表
@@ -136,14 +136,14 @@ export const simpleDocTemplate: Template = {
         marginBottom: '16px',
         listStyle: 'disc'
       },
-      
+
       // 有序列表
       ol: {
-        paddingLeft: '20px', 
+        paddingLeft: '20px',
         marginBottom: '16px',
         listStyle: 'decimal'
       },
-      
+
       // 列表项
       li: {
         marginBottom: '8px',
@@ -151,7 +151,7 @@ export const simpleDocTemplate: Template = {
         fontSize: '15px',
         color: '#333333'
       },
-      
+
       // 图片
       img: {
         width: '100%',
@@ -162,17 +162,40 @@ export const simpleDocTemplate: Template = {
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         display: 'block'
       },
-      
+
       // 分割线
       hr: {
         border: 'none',
         height: '1px',
         backgroundColor: '#e1e4e8',
         margin: '32px 0'
+      },
+      table: {
+        width: '100%',
+        marginBottom: '24px',
+        borderCollapse: 'collapse',
+        fontSize: '14px',
+        color: '#333333'
+      },
+      th: {
+        fontSize: '14px',
+        color: '#000000',
+        backgroundColor: '#f8f9fa',
+        border: '1px solid #dee2e6',
+        padding: '10px',
+        fontWeight: '600',
+        textAlign: 'center'
+      },
+      td: {
+        fontSize: '14px',
+        color: '#333333',
+        border: '1px solid #dee2e6',
+        padding: '10px',
+        textAlign: 'center'
       }
     }
   },
-  
+
   // 固定元素配置
   fixedElements: {
     // 文章尾部 - 暂时禁用，等待后续配置

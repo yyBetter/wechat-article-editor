@@ -141,6 +141,29 @@ export const kuaidaoTemplate: Template = {
                 background: 'linear-gradient(to right, transparent, #0052FF, transparent)',
                 margin: '40px 0',
                 opacity: 0.3
+            },
+            table: {
+                width: '100%',
+                marginBottom: '24px',
+                borderCollapse: 'collapse',
+                fontSize: '15px',
+                color: '#3E3E3E'
+            },
+            th: {
+                fontSize: '15px',
+                color: '#ffffff',
+                backgroundColor: '#0052FF',
+                border: '1px solid #0052FF',
+                padding: '10px',
+                fontWeight: '600',
+                textAlign: 'center'
+            },
+            td: {
+                fontSize: '15px',
+                color: '#3E3E3E',
+                border: '1px solid #e0e0e0',
+                padding: '10px',
+                textAlign: 'center'
             }
         }
     },
