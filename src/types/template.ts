@@ -34,6 +34,9 @@ export interface TemplateContainerStyle {
   fontFamily: string
   lineHeight?: string
   textAlign?: 'left' | 'center' | 'right'
+  backgroundImage?: string
+  backgroundSize?: string
+  color?: string
 }
 
 // 字体排版样式
@@ -79,6 +82,12 @@ export interface TextStyle {
   fontFamily?: string
   background?: string
   opacity?: string | number
+  position?: 'relative' | 'absolute' | 'fixed' | 'static'
+  top?: string
+  left?: string
+  right?: string
+  bottom?: string
+  transform?: string
 }
 
 // 其他元素样式

@@ -2,11 +2,13 @@
 import { Template } from '../types/template'
 import { simpleDocTemplate } from './simple-doc'
 import { kuaidaoTemplate } from './kuaidao'
+import { blueprintReportTemplate } from './report-grid'
 
 // 所有可用模板
 export const templates: Template[] = [
   simpleDocTemplate,
-  kuaidaoTemplate
+  kuaidaoTemplate,
+  blueprintReportTemplate
 ]
 
 // 根据ID获取模板
@@ -53,8 +55,14 @@ export const templatePresets = {
   'kuaidao': {
     name: '快刀墨韵',
     icon: '🗡️',
-    description: '仿快刀青衣风格，极致阅读体验',
+    description: '仿快刀青衣风格，极致阅读体验，行业分析必备',
     scenarios: ['深度长文', '产品发布', '行业观察']
+  },
+  'report-grid': {
+    name: '青韵简报',
+    icon: '📊',
+    description: '深青色分析简报，带稿纸方格底纹',
+    scenarios: ['行业报告', '数据分析', '调研总结']
   }
 }
 

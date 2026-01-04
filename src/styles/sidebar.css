@@ -1,32 +1,36 @@
 /* 侧边栏样式重新设计 - 优化空间利用 */
 .app-sidebar {
   width: 280px;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: column;
   height: 100%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 /* 导航标签 */
 .sidebar-nav {
   display: flex;
-  background: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px;
+  gap: 4px;
+  margin: 12px 16px;
+  border-radius: 12px;
 }
 
 .nav-tab {
   flex: 1;
-  padding: 12px 16px;
-  background: none;
+  padding: 8px 12px;
+  background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   color: #64748b;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,14 +39,14 @@
 
 .nav-tab:hover {
   color: #1e40af;
-  background: #eff6ff;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .nav-tab.active {
   color: #1e40af;
   background: #ffffff;
-  border-bottom-color: #3b82f6;
-  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-weight: 600;
 }
 
 /* 侧边栏内容 */
@@ -76,23 +80,38 @@
 }
 
 .template-card {
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
   padding: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.template-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
 }
 
 .template-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(30, 111, 255, 0.3);
 }
 
 .template-card.active {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #1e6fff;
+  box-shadow: 0 8px 32px rgba(30, 111, 255, 0.15);
 }
 
 .template-preview {
@@ -830,8 +849,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .tooltip-content {
@@ -1059,19 +1085,20 @@
   .app-sidebar {
     width: 280px;
   }
-  
+
   .template-grid {
     padding: 0 16px;
   }
-  
+
   .settings-container {
     padding: 16px;
   }
-  
+
   .publish-guide {
     padding: 16px;
   }
 }
+
 /* AI使用次数徽章 */
 .ai-usage-badge {
   margin-top: 8px;
