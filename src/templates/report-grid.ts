@@ -118,6 +118,27 @@ export const blueprintReportTemplate: Template = {
                 paddingLeft: '15px',
                 lineHeight: '1.6',
                 letterSpacing: '0.54px'
+            },
+            table: {
+                width: '100%',
+                marginBottom: '24px',
+                borderCollapse: 'collapse',
+                fontSize: '14px',
+                color: 'rgba(0, 0, 0, 0.9)'
+            },
+            th: {
+                fontSize: '14px',
+                color: 'rgba(0, 0, 0, 0.9)',
+                backgroundColor: 'rgba(7, 87, 87, 0.1)',
+                border: '1px solid #075757',
+                padding: '8px',
+                fontWeight: '700'
+            },
+            td: {
+                fontSize: '14px',
+                color: 'rgba(0, 0, 0, 0.9)',
+                border: '1px solid #075757',
+                padding: '8px'
             }
         }
     },

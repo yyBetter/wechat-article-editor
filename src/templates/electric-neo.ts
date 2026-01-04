@@ -125,6 +125,30 @@ export const electricNeoTemplate: Template = {
                 height: '4px',
                 backgroundColor: '#0034C6',
                 margin: '40px 0'
+            },
+            table: {
+                width: '100%',
+                marginBottom: '24px',
+                borderCollapse: 'collapse',
+                fontSize: '15px',
+                color: 'rgba(0, 0, 0, 0.9)',
+                letterSpacing: '0.54px'
+            },
+            th: {
+                fontSize: '15px',
+                backgroundColor: '#0034C6',
+                color: '#ffffff',
+                border: '1px solid #0034C6',
+                padding: '10px',
+                fontWeight: '700',
+                textAlign: 'center'
+            },
+            td: {
+                fontSize: '15px',
+                color: 'rgba(0, 0, 0, 0.9)',
+                border: '1px solid #e0e0e0',
+                padding: '10px',
+                textAlign: 'center'
             }
         }
     },

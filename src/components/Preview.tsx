@@ -196,6 +196,12 @@ export const Preview = memo(function Preview() {
         .replace(/<code[^>]*>/g, `<code style="${getStyles('code')}">`)
         .replace(/<pre[^>]*>/g, `<pre style="${getStyles('pre')}">`)
         .replace(/<hr[^>]*>/g, `<hr style="${getStyles('hr')}">`)
+        .replace(/<table[^>]*>/g, `<table style="${getStyles('table')}">`)
+        .replace(/<thead[^>]*>/g, `<thead style="${getStyles('thead')}">`)
+        .replace(/<tbody[^>]*>/g, `<tbody style="${getStyles('tbody')}">`)
+        .replace(/<tr[^>]*>/g, `<tr style="${getStyles('tr')}">`)
+        .replace(/<th[^>]*>/g, `<th style="${getStyles('th')}">`)
+        .replace(/<td[^>]*>/g, `<td style="${getStyles('td')}">`)
 
       // 生成带内联样式的版本用于复制
       const inlineStyledHTML = `

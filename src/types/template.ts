@@ -87,8 +87,11 @@ export interface TextStyle {
   top?: string
   left?: string
   right?: string
-  bottom?: string
-  transform?: string
+  bottom?: string;
+  transform?: string;
+  width?: string;
+  borderCollapse?: string;
+  borderSpacing?: string;
 }
 
 // 其他元素样式
@@ -98,6 +101,12 @@ export interface TemplateElements {
   li?: TextStyle
   img?: ImageStyle
   hr?: DividerStyle
+  table?: TextStyle;
+  th?: TextStyle;
+  td?: TextStyle;
+  tr?: TextStyle;
+  thead?: TextStyle;
+  tbody?: TextStyle;
 }
 
 // 列表样式

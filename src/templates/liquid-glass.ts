@@ -128,6 +128,33 @@ export const liquidGlassTemplate: Template = {
                 paddingLeft: '18px',
                 lineHeight: '1.7',
                 letterSpacing: '0.6px'
+            },
+            table: {
+                width: '100%',
+                marginBottom: '26px',
+                borderCollapse: 'separate',
+                borderSpacing: '0',
+                fontSize: '15px',
+                color: 'rgba(0, 0, 0, 0.85)',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)'
+            },
+            th: {
+                fontSize: '15px',
+                color: '#0071e3',
+                backgroundColor: 'rgba(0, 113, 227, 0.05)',
+                padding: '12px',
+                fontWeight: '600',
+                textAlign: 'left',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+            },
+            td: {
+                fontSize: '15px',
+                color: 'rgba(0, 0, 0, 0.85)',
+                padding: '12px',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
             }
         }
     },
