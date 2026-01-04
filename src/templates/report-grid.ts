@@ -26,27 +26,28 @@ export const blueprintReportTemplate: Template = {
     styles: {
         container: {
             maxWidth: '100%',
-            padding: '40px 24px',
+            padding: '40px 20px',
             backgroundColor: '#ffffff',
             backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 24px, #f0f7f7 24px, #f0f7f7 25px), repeating-linear-gradient(90deg, transparent, transparent 24px, #f0f7f7 24px, #f0f7f7 25px)',
             backgroundSize: '25px 25px',
             fontFamily: 'PingFang SC, -apple-system, system-ui, sans-serif',
-            lineHeight: '1.8',
-            color: '#3e3e3e'
+            lineHeight: '1.6',
+            color: 'rgba(0, 0, 0, 0.9)'
         },
 
         typography: {
             h1: {
-                fontSize: '18px',
+                fontSize: '20px',
                 fontWeight: '700',
                 color: '#075757',
                 margin: '20px auto 40px',
                 textAlign: 'center',
-                padding: '12px 24px',
-                border: '2px dashed #075757',
+                padding: '10px 20px',
+                border: '1px dashed #075757',
                 display: 'table',
                 lineHeight: '1.4',
-                position: 'relative'
+                position: 'relative',
+                letterSpacing: '0.54px'
             },
 
             h2: {
@@ -57,59 +58,66 @@ export const blueprintReportTemplate: Template = {
                 paddingLeft: '28px',
                 position: 'relative',
                 display: 'block',
-                lineHeight: '1.5'
+                lineHeight: '1.5',
+                letterSpacing: '0.54px'
             },
 
             h3: {
-                fontSize: '16px',
+                fontSize: '15px',
                 fontWeight: '700',
                 color: '#075757',
                 margin: '30px 0 15px 0',
-                lineHeight: '1.4'
+                lineHeight: '1.4',
+                letterSpacing: '0.54px'
             },
 
             p: {
-                fontSize: '16px',
-                color: '#3e3e3e',
-                marginBottom: '20px',
-                lineHeight: '1.8',
-                textAlign: 'justify'
+                fontSize: '15px',
+                color: 'rgba(0, 0, 0, 0.9)',
+                marginBottom: '24px',
+                lineHeight: '1.6',
+                textAlign: 'justify',
+                letterSpacing: '0.54px'
             },
 
             a: {
-                fontSize: '16px',
+                fontSize: '15px',
                 color: '#075757',
                 textDecoration: 'underline'
             },
 
             strong: {
-                fontSize: '16px',
+                fontSize: '15px',
                 color: '#075757',
-                fontWeight: '700'
+                fontWeight: '700',
+                letterSpacing: '0.54px'
             },
 
             blockquote: {
-                fontSize: '15px',
+                fontSize: '14px',
                 borderLeft: '4px solid #075757',
                 padding: '12px 20px',
                 margin: '24px 0',
                 color: '#666666',
                 backgroundColor: 'rgba(7, 87, 87, 0.03)',
-                fontStyle: 'italic'
+                fontStyle: 'italic',
+                lineHeight: '1.6'
             }
         },
         elements: {
             ul: {
                 paddingLeft: '20px',
-                marginBottom: '20px',
+                marginBottom: '24px',
                 listStyle: 'none'
             },
             li: {
-                fontSize: '16px',
-                color: '#3e3e3e',
-                marginBottom: '8px',
+                fontSize: '15px',
+                color: 'rgba(0, 0, 0, 0.9)',
+                marginBottom: '10px',
                 position: 'relative',
-                paddingLeft: '15px'
+                paddingLeft: '15px',
+                lineHeight: '1.6',
+                letterSpacing: '0.54px'
             }
         }
     },
@@ -124,8 +132,8 @@ export const blueprintReportTemplate: Template = {
             left: 0;
             top: 50%;
             transform: translateY(-50%);
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             background-color: #a52a2a;
             border-radius: 50%;
             border: 2px solid #ffffff;

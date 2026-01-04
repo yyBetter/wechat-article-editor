@@ -30,57 +30,62 @@ export const electricNeoTemplate: Template = {
             padding: '40px 20px',
             backgroundColor: '#ffffff',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            lineHeight: '1.75',
+            lineHeight: '1.65',
             textAlign: 'left',
             color: 'rgba(0, 0, 0, 0.9)'
         },
 
         typography: {
             h1: {
-                fontSize: '24px',
+                fontSize: '22px',
                 fontWeight: '800',
                 color: '#0034C6',
                 margin: '20px 0 40px',
                 textAlign: 'center',
                 lineHeight: '1.3',
                 padding: '12px',
-                position: 'relative'
+                position: 'relative',
+                letterSpacing: '0.54px'
             },
 
             h2: {
-                fontSize: '48px',
+                fontSize: '26px',
                 fontWeight: '900',
                 color: '#0034C6',
                 margin: '60px 0 20px',
                 fontStyle: 'italic',
                 textAlign: 'center',
                 display: 'block',
-                fontFamily: 'Arial, sans-serif'
+                fontFamily: 'Arial, sans-serif',
+                letterSpacing: '0.54px'
             },
 
             h3: {
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: '700',
                 color: '#ffffff',
                 backgroundColor: '#0034C6',
                 padding: '6px 12px',
                 margin: '30px 0 15px',
                 display: 'inline-block',
-                lineHeight: '1.4'
+                lineHeight: '1.4',
+                letterSpacing: '0.54px'
             },
 
             p: {
                 fontSize: '16px',
                 color: 'rgba(0, 0, 0, 0.9)',
-                marginBottom: '22px',
-                lineHeight: '1.75',
-                textAlign: 'justify'
+                marginBottom: '24px',
+                lineHeight: '1.65',
+                textAlign: 'justify',
+                letterSpacing: '0.54px'
             },
 
             strong: {
                 fontSize: '16px',
                 fontWeight: '700',
-                color: '#0034C6'
+                color: '#0034C6',
+                letterSpacing: '0.54px'
             },
 
             a: {
@@ -91,18 +96,19 @@ export const electricNeoTemplate: Template = {
             },
 
             blockquote: {
-                fontSize: '16px',
+                fontSize: '15px',
                 padding: '20px',
                 margin: '24px 0',
                 color: '#333333',
                 backgroundColor: '#f5f5f5',
-                borderLeft: '4px solid #A3FD00'
+                borderLeft: '4px solid #A3FD00',
+                lineHeight: '1.6'
             }
         },
         elements: {
             ul: {
                 paddingLeft: '20px',
-                marginBottom: '20px',
+                marginBottom: '24px',
                 listStyle: 'none'
             },
             li: {
@@ -110,7 +116,9 @@ export const electricNeoTemplate: Template = {
                 color: 'rgba(0, 0, 0, 0.9)',
                 marginBottom: '12px',
                 position: 'relative',
-                paddingLeft: '15px'
+                paddingLeft: '15px',
+                lineHeight: '1.6',
+                letterSpacing: '0.54px'
             },
             hr: {
                 border: 'none',
