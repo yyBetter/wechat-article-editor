@@ -203,11 +203,16 @@ export const Preview = memo(function Preview() {
         .replace(/<th[^>]*>/g, `<th style="${getStyles('th')}">`)
         .replace(/<td[^>]*>/g, `<td style="${getStyles('td')}">`)
 
+      // 修复冒号换行问题：在 strong 标签后的冒号及其前一个字符包装在 nowrap 容器中
+      const processedCopyBody = processedBody.replace(/<\/strong>(\s*)([:：])/g, (match, space, colon) => {
+        return `</strong>${space}<span style="display: inline-block; white-space: nowrap;">${colon}</span>`
+      })
+
       // 生成带内联样式的版本用于复制
       const inlineStyledHTML = `
         <div class="article-container" style="${containerStyle} max-width: 677px; margin: 0 auto; box-sizing: border-box;">
           ${headerHTML}
-          ${processedBody}
+          ${processedCopyBody}
         </div>
       `
 
@@ -378,16 +383,59 @@ export const Preview = memo(function Preview() {
     const previewFrame = previewFrameRef.current
     if (!previewFrame) return
 
-    const { scrollPercentage } = state.editor
-    const maxScroll = previewFrame.scrollHeight - previewFrame.clientHeight
-    const targetScrollTop = maxScroll * scrollPercentage
+    const { scrollPercentage, totalLines } = state.editor
 
-    // 平滑滚动
-    previewFrame.scrollTo({
-      top: targetScrollTop,
-      behavior: 'smooth'
-    })
-  }, [state.editor.scrollPercentage, state.preview.syncScrollEnabled, state.preview.lastSyncSource])
+    // 估算当前编辑器顶部对应的行号（浮点数，包含行内偏移比例）
+    const currentLineFloat = scrollPercentage * (totalLines - 1)
+    const currentLine = Math.floor(currentLineFloat)
+    const lineFraction = currentLineFloat - currentLine
+
+    // 寻找预览中对应的 data-line 元素
+    const elements = Array.from(previewFrame.querySelectorAll('[data-line]')) as HTMLElement[]
+    if (elements.length === 0) return
+
+    let startEl: HTMLElement | null = null
+    let endEl: HTMLElement | null = null
+
+    // 寻找包围当前行号的两个元素
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i]
+      const line = parseInt(el.getAttribute('data-line') || '0', 10)
+
+      if (line <= currentLine) {
+        startEl = el
+      }
+      if (line > currentLine) {
+        endEl = el
+        break
+      }
+    }
+
+    if (startEl) {
+      const startTop = startEl.offsetTop
+      let targetScrollTop = startTop
+
+      if (endEl) {
+        // 如果有下一个锚点，进行线性插值
+        const endTop = endEl.offsetTop
+        const startLine = parseInt(startEl.getAttribute('data-line') || '0', 10)
+        const endLine = parseInt(endEl.getAttribute('data-line') || '0', 10)
+
+        // 计算当前行在两个锚点行之间的比例
+        const lineRange = endLine - startLine
+        const localFraction = lineRange > 0 ? (currentLineFloat - startLine) / lineRange : 0
+
+        targetScrollTop = startTop + (endTop - startTop) * localFraction
+      }
+
+      // 立即滚动，不使用 smooth，以提高“跟手”感
+      previewFrame.scrollTop = targetScrollTop - 20
+    } else {
+      // 降级使用百分比同步
+      const maxScroll = previewFrame.scrollHeight - previewFrame.clientHeight
+      previewFrame.scrollTop = maxScroll * scrollPercentage
+    }
+  }, [state.editor.scrollPercentage, state.editor.totalLines, state.preview.syncScrollEnabled, state.preview.lastSyncSource])
 
   // 更新光标位置指示器
   useEffect(() => {

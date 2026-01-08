@@ -223,7 +223,7 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
           }
         })
         syncTimeoutId = null
-      }, 50) // 50ms 节流
+      }, 16) // 16ms 节流 (约 60fps)
     }
 
     // 监听滚动事件
@@ -317,12 +317,7 @@ export const Editor = memo(function Editor({ currentDocumentId }: EditorProps) {
     state.assets.fixedAssets
   ])
 
-  // 更新预览HTML（仅在需要时）
-  useEffect(() => {
-    if (previewData?.html) {
-      dispatch({ type: 'SET_PREVIEW_HTML', payload: previewData.html })
-    }
-  }, [previewData, dispatch])
+  // 移除这里的 SET_PREVIEW_HTML，统一在 Preview.tsx 中处理，避免竞态和循环更新
 
   // 插入Markdown语法辅助函数
   const insertMarkdown = useCallback((syntax: string, placeholder = '') => {

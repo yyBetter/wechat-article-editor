@@ -22,7 +22,58 @@ export class TemplateEngine {
 
   // 配置Markdown渲染器
   private setupMarkedRenderer() {
-    // 配置marked选项
+    // 使用 marked 扩展 API 代替简单的 renderer 覆盖
+    // 这样可以在渲染时访问到 token 的属性
+    marked.use({
+      extensions: [{
+        name: 'heading',
+        level: 'block',
+        renderer(token: any) {
+          const line = token.line || 0;
+          return `<h${token.depth} data-line="${line}">${this.parser.parseInline(token.tokens || [])}</h${token.depth}>`;
+        }
+      }, {
+        name: 'paragraph',
+        level: 'block',
+        renderer(token: any) {
+          const line = token.line || 0;
+          return `<p data-line="${line}">${this.parser.parseInline(token.tokens || [])}</p>`;
+        }
+      }, {
+        name: 'blockquote',
+        level: 'block',
+        renderer(token: any) {
+          const line = token.line || 0;
+          const body = this.parser.parse(token.tokens || []);
+          return `<blockquote data-line="${line}">${body}</blockquote>`;
+        }
+      }, {
+        name: 'list',
+        level: 'block',
+        renderer(token: any) {
+          const line = token.line || 0;
+          const body = this.parser.parse(token.items || []);
+          const tag = token.ordered ? 'ol' : 'ul';
+          return `<${tag} data-line="${line}">${body}</${tag}>`;
+        }
+      }, {
+        name: 'listitem',
+        level: 'block',
+        renderer(token: any) {
+          const line = token.line || 0;
+          const body = this.parser.parse(token.tokens || []);
+          return `<li data-line="${line}">${body}</li>`;
+        }
+      }, {
+        name: 'code',
+        level: 'block',
+        renderer(token: any) {
+          const line = token.line || 0;
+          return `<pre data-line="${line}"><code class="language-${token.lang || ''}">${token.text}</code></pre>`;
+        }
+      }]
+    })
+
     marked.setOptions({
       breaks: true,
       gfm: true
@@ -37,10 +88,50 @@ export class TemplateEngine {
     }
 
     try {
-      const html = marked.parse(content) as string
-      const sanitized = DOMPurify.sanitize(html)
+      // 预先计算每行文本在全文中的起始位置，以便快速查找行号
+      const lines = content.split('\n');
+      const lineStartIndices: number[] = [0];
+      for (let i = 0; i < lines.length; i++) {
+        lineStartIndices.push(lineStartIndices[i] + lines[i].length + 1);
+      }
 
-      // 缓存结果（限制缓存大小避免内存泄露）
+      // 使用 marked.lexer 获取 tokens 并注入行号
+      const tokens = marked.lexer(content);
+
+      // 递归为所有 token 及其子 token 注入行号
+      const injectLine = (token: any, currentOffset: number) => {
+        // 找到该 offset 对应的行号
+        let line = 0;
+        while (line < lineStartIndices.length - 1 && lineStartIndices[line + 1] <= currentOffset) {
+          line++;
+        }
+        token.line = line;
+
+        // 如果有子 tokens，递归注入
+        if (token.tokens) {
+          let subOffset = currentOffset;
+          token.tokens.forEach((subToken: any) => {
+            // 注意：某些子 token 可能没有 raw 属性或偏移不对，这里简化处理
+            // 对于块级元素，通常主 token 的 line 已经足够
+            injectLine(subToken, subOffset);
+            subOffset += subToken.raw?.length || 0;
+          });
+        }
+      };
+
+      let offset = 0;
+      tokens.forEach(token => {
+        injectLine(token, offset);
+        offset += token.raw.length;
+      });
+
+      // 使用自定义渲染器渲染 tokens
+      const html = marked.parser(tokens);
+      const sanitized = DOMPurify.sanitize(html, {
+        ADD_ATTR: ['data-line'] // 允许 data-line 属性
+      })
+
+      // 缓存结果
       if (this.markdownCache.size > 100) {
         this.markdownCache.clear()
       }
