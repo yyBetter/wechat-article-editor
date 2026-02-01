@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useApp } from '../utils/app-context'
 import { Editor } from '../components/Editor'
 import { Preview } from '../components/Preview'
+import { TemplateGallery } from '../components/TemplateGallery'
 import '../App.css'
 import '../styles/sidebar.css'
 import '../styles/settings.css'
@@ -54,6 +55,7 @@ export function EditorPage() {
             <div className="app-main">
                 {/* 编辑器区域 */}
                 <div className="editor-section">
+                    <TemplateGallery />
                     <Editor currentDocumentId={null} />
                 </div>
 
