@@ -3,6 +3,7 @@ import { useApp } from '../utils/app-context'
 import { Editor } from '../components/Editor'
 import { Preview } from '../components/Preview'
 import { TemplateGallery } from '../components/TemplateGallery'
+import { CoverGenerator } from '../components/CoverGenerator'
 import '../App.css'
 import '../styles/sidebar.css'
 import '../styles/settings.css'
@@ -79,6 +80,9 @@ export function EditorPage() {
                     <span className="version-info">v2.0.0 Pure</span>
                 </div>
             </footer>
+
+            {/* 封面生成器 */}
+            <CoverGenerator />
         </div>
     )
 }
