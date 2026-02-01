@@ -5,9 +5,11 @@ import { kuaidaoTemplate } from './kuaidao'
 import { blueprintReportTemplate } from './report-grid'
 import { electricNeoTemplate } from './electric-neo'
 import { liquidGlassTemplate } from './liquid-glass'
+import { viralTemplate } from './viral-standard'
 
 // 所有可用模板
 export const templates: Template[] = [
+  viralTemplate,  // 爆款标准 - 默认首位
   simpleDocTemplate,
   kuaidaoTemplate,
   blueprintReportTemplate,
@@ -50,6 +52,14 @@ export function recommendTemplate(contentAnalysis: {
 
 // 模板预设配置
 export const templatePresets = {
+  'viral-standard': {
+    name: '爆款标准',
+    icon: '🔥',
+    description: '10万+阅读黄金参数，极致阅读体验，3秒完成排版',
+    scenarios: ['爆款文章', '干货教程', '观点评论', '产品推荐'],
+    isNew: true,
+    highlight: '对标竞品9.9元工具核心功能'
+  },
   'simple-doc': {
     name: '简约文档',
     icon: '📝',
